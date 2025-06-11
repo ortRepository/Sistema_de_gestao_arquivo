@@ -35,7 +35,7 @@ linka/
 
 ```bash
 cd school-file-management-system
-# git clone -b front-en-feature https://github.com/OrlandoMartinho/school-file-management-system.git
+# git clone -b front-end-feature https://github.com/ortRepository/Sistema_de_gestao_arquivo/
 ```
 
 ```bash
