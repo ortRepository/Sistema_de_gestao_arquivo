@@ -1,0 +1,78 @@
+/* No seu arquivo global.css */
+.embla__dots {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+  }
+  
+  .embla__dot {
+    margin: 0 4px;
+    cursor: pointer;
+    border: none;
+  }
+
+  .box_shadow{
+    box-shadow: 15px 15px 0px 0  #ffffff;
+  }
+  .box_shadow1{
+    box-shadow: 15px -14px 0 #ffffff;
+  }
+  .box_shadow0{
+    box-shadow: 15px 15px 0px 0  #1e2939;
+  }
+  .box_shadow01{
+    box-shadow: 15px -14px 0 #1e2939;
+  }
+
+
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0) translateX(0);
+    }
+    25% {
+      transform: translateY(-20px) translateX(10px);
+    }
+    50% {
+      transform: translateY(10px) translateX(-10px);
+    }
+    75% {
+      transform: translateY(-10px) translateX(5px);
+    }
+  }
+  
+  @keyframes wave {
+    0% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(-30px);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes pulse-scale {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.5;
+    }
+  }
+  
+  .animate-float {
+    animation: float 12s ease-in-out infinite;
+  }
+  
+  .animate-wave {
+    animation: wave 8s ease-in-out infinite;
+  }
+  
+  .animate-pulse-scale {
+    animation: pulse-scale 2s ease-in-out infinite;
+  }
