@@ -62,7 +62,7 @@ function App() {
                 <Route element={<ProtectedRoutes />}>
                   <Route path="admin/*" element={<DynamicRouterAdmin />} />
                   <Route
-                    path="admEmployee/*"
+                    path="admin-employee/*"
                     element={<DynamicRouterAdmEmployee />}
                   />
                   <Route path="teacher/*" element={<DynamicRouterTeacher />} />

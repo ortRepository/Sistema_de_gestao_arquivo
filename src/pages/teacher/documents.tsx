@@ -214,7 +214,7 @@ export default function AcademicDocuments() {
 
   return (
     <div className="flex h-full">
-      <div className="flex-1 p-8 bg-gray-50 dark:bg-gray-800">
+      <div className="flex-1 p-8  dark:bg-gray-800">
         <SearchFilterBar
           title="Documentos acadêmicos"
           searchTerm={searchTerm}

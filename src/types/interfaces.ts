@@ -1,4 +1,3 @@
-
 //----------------------------- response ---------------------------------
 export interface responseapi {
   code: number;
@@ -6,9 +5,6 @@ export interface responseapi {
   data: string;
 }
 //----------------------------- View Budget ---------------------------------
-
-
-
 
 export interface User {
   id: number;
@@ -86,7 +82,6 @@ export interface DeleteDepartmentDto {
   idDepartment: number;
 }
 
-
 //-------------------------Entities------------------------
 
 export interface BudgetManager {
@@ -123,12 +118,9 @@ export interface Notification {
   createdIn: string;
 }
 
-
-
-
 export interface CommentCost {
   idCommentsCost: number;
-  pastEntityName: string;    // note que no GET vem “pastEntityName” no lugar de “currentEntityName”
+  pastEntityName: string; // note que no GET vem “pastEntityName” no lugar de “currentEntityName”
   approval: boolean;
   comment: string;
   id_cost: number;
@@ -155,4 +147,108 @@ export interface DocumentItem {
   id: number;
   title: string;
 }
+//-------------------------Student------------------------
+export interface Student {
+  id: number;
+  name: string;
+  biNumber: string;
+  room: string;
+  classGroup: string;
+  course: string;
+  birthDate: string;
+  photo: string;
+}
+export interface ModalStudentProps {
+  isOpen: boolean;
+  onClose: () => void;
+  student: Student | null;
+  onSave: (student: Student) => void;
+}
 
+//-------------------------ClassData ------------------------
+export interface ClassData {
+  id: number;
+  turma: string;
+  diretorDeTurma: string;
+  sala: number;
+}
+export interface OptionClass {
+  value: string;
+  label: string;
+}
+export interface ModalManageClassProps {
+  isOpen: boolean;
+  onClose: () => void;
+  classData: ClassData | null;
+  onSave: (cls: ClassData) => void;
+}
+//-------------------------Course ------------------------
+export interface OptionCourse {
+  value: string;
+  label: string;
+}
+export interface CourseData {
+  id: number;
+  nome: string;
+}
+
+export interface ModalManageCourseProps {
+  isOpen: boolean;
+  onClose: () => void;
+  course: CourseData | null;
+  onSave: (course: CourseData) => void;
+}
+
+//-------------------------Room ------------------------
+export interface Room {
+  id: number;
+  sala: number;
+}
+
+export interface ModalManageRoomProps {
+  isOpen: boolean;
+  onClose: () => void;
+  room: Room | null;
+  onSave: (room: Room) => void;
+}
+//-------------------------Subject ------------------------
+export interface Subject {
+  id: number;
+  name: string;
+  course: string;
+}
+
+export interface SubjectModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  subjectData: Subject | null;
+  onSave: (subject: Subject) => void;
+}
+//-------------------------Teacher------------------------
+
+export interface Subject {
+  id: number;
+  name: string;
+  course: string;
+}
+
+export interface Teacher {
+  id: number;
+  name: string;
+  email: string;
+  gender: "Masculino" | "Feminino" | "Outro";
+  phoneNumber: string;
+  createdIn: string;
+  licenseExpirationDate: string;
+  subjects: Subject[];
+  role: "Professor" | "Coordenador";
+  curso: string; 
+}
+
+export interface ModalRegisterTeacherProps {
+  isOpen: boolean;
+  onClose: () => void;
+  teacherData: Teacher | null;
+  onSave: (teacher: Teacher) => void;
+  subjects: Subject[];
+}

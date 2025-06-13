@@ -142,7 +142,7 @@ export const SecuritySection = () => {
       <div className="md:p-6 p-2 rounded-xl  dark:bg-gray-900  space-y-6">
         {/* Cabeçalho */}
         <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
-          <ShieldCheck className="w-8 h-8 text-[#E1B927]" />
+          <ShieldCheck className="w-8 h-8 text-[#4D6BFE]" />
           <h2 className="text-2xl font-medium">Segurança da Conta</h2>
         </div>
         {/* Campo: Senha Atual */}
@@ -230,7 +230,7 @@ export const SecuritySection = () => {
       <div className="md:p-6 p-2 rounded-xl bg-gray-50 dark:bg-gray-800  space-y-4">
         <div className="flex flex-col md:flex-row items-center justify-between">
           <div className="flex items-center gap-3">
-            <Lock className="w-6 h-6 text-[#E1B927]" />
+            <Lock className="w-6 h-6 text-[#4D6BFE]" />
             <div>
               <h3 className="font-medium">Autenticação em Dois Fatores</h3>
               <p className="text-sm text-gray-600">
@@ -238,7 +238,7 @@ export const SecuritySection = () => {
               </p>
             </div>
           </div>
-          <button className="px-4 py-2 bg-[#E1B927]/10 text-[#E1B927] rounded-lg hover:bg-[#E1B927]/20 transition-colors">
+          <button className="px-4 py-2 bg-[#4D6BFE]/10 text-[#4D6BFE] rounded-lg hover:bg-[#4D6BFE]/20 transition-colors">
             Ativar
           </button>
         </div>

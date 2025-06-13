@@ -71,11 +71,6 @@ export const confirmationCodeSchema = z.object({
     .regex(/^\d+$/, "O código deve conter apenas números"),
 });
 
-
-
-
-
-
 // Campos Individuais Reutilizáveis
 export const fields = {
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -103,7 +98,6 @@ export const directionSchema = z.object({
   description: z.string().min(1, "Descrição é obrigatória"),
 });
 
-
 // Zod schema for form validation
 export const departmentSchema = z.object({
   name: z
@@ -121,10 +115,59 @@ export const departmentSchema = z.object({
   idSection: z.number(),
 });
 
-
 // Em src/types/type.ts
 export const sendDocumentSchema = z.object({
   role: z.enum(["admin", "secretary"], { required_error: "Campo obrigatório" }),
   recipientId: z.string().min(1, "Selecione um destinatário"),
   message: z.string().min(6, "Digite ao menos 6 caracteres"),
+});
+
+export const studentSchema = z.object({
+  name: z.string().min(1, "Nome completo é obrigatório"),
+  biNumber: z.string().min(1, "Número do BI é obrigatório"),
+  room: z.string().min(1, "Sala é obrigatória"),
+  classGroup: z.string().min(1, "Turma é obrigatória"),
+  course: z.string().min(1, "Curso é obrigatório"),
+  birthDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Data de nascimento inválida",
+  }),
+});
+// Zod schema for teacher validation
+export const teacherSchema = z.object({
+  name: z.string().trim().min(1, "Nome é obrigatório"),
+  email: z.string().email("Email inválido").min(1, "Email é obrigatório"),
+  gender: z.enum(["Masculino", "Feminino", "Outro"], {
+    errorMap: () => ({ message: "Gênero é obrigatório" }),
+  }),
+  phoneNumber: z
+    .string()
+    .trim()
+    .min(1, "Número de telefone é obrigatório")
+    .regex(/^\+?\d{9,15}$/, "Número de telefone inválido"),
+  subjects: z.array(z.number()).min(1, "Selecione pelo menos uma disciplina"),
+  role: z.enum(["Professor", "Coordenador"], {
+    errorMap: () => ({ message: "Função é obrigatória" }),
+  }),
+  curso: z.string().trim().min(1, "Curso é obrigatório"),
+});
+// Zod schema for form validation
+export const classSchema = z.object({
+  turma: z.string().trim().min(1, "Turma é obrigatória"),
+  diretorDeTurma: z.string().trim().min(1, "Diretor de turma é obrigatório"),
+  sala: z
+    .number({ invalid_type_error: "Sala deve ser um número" })
+    .positive("Sala deve ser um número positivo")
+    .int("Sala deve ser um número inteiro"),
+});
+
+// Zod schema for subject validation
+export const subjectSchema = z.object({
+  name: z.string().trim().min(1, "Nome da disciplina é obrigatório"),
+  course: z.string().trim().min(1, "Curso é obrigatório"),
+});
+
+// Zod Schema for Room validation
+export const roomSchema = z.object({
+  id: z.number(),
+  sala: z.number().min(1, "Número da sala deve ser maior que 0"),
 });

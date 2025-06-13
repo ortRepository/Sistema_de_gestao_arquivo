@@ -205,7 +205,7 @@ export const NotificationsSection = () => {
             className="p-6 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <div className="flex flex-col sm:flex-row items-center gap-4">
-              <div className="p-3 bg-[#E1B927]/10 rounded-lg">{item.icon}</div>
+              <div className="p-3 bg-[#4D6BFE]/10 rounded-lg">{item.icon}</div>
               <div className="flex-1">
                 <h3 className="text-lg font-bold">{item.type}</h3>
                 <p className="text-gray-600 dark:text-gray-400">
@@ -214,7 +214,7 @@ export const NotificationsSection = () => {
               </div>
               <div
                 className={`ml-auto w-12 h-6 rounded-full p-1 ${
-                  item.enabled ? "bg-[#E1B927]" : "bg-gray-300"
+                  item.enabled ? "bg-[#4D6BFE]" : "bg-gray-300"
                 }`}
               >
                 <div
@@ -230,13 +230,13 @@ export const NotificationsSection = () => {
 
       <div className="flex justify-center items-center">
         <div className="relative w-56 h-56 sm:w-64 sm:h-64">
-          <div className="absolute inset-0 bg-[#E1B927]/10 rounded-full blur-3xl" />
+          <div className="absolute inset-0 bg-[#4D6BFE]/10 rounded-full blur-3xl" />
           <div className="relative p-4 sm:p-8 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl">
-            <Bell className="w-12 h-12 text-[#E1B927] mx-auto mb-4" />
+            <Bell className="w-12 h-12 text-[#4D6BFE] mx-auto mb-4" />
             <div className="space-y-2 text-center">
               <div className="h-2 w-full bg-gray-200 rounded-full" />
               <div className="h-2 w-3/4 bg-gray-200 rounded-full mx-auto" />
-              <div className="h-4 bg-[#E1B927] rounded-full mt-4 w-3/4 mx-auto" />
+              <div className="h-4 bg-[#4D6BFE] rounded-full mt-4 w-3/4 mx-auto" />
             </div>
           </div>
         </div>

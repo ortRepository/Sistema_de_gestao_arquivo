@@ -6,6 +6,13 @@ import {
   Menu,
   FileText,
   UserCog,
+  Layers,
+  BookOpen,
+  MapPin,
+  User,
+  Users,
+  ClipboardList,
+  GitCompareIcon,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "@/assets/logo/logo.svg";
@@ -14,7 +21,7 @@ import "@/style/style.css";
 import React from "react";
 
 type SidebarProps = {
-  role: "teacher" | "admin" | "admemployee";
+  role: "teacher" | "admin" | "admin-employee";
   availableRoutes?: string[];
 };
 
@@ -31,17 +38,47 @@ const Sidebar = ({ role, availableRoutes }: SidebarProps) => {
 
   let menuItems: MenuItem[] = [];
 
-  if (role === "admemployee") {
+  if (role === "admin-employee") {
     menuItems = [
       {
         name: "Gerir Documento",
         icon: <FileText size={22} />,
-        path: "/admemployee/document-management",
+        path: "/admin-employee/document-management",
+      },
+      {
+        name: "Gerir Aluno",
+        icon: <User size={22} />,
+        path: "/admin-employee/register-student",
+      },
+      {
+        name: "Gerir Professor",
+        icon: <Users size={22} />,
+        path: "/admin-employee/register-teacher",
+      },
+       {
+        name: "Gerir Turma",
+        icon: <ClipboardList size={22} />,
+        path: "/admin-employee/manage-class",
+      },
+      {
+        name: "Gerir Sala",
+        icon: <GitCompareIcon size={22} />,
+        path: "/admin-employee/manage-room",
+      },
+      {
+        name: "Gerir Disciplina",
+        icon: <BookOpen size={22} />,
+        path: "/admin-employee/manage-subject",
+      },
+      {
+        name: "Gerir Curso",
+        icon: <Layers size={22} />, // layers icon
+        path: "/admin-employee/manage-course",
       },
       {
         name: "Configurações",
-        icon: <Settings size={22} />,
-        path: "/admemployee/settings",
+        icon: <Settings size={22} />, // settings icon
+        path: "/admin-employee/settings",
       },
     ];
   }

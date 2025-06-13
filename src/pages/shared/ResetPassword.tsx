@@ -8,7 +8,7 @@ import { resetPasswordSchema } from "@/types/type";
 import SliderComponent from "@/components/SliderComponent";
 import { useReceiveCode } from "@/hooks/DynamicApiHooks";
 import { getCache, setCache } from "@/lib/Cache";
-import image from "../../assets/image/Subtração 10.png";
+import image from "../../assets/image/img-1.png";
 export function ResetPasswordScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

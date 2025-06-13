@@ -48,7 +48,7 @@ export default function LoginScreen() {
               route = "/teacher/documents";
               break;
             case 12345:
-              route = "/admEmployee/document-management";
+              route = "/admin-employee/document-management";
               break;
 
             default:

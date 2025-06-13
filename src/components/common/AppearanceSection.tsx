@@ -4,7 +4,7 @@ import { useTheme } from "@/contexts/ThemeProvider";
 export const ThemeIllustration = ({ dark = false }: { dark?: boolean }) => (
   <div className={`p-4 rounded-2xl ${dark ? "bg-gray-900" : "bg-gray-100"}`}>
     <div className="flex gap-2 mb-4">
-      <div className="w-4 h-4 rounded-full bg-[#E1B927]" />
+      <div className="w-4 h-4 rounded-full bg-[#4D6BFE]" />
       <div className="w-4 h-4 rounded-full bg-gray-600" />
       <div className="w-4 h-4 rounded-full bg-gray-400" />
     </div>
@@ -31,7 +31,7 @@ export const AppearanceSection = () => {
             onClick={() => darkMode && toggleDarkMode()}
             className={`cursor-pointer p-4 rounded-xl transition-all ${
               !darkMode
-                ? "ring-4 ring-[#E1B927] bg-white shadow-xl"
+                ? "ring-4 ring-[#4D6BFE] bg-white shadow-xl"
                 : "bg-gray-800 hover:bg-gray-700"
             }`}
           >
@@ -49,7 +49,7 @@ export const AppearanceSection = () => {
             onClick={() => !darkMode && toggleDarkMode()}
             className={`cursor-pointer p-4 rounded-xl transition-all ${
               darkMode
-                ? "ring-4 ring-[#E1B927] bg-gray-900 shadow-xl"
+                ? "ring-4 ring-[#4D6BFE] bg-gray-900 shadow-xl"
                 : "bg-gray-100 hover:bg-gray-200"
             }`}
           >
@@ -69,7 +69,7 @@ export const AppearanceSection = () => {
             Cor de Destaque
           </h4>
           <div className="flex flex-wrap gap-4">
-            {["#E1B927", "#4F46E5", "#10B981", "#EF4444"].map((color) => (
+            {["#4D6BFE", "#4F46E5", "#10B981", "#EF4444"].map((color) => (
               <button
                 key={color}
                 style={{ backgroundColor: color }}
@@ -82,17 +82,17 @@ export const AppearanceSection = () => {
       {/* Preview do Tema */}
       <div className="flex justify-center">
         <div className="relative w-48 h-48 sm:w-64 sm:h-64">
-          <div className="absolute inset-0 bg-[#E1B927]/10 rounded-full blur-3xl" />
+          <div className="absolute inset-0 bg-[#4D6BFE]/10 rounded-full blur-3xl" />
           <div className="relative p-4 sm:p-8 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
             <div className="flex gap-2 mb-4">
-              <div className="w-4 h-4 rounded-full bg-[#E1B927]" />
+              <div className="w-4 h-4 rounded-full bg-[#4D6BFE]" />
               <div className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600" />
               <div className="w-4 h-4 rounded-full bg-gray-400 dark:bg-gray-500" />
             </div>
             <div className="space-y-2">
               <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full" />
               <div className="h-2 w-3/4 bg-gray-200 dark:bg-gray-700 rounded-full" />
-              <div className="h-8 bg-[#E1B927] rounded-lg mt-4" />
+              <div className="h-8 bg-[#4D6BFE] rounded-lg mt-4" />
             </div>
           </div>
         </div>

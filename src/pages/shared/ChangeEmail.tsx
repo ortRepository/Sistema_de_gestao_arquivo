@@ -7,7 +7,7 @@ import { loginSchema } from "@/types/type";
 import { clearCache, setCache } from "@/lib/Cache";
 import logo from "../../assets/logo/logo_login.svg";
 import SliderComponent from "@/components/SliderComponent";
-import image from "../../assets/image/Subtração 10.png";
+import image from "../../assets/image/img-2.png";
 export function ChangeEmailScreen() {
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState({ email: "" });

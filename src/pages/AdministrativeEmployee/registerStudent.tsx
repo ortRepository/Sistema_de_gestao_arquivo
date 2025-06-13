@@ -1,0 +1,298 @@
+import { useState, useMemo } from "react";
+import SearchFilterBar from "@/components/common/SearchBar";
+import { Pencil, Trash2, Plus } from "lucide-react"; // Removed Upload since it's not used yet
+import DeletePublicationModal from "@/components/common/DeletePublicationModal";
+import ComponetButton from "@/components/common/button";
+import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
+import ModalStudent from "@/components/modals/modalEmployee/ModalStudent";
+import { Student } from "@/types/interfaces";
+
+const staticStudents: Student[] = [
+  {
+    id: 1,
+    name: "João Pedro",
+    biNumber: "123456",
+    room: "3",
+    classGroup: "C",
+    course: "Informática",
+    birthDate: "12/06/2003",
+    photo: "https://via.placeholder.com/50",
+  },
+  {
+    id: 2,
+    name: "João Pedro",
+    biNumber: "123457",
+    room: "3",
+    classGroup: "C",
+    course: "Informática",
+    birthDate: "12/06/2003",
+    photo: "https://via.placeholder.com/50",
+  },
+  {
+    id: 3,
+    name: "João Pedro",
+    biNumber: "123458",
+    room: "3",
+    classGroup: "C",
+    course: "Informática",
+    birthDate: "12/06/2003",
+    photo: "https://via.placeholder.com/50",
+  },
+  {
+    id: 4,
+    name: "João Pedro",
+    biNumber: "123459",
+    room: "3",
+    classGroup: "C",
+    course: "Informática",
+    birthDate: "12/06/2003",
+    photo: "https://via.placeholder.com/50",
+  },
+  {
+    id: 5,
+    name: "João Pedro",
+    biNumber: "123460",
+    room: "3",
+    classGroup: "C",
+    course: "Informática",
+    birthDate: "12/06/2003",
+    photo: "https://via.placeholder.com/50",
+  },
+  {
+    id: 6,
+    name: "João Pedro",
+    biNumber: "123461",
+    room: "3",
+    classGroup: "C",
+    course: "Informática",
+    birthDate: "12/06/2003",
+    photo: "https://via.placeholder.com/50",
+  },
+  {
+    id: 7,
+    name: "João Pedro",
+    biNumber: "123462",
+    room: "3",
+    classGroup: "C",
+    course: "Informática",
+    birthDate: "12/06/2003",
+    photo: "https://via.placeholder.com/50",
+  },
+  {
+    id: 8,
+    name: "João Pedro",
+    biNumber: "123463",
+    room: "3",
+    classGroup: "C",
+    course: "Informática",
+    birthDate: "12/06/2003",
+    photo: "https://via.placeholder.com/50",
+  },
+];
+
+export default function PageRegisterStudent() {
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [filterType, setFilterType] = useState<string>("");
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [confirmStudentId, setConfirmStudentId] = useState<number | null>(null);
+
+  const filterOptions = [
+    { value: "", label: "Todos" },
+    { value: "id", label: "Id" },
+    { value: "name", label: "Nome" },
+    { value: "biNumber", label: "Número do BI" },
+    { value: "room", label: "Sala" },
+    { value: "classGroup", label: "Turma" },
+    { value: "course", label: "Curso" },
+    { value: "birthDate", label: "Data de Nascimento" },
+  ];
+
+  const filtered = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    return staticStudents.filter((student) => {
+      switch (filterType) {
+        case "id":
+          return student.id.toString().includes(term);
+        case "name":
+          return student.name.toLowerCase().includes(term);
+        case "biNumber":
+          return student.biNumber.toLowerCase().includes(term);
+        case "room":
+          return student.room.toLowerCase().includes(term);
+        case "classGroup":
+          return student.classGroup.toLowerCase().includes(term);
+        case "course":
+          return student.course.toLowerCase().includes(term);
+        case "birthDate":
+          return student.birthDate.toLowerCase().includes(term);
+        default:
+          return (
+            student.id.toString().includes(term) ||
+            student.name.toLowerCase().includes(term) ||
+            student.biNumber.toLowerCase().includes(term) ||
+            student.room.toLowerCase().includes(term) ||
+            student.classGroup.toLowerCase().includes(term) ||
+            student.course.toLowerCase().includes(term) ||
+            student.birthDate.toLowerCase().includes(term)
+          );
+      }
+    });
+  }, [staticStudents, searchTerm, filterType]);
+
+  const openCreate = () => {
+    setSelectedStudent(null);
+    setIsModalOpen(true);
+  };
+
+  const openEdit = (student: Student) => {
+    setSelectedStudent(student);
+    setIsModalOpen(true);
+  };
+
+  const openConfirm = (id: number) => setConfirmStudentId(id);
+
+  const closeConfirm = () => setConfirmStudentId(null);
+
+  const handleDelete = () => {
+    if (confirmStudentId !== null) {
+      setConfirmStudentId(null); // Simulate deletion from static data
+    }
+  };
+
+  const handleSave = (student: Student) => {
+    // Placeholder for save logic
+    console.log("Student saved:", student);
+  };
+
+  return (
+    <div className="p-6 w-full h-full dark:bg-gray-800 mb-16 md:mb-0 dark:text-white text-gray-800">
+      <SearchFilterBar
+        title="Cadastrar alunos"
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        filterType={filterType}
+        setFilterType={setFilterType}
+        filterOptions={filterOptions}
+        isFilterOpen={isFilterOpen}
+        toggleFilterDropdown={() => setIsFilterOpen((o) => !o)}
+        closeFilterDropdown={() => setIsFilterOpen(false)}
+      />
+
+      <div className="md:flex md:justify-end mb-4">
+        <ComponetButton
+          variant="primary"
+          className="flex items-center gap-2"
+          onClick={openCreate}
+        >
+          <Plus size={16} /> Cadastrar
+        </ComponetButton>
+      </div>
+      <div className="bg-white dark:bg-gray-900 px-3 md:px-0 rounded-lg shadow overflow-auto w-60 md:w-99 min-w-full md:h-[55vh] h-auto">
+        <DataStatusHandler isLoading={false} error={null} onRetry={() => {}}>
+          <table className="w-full text-left text-xs md:text-sm border-collapse">
+            <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
+              <tr>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Foto</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">
+                  Nome Completo
+                </th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">
+                  Número do BI
+                </th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Sala</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Turma</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Curso</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">
+                  Data de Nascimento
+                </th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length > 0 ? (
+                filtered.map((student: Student) => (
+                  <tr
+                    key={student.id}
+                    className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
+                  >
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {student.id}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      <img
+                        src={student.photo}
+                        alt={`${student.name}'s photo`}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {student.name}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {student.biNumber}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {student.room}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {student.classGroup}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {student.course}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {student.birthDate}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap flex gap-2">
+                      <button
+                        onClick={() => openEdit(student)}
+                        className="p-2 cursor-pointer bg-green-50 hover:bg-green-100 rounded"
+                      >
+                        <Pencil size={16} className="text-green-600" />
+                      </button>
+                      <button
+                        onClick={() => openConfirm(student.id)}
+                        className="p-2 cursor-pointer bg-red-50 hover:bg-red-100 rounded"
+                      >
+                        <Trash2 size={16} className="text-red-600" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={9}
+                    className="py-6 px-4 text-center text-gray-500"
+                  >
+                    Nenhum aluno encontrado.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </DataStatusHandler>
+      </div>
+
+      <ModalStudent
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        student={selectedStudent} // Changed from direction to student
+        onSave={handleSave}
+      />
+
+      <DeletePublicationModal
+        isOpen={confirmStudentId !== null}
+        onClose={closeConfirm}
+        onConfirm={handleDelete}
+        title="Excluir aluno"
+        message="Tem certeza que deseja excluir este aluno?"
+        confirmText="Excluir"
+        cancelText="Cancelar"
+      />
+    </div>
+  );
+}
