@@ -19,10 +19,10 @@ const ComponetButton: React.FC<ButtonProps> = ({
   let variantClasses = "";
   if (variant === "outline") {
     variantClasses =
-      "border border-[#404040] text-[#404040] hover:border-[#181A20] hover:text-[#181A20] focus:bg-[#404040] focus:text-white";
+      "border border-[#4D6BFE] text-[#4D6BFE] hover:border-[#465dd1] hover:text-[#465dd1] focus:bg-[#4D6BFE] focus:text-white";
   } else if (variant === "primary") {
     variantClasses =
-      "bg-[#404040] text-white hover:bg-[#181A20] focus:ring-2 focus:ring-[#404040]";
+      "bg-[#4D6BFE] text-white hover:bg-[#465dd1] focus:ring-2 focus:ring-[#4D6BFE]";
   } else if (variant === "secondary") {
     variantClasses =
       "bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-2 focus:ring-gray-300";

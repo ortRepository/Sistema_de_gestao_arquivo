@@ -63,16 +63,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) getCache("isAuthenticated");
   }, [isAuthenticated, user]);
 
-  // useEffect(() => {
-  //   const checkToken = () => {
-  //     const token = getCache("token");
-  //     if (token) {
-  //       localStorage.setItem("hasSeenWelcome", "true");
-  //     }
-  //   };
-  //   checkToken();
-  // }, []);
-
   useEffect(() => {
     const interval = setInterval(() => {
       const storedAuth = getCache("isAuthenticated");
@@ -94,12 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<User> => {
     try {
-      const data: AuthResponse = await authenticate({ email, password });
+      // const data: AuthResponse = await authenticate({ email, password });
 
-      setCache("token", data.accessToken);
+      // setCache("token", data.accessToken);
       const userData: User = {
-        role: data.userRole,
-        accessToken: data.accessToken,
+        role: "type",
+        accessToken: "d",
       };
       setIsAuthenticated(true);
       setUser(userData);
@@ -108,22 +98,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw error;
     }
   };
-
-  // // Função para buscar os dados do usuário usando o endpoint "/users"
-  // const getUserDetails = async (): Promise<User> => {
-  //   try {
-  //     const data = await apiRequest<UserResponse>(
-  //       endpoints.users.getAll.path,
-  //       "GET"
-  //     );
-  //     console.log(data)
-  //     if (!data.result) throw new Error("Usuário não encontrado" + data.result);
-  //     setUser(data);
-  //     return data.result;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // };
 
   const logout = () => {
     clearCache();
@@ -140,7 +114,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         updateLastPath,
-        // getUserDetails,
       }}
     >
       {children}

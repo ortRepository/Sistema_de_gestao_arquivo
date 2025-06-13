@@ -49,11 +49,11 @@ export function SearchableSelect({
       ...base,
       backgroundColor: isDarkMode ? "#1f2937" : "#fff",
       borderColor: error ? "#f87171" : "#d1d5db",
-      boxShadow: state.isFocused ? "0 0 0 1px #E1B927" : undefined,
+      boxShadow: state.isFocused ? "0 0 0 1px #4D6BFE" : undefined,
       padding: "0.375rem",
       borderRadius: "0.375rem",
       "&:hover": {
-        borderColor: "#E1B927",
+        borderColor: "#4D6BFE",
       },
     }),
     menu: (base: any) => ({
@@ -72,7 +72,7 @@ export function SearchableSelect({
     option: (base: any, state: any) => ({
       ...base,
       backgroundColor: state.isFocused
-        ? "#E1B927"
+        ? "#4D6BFE"
         : isDarkMode
         ? "#1f2937"
         : "#fff",
@@ -88,7 +88,9 @@ export function SearchableSelect({
   return (
     <div className="mb-4">
       {label && (
-        <label className={`block mb-2 ${isDarkMode ? "text-white" : "text-black"}`}>
+        <label
+          className={`block mb-2 ${isDarkMode ? "text-white" : "text-black"}`}
+        >
           {label}
         </label>
       )}

@@ -4,10 +4,8 @@ import {
   Bell,
   Lock,
   Paintbrush,
-  Globe,
   Trash2,
   AlertTriangle,
-  MapPin,
   BookOpen,
 } from "lucide-react";
 import ProfileSection from "@/components/common/ProfileSection";
@@ -16,9 +14,7 @@ import { AppearanceSection } from "@/components/common/AppearanceSection";
 import { NotificationsSection } from "@/components/common/Notification";
 import ComponetButton from "@/components/common/button";
 import { useDeleteUser, useGetUser } from "@/hooks/DynamicApiHooks";
-import LanguageSection from "@/components/common/LanguageSection";
 import { useAuth } from "@/contexts/AuthContext";
-import LocationSettings from "@/components/common/LocationSettings";
 import { Entities } from "@/types/interfaces";
 
 interface DeleteAccountSectionProps {
@@ -158,7 +154,7 @@ function SystemGuideSection() {
 
       <div className="space-y-4 p-6 bg-gray-50 border border-gray-100 rounded-xl dark:bg-gray-800 dark:border-gray-700">
         <div className="flex gap-3">
-          <BookOpen className="w-6 h-6 text-[#E1B927] flex-shrink-0 mt-1 dark:text-[#F59E0B]" />
+          <BookOpen className="w-6 h-6 text-[#4D6BFE] flex-shrink-0 mt-1 dark:text-[#F59E0B]" />
           <div className="space-y-3">
             <p className="font-semibold text-lg text-gray-800 dark:text-gray-200">
               Baixe o Guia do Sistema
@@ -174,7 +170,7 @@ function SystemGuideSection() {
             >
               <ComponetButton
                 variant="primary"
-                className="bg-[#E1B927] text-white hover:bg-[#F59E0B] transition-all duration-300 flex items-center gap-2 dark:bg-[#F59E0B] dark:hover:bg-[#E1B927]"
+                className="bg-[#4D6BFE] text-white hover:bg-[#F59E0B] transition-all duration-300 flex items-center gap-2 dark:bg-[#F59E0B] dark:hover:bg-[#4D6BFE]"
               >
                 Baixar Guia (PDF)
               </ComponetButton>
@@ -216,8 +212,6 @@ export default function Settings() {
     { id: "security", icon: <Lock size={24} />, label: "Segurança" },
     { id: "appearance", icon: <Paintbrush size={24} />, label: "Aparência" },
     { id: "notifications", icon: <Bell size={24} />, label: "Notificações" },
-    { id: "locations", icon: <MapPin size={24} />, label: "Localização" },
-    { id: "language", icon: <Globe size={24} />, label: "Idioma" },
     { id: "guide", icon: <BookOpen size={24} />, label: "Guia do Sistema" },
     ...(userData?.role !== "ADMIN" && activeMenu !== "delete"
       ? [{ id: "delete", icon: <Trash2 size={24} />, label: "Excluir Conta" }]
@@ -228,15 +222,15 @@ export default function Settings() {
     <div className="w-full h-full dark:bg-gray-800 mb-16 md:mb-0 dark:text-white text-gray-800">
       <div className="max-w-9xl mx-auto grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 md:p-8 p-4">
         {/* Side Navigation */}
-        <div className="space-y-2 bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-lg md:h-[60vh] overflow-y-auto">
+        <div className="space-y-2 bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-lg md:h-[50vh] overflow-y-auto">
           {menuItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveMenu(item.id)}
               className={`w-full flex items-center gap-3 cursor-pointer p-3 rounded-lg transition-all duration-300 ${
                 activeMenu === item.id
-                  ? "bg-[#E1B927]/40 text-[#E1B927] font-semibold border-l-4 border-[#E1B927]"
-                  : "text-gray-800 dark:text-gray-200 hover:bg-[#E1B927]/20 dark:hover:bg-gray-700"
+                  ? "bg-[#4D6BFE]/40 text-[#4D6BFE] font-semibold border-l-4 border-[#4D6BFE]"
+                  : "text-gray-800 dark:text-gray-200 hover:bg-[#4D6BFE]/20 dark:hover:bg-gray-700"
               }`}
             >
               <span className="transition-transform duration-300 hover:scale-110">
@@ -253,8 +247,6 @@ export default function Settings() {
           {activeMenu === "security" && <SecuritySection />}
           {activeMenu === "appearance" && <AppearanceSection />}
           {activeMenu === "notifications" && <NotificationsSection />}
-          {activeMenu === "locations" && <LocationSettings />}
-          {activeMenu === "language" && <LanguageSection userData={userData} />}
           {activeMenu === "guide" && <SystemGuideSection />}
           {activeMenu === "delete" && (
             <DeleteAccountSection userData={userData} />

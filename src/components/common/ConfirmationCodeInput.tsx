@@ -56,7 +56,7 @@ export function ConfirmationCodeInput({
               ${
                 error
                   ? "border-red-500 focus:ring-red-200"
-                  : "focus:border-[#E1B927] focus:ring-[#E1B927]"
+                  : "focus:border-[#4D6BFE] focus:ring-[#4D6BFE]"
               }
               ${digit && !error ? "border-green-500" : "border-gray-300"}
               shadow-sm

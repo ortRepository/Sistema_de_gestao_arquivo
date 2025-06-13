@@ -11,9 +11,8 @@ import {
   useListNotifications,
   useReadNotification,
   useDeleteNotification,
-  useListBudgetManagers,
 } from "@/hooks/DynamicApiHooks";
-import { Notification, BudgetManager } from "@/types/interfaces";
+import { Notification } from "@/types/interfaces";
 
 type LocalNotification = {
   id: number;
@@ -30,7 +29,7 @@ const TopBar = () => {
   const { logout } = useAuth();
   const { data: userData } = useGetUser();
   const { data: apiNotificationsData = [] } = useListNotifications(); // Default to empty array
-  const { data: budgetManagersData = [] } = useListBudgetManagers(); // Default to empty array
+
   const { mutateAsync: readNotification } = useReadNotification();
   const { mutateAsync: deleteNotification } = useDeleteNotification();
 
@@ -46,29 +45,11 @@ const TopBar = () => {
 
   const settingsRoute = location.pathname.includes("admin")
     ? "/admin/settings"
-    : location.pathname.includes("master")
-    ? "/master/settings"
-    : location.pathname.includes("reviewer")
-    ? "/reviewer/settings"
-    : location.pathname.includes("approver")
-    ? "/approver/settings"
-    : "/planner/settings";
-
-  // Helper to check if license is expiring soon or expired
-  const isLicenseManageable = (expirationDate: string | undefined): boolean => {
-    if (!expirationDate) return false;
-    try {
-      const today = new Date();
-      const expiration = new Date(expirationDate);
-      if (isNaN(expiration.getTime())) return false;
-
-      const timeDiff = expiration.getTime() - today.getTime();
-      const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
-      return daysDiff <= 10; 
-    } catch {
-      return false;
-    }
-  };
+    : location.pathname.includes("teacher")
+    ? "/teacher/settings"
+    : location.pathname.includes("admEmployee")
+    ? "/admEmployee/settings"
+    : "/not-found";
 
   useEffect(() => {
     const converted: LocalNotification[] = [];
@@ -93,42 +74,8 @@ const TopBar = () => {
       );
     }
 
-    // Add license expiration notifications
-    if (Array.isArray(budgetManagersData)) {
-      budgetManagersData.forEach((manager: BudgetManager, index: number) => {
-        if (isLicenseManageable(manager.licenseExpirationDate)) {
-          const date = new Date();
-          const isExpired = manager.licenseExpirationDate
-            ? new Date(manager.licenseExpirationDate) < date
-            : false;
-          converted.push({
-            id: -(index + 1), // Negative IDs for license notifications
-            text: `Licença de ${manager.name || "Desconhecido"} ${
-              isExpired ? "expirou" : "expirará"
-            } em ${
-              manager.licenseExpirationDate
-                ? new Date(manager.licenseExpirationDate).toLocaleDateString(
-                    "pt-BR"
-                  )
-                : "N/A"
-            }`,
-            time: date.toLocaleString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            timestamp: date.getTime(),
-            unread: true,
-            isLicense: true,
-          });
-        }
-      });
-    }
-
     setNotifications(converted);
-  }, [apiNotificationsData, budgetManagersData]);
+  }, []);
 
   // Mark notifications as read when modal opens
   useEffect(() => {

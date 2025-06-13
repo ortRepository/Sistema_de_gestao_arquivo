@@ -4,20 +4,13 @@ import Sidebar from "@/components/common/Sidebar";
 import TopBar from "@/components/common/TopBar";
 import Settings from "@/pages/shared/Settings";
 import NotFoundScreen from "@/pages/shared/NotFound";
-import ChangBudget from "@/pages/planner/budget";
+import PageDocuments from "@/pages/teacher/documents";
 
-const DynamicRouterReviewer: React.FC = () => {
-  const location = useLocation(); // Obtém a URL atual
+const DynamicRouterTeacher: React.FC = () => {
+  const location = useLocation();
 
-  // Lista das rotas válidas dentro de /approver/
-  const validRoutes = [
-    "/reviewer/budget-map",
-    "/reviewer/budget-history",
-    "/reviewer/settings",
-    "/reviewer/mail",
-  ];
+  const validRoutes = ["/teacher/documents", "/teacher/settings"];
 
-  // Se a rota não estiver na lista, renderiza apenas o NotFoundScreen
   if (!validRoutes.includes(location.pathname)) {
     return <NotFoundScreen />;
   }
@@ -25,14 +18,15 @@ const DynamicRouterReviewer: React.FC = () => {
   return (
     <div className="flex h-screen dark:bg-gray-800">
       {/* Sidebar fixo */}
-      <Sidebar role="reviewer" />
+      <Sidebar role="teacher" />
+
       {/* Área de conteúdo com TopBar */}
       <div className="flex-1 flex flex-col">
         <TopBar />
+        {/* Conteúdo com rolagem */}
         <div className="flex-1 overflow-y-auto">
           <Routes>
-            <Route path="budget-map" element={<ChangBudget />} />
-            <Route path="budget-history" element={<ChangBudget />} />
+            <Route path="documents" element={<PageDocuments />} />
             <Route path="settings" element={<Settings />} />
           </Routes>
         </div>
@@ -41,4 +35,4 @@ const DynamicRouterReviewer: React.FC = () => {
   );
 };
 
-export default DynamicRouterReviewer;
+export default DynamicRouterTeacher;

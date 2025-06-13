@@ -33,7 +33,11 @@ const ComponentInput: React.FC<FormInputProps> = ({
 
   // Define o valor padrão do autocomplete se não for informado:
   const defaultAutoComplete =
-    type === "password" ? "current-password" : type === "email" ? "email" : "on";
+    type === "password"
+      ? "current-password"
+      : type === "email"
+      ? "email"
+      : "on";
 
   // Botão de toggle para senha, que muda de cor conforme o foco do container
   const renderPasswordToggle = () => {
@@ -43,7 +47,7 @@ const ComponentInput: React.FC<FormInputProps> = ({
         type="button"
         onClick={() => setShowPassword((prev) => !prev)}
         className={`p-2 focus:outline-none ${
-          isFocused ? "text-[#E1B927]" : "text-gray-500"
+          isFocused ? "text-[#4D6BFE]" : "text-gray-500"
         }`}
       >
         {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
@@ -52,7 +56,7 @@ const ComponentInput: React.FC<FormInputProps> = ({
   };
 
   // Classes do container que recebe o foco do input (usando focus-within)
-  const containerClasses = `flex items-center w-full border border-gray-300 focus-within:border-none rounded focus-within:outline-none focus-within:ring-1 focus-within:ring-[#E1B927]
+  const containerClasses = `flex items-center w-full border border-gray-300 focus-within:border-none rounded focus-within:outline-none focus-within:ring-1 focus-within:ring-[#4D6BFE]
     ${error ? "border-red-500" : ""}
     `;
 
@@ -69,7 +73,9 @@ const ComponentInput: React.FC<FormInputProps> = ({
         >
           {Icon && (
             <span className="pl-3">
-              <Icon className={isFocused ? "text-[#E1B927]" : "text-gray-500"} />
+              <Icon
+                className={isFocused ? "text-[#4D6BFE]" : "text-gray-500"}
+              />
             </span>
           )}
           <input
@@ -104,7 +110,7 @@ const ComponentInput: React.FC<FormInputProps> = ({
           onBlur={() => setIsFocused(false)}
         >
           <span className="pl-3">
-            <Icon className={isFocused ? "text-[#E1B927]" : "text-gray-500"} />
+            <Icon className={isFocused ? "text-[#4D6BFE]" : "text-gray-500"} />
           </span>
           <input
             id={name}
@@ -139,7 +145,7 @@ const ComponentInput: React.FC<FormInputProps> = ({
         required={required}
         autoComplete={autoComplete || defaultAutoComplete}
         placeholder={placeholder}
-        className={`w-full border border-gray-300 p-3 rounded focus:outline-none focus:ring-1 focus:ring-[#E1B927] ${
+        className={`w-full border border-gray-300 p-3 rounded focus:outline-none focus:ring-1 focus:ring-[#4D6BFE] ${
           error ? "border-red-500" : ""
         }`}
       />

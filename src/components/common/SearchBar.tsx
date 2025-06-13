@@ -48,7 +48,7 @@ function SearchFilterBar<T extends string = string>({
             placeholder="Pesquisar..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 focus:border-none rounded focus:outline-none focus:ring-1 focus:ring-[#E1B927]"
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 focus:border-none rounded focus:outline-none focus:ring-1 focus:ring-[#4D6BFE]"
           />
         </div>
 
@@ -56,7 +56,7 @@ function SearchFilterBar<T extends string = string>({
         <div className="relative md:w-auto w-full">
           <button
             onClick={toggleFilterDropdown}
-            className="flex items-center md:w-auto w-full justify-between md:justify-start gap-2 px-4 cursor-pointer py-3 bg-[#E1B927] text-white rounded hover:bg-[#F0B90B] transition-colors"
+            className="flex items-center md:w-auto w-full justify-between md:justify-start gap-2 px-4 cursor-pointer py-3 bg-[#4D6BFE] text-white rounded hover:bg-[#465dd1] transition-colors"
           >
             <div className="flex justify-center items-center space-x-2">
               <ListFilter className="w-4 h-4" />
@@ -88,9 +88,9 @@ function SearchFilterBar<T extends string = string>({
                   className="flex items-center w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
                   <div className="mr-3 flex items-center justify-center">
-                    <div className="h-4 w-4 border-2 border-[#E1B927] rounded-full flex items-center justify-center">
+                    <div className="h-4 w-4 border-2 border-[#4D6BFE] rounded-full flex items-center justify-center">
                       {filterType === option.value && (
-                        <div className="bg-[#E1B927] w-2 h-2 rounded-full" />
+                        <div className="bg-[#4D6BFE] w-2 h-2 rounded-full" />
                       )}
                     </div>
                   </div>
@@ -112,7 +112,7 @@ function SearchFilterBar<T extends string = string>({
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="md:w-auto w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#E1B927]"
+            className="md:w-auto w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#4D6BFE]"
           >
             {yearOptions.map((option) => (
               <option

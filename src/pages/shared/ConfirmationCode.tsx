@@ -11,7 +11,7 @@ import { getCache } from "@/lib/Cache";
 
 import { useReceiveCode, useRecoverPassworde } from "@/hooks/DynamicApiHooks";
 import Modal from "@/components/ui/ModalResponse";
-import image from "../../assets/image/Grupo 1047.png";
+import image from "../../assets/image/Subtração 10.png";
 export function ConfirmationCodeScreen() {
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +69,7 @@ export function ConfirmationCodeScreen() {
     try {
       // const userData = await getCache("Change_Email_Register");
       const passwordData = await getCache("Change_Email_Resert_Password");
-      
+
       // if (userData) {
       //   const storedData = await getCache("FormDados");
 
@@ -173,6 +173,7 @@ export function ConfirmationCodeScreen() {
 
   return (
     <div className="flex min-h-screen">
+      <SliderComponent img={image} />
       <div className="w-full lg:w-1/2 flex items-center relative justify-center px-4 md:px-8">
         <div className="px-4 md:px-8 w-full">
           <div className="flex justify-center my-8">
@@ -182,7 +183,7 @@ export function ConfirmationCodeScreen() {
           <h2 className="text-2xl mb-2">Código de Confirmação</h2>
           <p className="mb-6">
             Enviamos um código para seu email. Verifique seu{" "}
-            <span className="text-[#E1B927]">
+            <span className="text-[#4D6BFE]">
               {truncateText(userEmail, 20, "end")}
             </span>
           </p>
@@ -219,7 +220,7 @@ export function ConfirmationCodeScreen() {
             <div>
               <a href="#" className="transition-colors" onClick={handleBack}>
                 Voltar para página{" "}
-                <span className="text-[#E1B927]">anterior</span>
+                <span className="text-[#4D6BFE]">anterior</span>
               </a>
             </div>
             <div className="mb-3 md:mb-0">
@@ -230,7 +231,7 @@ export function ConfirmationCodeScreen() {
               ) : (
                 <a
                   href="#"
-                  className="hover:text-[#E1B927]"
+                  className="hover:text-[#4D6BFE]"
                   onClick={handleResend}
                 >
                   Reenviar código
@@ -240,7 +241,7 @@ export function ConfirmationCodeScreen() {
           </div>
         </div>
       </div>
-      <SliderComponent img={image} />
+
       {/* Modal de sucesso */}
       {modalVisible && (
         <Modal

@@ -2,76 +2,19 @@ export const pageTitles: Record<
   string,
   { title: string; description: string }
 > = {
-  // planner routes
-  "/planner/budget-map": {
-    title: "Mapa orçamentário",
-    description:
-      "Organize e registre as despesas planejadas por categoria e atividade.",
+  // teacher routes
+  "/teacher/documents": {
+    title: "Documentos",
+    description: "Gerencie e acesse seus documentos acadêmicos.",
   },
-  "/planner/statistic": {
-    title: "Visualizar Estátisca",
-    description: "Confira os gráficos e relatórios detalhados de desempenho.",
-  },
-  "/planner/budget-history": {
-    title: "Histórico de Orçamentos",
-    description: "Veja o histórico completo de orçamentos criados e revisados.",
-  },
-  "/planner/mail": {
-    title: "Correio",
-    description: "Gerencie suas mensagens e comunicações internas.",
-  },
-  "/planner/settings": {
+
+  "/teacher/settings": {
     title: "Configurações",
     description: "Ajuste suas preferências e dados da conta.",
   },
 
-  //Approver routes
-  "/approver/budget-map": {
-    title: "Mapa orçamentário",
-    description:
-      "Organize e registre as despesas planejadas por categoria e atividade.",
-  },
-
-  "/approver/budget-history": {
-    title: "Histórico de Orçamentos",
-    description: "Veja o histórico completo de orçamentos criados e revisados.",
-  },
-  "/approver/settings": {
-    title: "Configurações",
-    description: "Ajuste suas preferências e dados da conta.",
-  },
-
-  //Master routes
-  "/master/budget-map": {
-    title: "Mapa orçamentário",
-    description:
-      "Organize e registre as despesas planejadas por categoria e atividade.",
-  },
-  "/master/review-budget": {
-    title: "Revisão de Orçamentos",
-    description: "Veja o histórico completo de orçamentos criados e revisados.",
-  },
-  "/master/view-graph": {
-    title: "Visualizar Gráfico",
-    description: "Confira os gráficos e relatórios detalhados de desempenho.",
-  },
-  "/master/settings": {
-    title: "Configurações",
-    description: "Ajuste suas preferências e dados da conta.",
-  },
-
-  //Reviewer routes
-  "/reviewer/budget-map": {
-    title: "Mapa orçamentário",
-    description:
-      "Organize e registre as despesas planejadas por categoria e atividade.",
-  },
-
-  "/reviewer/budget-history": {
-    title: "Histórico de Orçamentos",
-    description: "Veja o histórico completo de orçamentos criados e revisados.",
-  },
-  "/reviewer/settings": {
+  //admEmployee routes
+  "/admEmployee/settings": {
     title: "Configurações",
     description: "Ajuste suas preferências e dados da conta.",
   },
@@ -81,30 +24,16 @@ export const pageTitles: Record<
     title: "Estatística",
     description: "Visão geral dos indicadores e métricas da plataforma.",
   },
-  // "/admin/directions": {
-  //   title: "Gerir Direções",
-  //   description: "Administre as direções cadastradas na plataforma.",
-  // },
-  // "/admin/sections": {
-  //   title: "Gerir Seções",
-  //   description: "Gerencie todas as seções e eventos programados.",
-  // },
+
   "/admin/cost-center-management": {
     title: "Gerir Centros de Custo",
     description: "Gerencie todos os centros de custo e orçamentos.",
   },
-  // "/admin/departments": {
-  //   title: "Gerir Departamentos",
-  //   description: "Controle os departamentos e suas atribuições.",
-  // },
-  // "/admin/entities": {
-  //   title: "Gerir Entidades",
-  //   description: "Mantenha as entidades registradas atualizadas.",
-  // },
+
   "/admin/organizational-structure": {
-  title: "Estrutura Organizacional",
-  description: "Gerencie direções, seções, departamentos e entidades.",
-},
+    title: "Estrutura Organizacional",
+    description: "Gerencie direções, seções, departamentos e entidades.",
+  },
   "/admin/manage-account": {
     title: "Gerir Conta",
     description: "Administre contas de utilizador e permissões do sistema.",

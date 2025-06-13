@@ -1,4 +1,4 @@
-import ViewAnalysis from "../planner/ViewAnalytics";
+import ViewAnalysis from "../teacher/ViewAnalytics";
 
 export default function ViewGraph() {
   return (

@@ -1,6 +1,6 @@
 // src/pages/shared/Login.tsx
 import { useState, useEffect } from "react";
-import { Lock,  Mail, AlertTriangle } from "lucide-react";
+import { Lock, Mail, AlertTriangle } from "lucide-react";
 import ComponentInput from "@/components/common/FormInput";
 import ComponetButton from "@/components/common/button";
 import logo from "../../assets/logo/Logo.png";
@@ -35,26 +35,22 @@ export default function LoginScreen() {
         setLoginError("");
         setIsLoading(false);
         const userData = await login(email, password);
-  
+
         let route = "";
         //user
-        if (userData) {
-          switch (userData.role) {
-            case "admin":
+        console.log(password);
+        if (password) {
+          switch (Number(password)) {
+            case 123:
               route = "/admin/statistics";
               break;
-            case "user_master":
-              route = "/master/budget-map";
+            case 1234:
+              route = "/teacher/documents";
               break;
-            case "approver":
-              route = "/approver/budget-map";
+            case 12345:
+              route = "/admEmployee/document-management";
               break;
-            case "reviewer":
-              route = "/reviewer/budget-map";
-              break;
-            case "planner":
-              route = "/planner/budget-map";
-              break;
+
             default:
               route = "/not-found";
           }
@@ -97,6 +93,7 @@ export default function LoginScreen() {
       >
         <ArrowLeft size={24} />
       </button> */}
+      <SliderComponent img={image} />
       <div className="w-full lg:w-1/2 flex items-center relative justify-center overflow-y-auto h-auto px-4 md:px-8">
         <div className="px-4 md:px-8 w-full">
           <div className="flex justify-center my-4">
@@ -145,7 +142,7 @@ export default function LoginScreen() {
 
           <div className="my-6 flex justify-end">
             <Link to="/recover-password/change-email" className="">
-              Esqueci minha <span className="text-[#E1B927]">senha?</span>
+              Esqueci minha <span className="text-[#4D6BFE]">senha?</span>
             </Link>
           </div>
 
@@ -160,12 +157,11 @@ export default function LoginScreen() {
 
           {/* <div className="my-6 flex justify-start">
             <Link to="/register" className="transition-colors truncate">
-              Cadastre-se <span className="text-[#E1B927]">agora</span>
+              Cadastre-se <span className="text-[#4D6BFE]">agora</span>
             </Link>
           </div> */}
         </div>
       </div>
-      <SliderComponent img={image} />
     </div>
   );
 }

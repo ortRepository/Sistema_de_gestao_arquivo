@@ -21,7 +21,7 @@ const ComponentSelect: React.FC<ComponentSelectProps> = ({
 }) => {
   const [, setIsFocused] = useState(false);
 
-  const containerClasses = `w-full dark:bg-gray-800 border border-gray-300 rounded p-3 focus-within:outline-none focus-within:ring-1 focus-within:ring-[#E1B927] ${
+  const containerClasses = `w-full dark:bg-gray-800 border border-gray-300 rounded p-3 focus-within:outline-none focus-within:ring-1 focus-within:ring-[#4D6BFE] ${
     error ? "border-red-500" : ""
   }`;
 

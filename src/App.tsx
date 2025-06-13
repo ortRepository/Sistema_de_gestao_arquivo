@@ -14,7 +14,7 @@ import { PublicRoute } from "./contexts/PublicRouteProps";
 import LoginScreen from "./pages/shared/Login";
 import SettingsScreen from "./pages/shared/Settings";
 // import RegisterScreen from "./pages/shared/Register";
-import { WelcomeScreen } from "./pages/shared/Welcome";
+
 import NotFoundScreen from "./pages/shared/NotFound";
 
 // Layout e rotas dinâmicas
@@ -25,11 +25,9 @@ import { ConfirmationCodeScreen } from "./pages/shared/ConfirmationCode";
 import { ThemeProvider } from "./contexts/ThemeProvider";
 
 import { LocationProvider } from "./contexts/LocationContext";
-import DynamicRouterUser from "./routes/DynamicRouterUser";
 import DynamicRouterAdmin from "./routes/DynamicRouterAdmin";
-import DynamicRouterApprover from "./routes/DynamicRouterApprover";
-import DynamicRouterReviewer from "./routes/DynamicRouterReviewer";
-import DynamicRouterMaster from "./routes/DynamicRouterMaster";
+import DynamicRouterAdmEmployee from "./routes/DynamicRouterAdmEmployee";
+import DynamicRouterTeacher from "./routes/DynamicRouterTeacher";
 
 // Configurar o Query Client
 const queryClient = new QueryClient();
@@ -64,18 +62,11 @@ function App() {
                 <Route element={<ProtectedRoutes />}>
                   <Route path="admin/*" element={<DynamicRouterAdmin />} />
                   <Route
-                    path="approver/*"
-                    element={<DynamicRouterApprover />}
+                    path="admEmployee/*"
+                    element={<DynamicRouterAdmEmployee />}
                   />
-                  <Route
-                    path="reviewer/*"
-                    element={<DynamicRouterReviewer />}
-                  />
-                  <Route path="master/*" element={<DynamicRouterMaster />} />
-                  <Route path="welcome" element={<WelcomeScreen />} />
+                  <Route path="teacher/*" element={<DynamicRouterTeacher />} />
                   <Route path="/settings" element={<SettingsScreen />} />
-                  <Route path="/welcome" element={<WelcomeScreen />} />
-                  <Route path="planner/*" element={<DynamicRouterUser />} />
                 </Route>
                 <Route path="*" element={<NotFoundScreen />} />
               </Routes>

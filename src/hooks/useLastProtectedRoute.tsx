@@ -6,7 +6,7 @@ export function useLastProtectedRoute() {
   const location = useLocation();
 
   useEffect(() => {
-    const publicRoutes = ["/login", "/register", "/confirmation-code", "/recover-password"];
+    const publicRoutes = ["/login", "/confirmation-code", "/recover-password"];
     if (!publicRoutes.includes(location.pathname)) {
       localStorage.setItem("lastPath", location.pathname);
     }

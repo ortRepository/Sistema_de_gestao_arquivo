@@ -34,7 +34,7 @@ const ComponentextArea: React.FC<FormTextAreaProps> = ({
         required={required}
         rows={rows}
         placeholder={placeholder}
-        className={`w-full border border-gray-300 p-3 focus-within:border-none rounded focus:outline-none focus:ring-1 focus:ring-[#E1B927]  ${
+        className={`w-full border border-gray-300 p-3 focus-within:border-none rounded focus:outline-none focus:ring-1 focus:ring-[#4D6BFE]  ${
           error ? "border-red-500" : ""
         }`}
       />

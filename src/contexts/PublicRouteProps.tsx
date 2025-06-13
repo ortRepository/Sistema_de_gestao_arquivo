@@ -10,7 +10,7 @@ export function PublicRoute() {
     return <Outlet />;
   }
 
-  const lastPath = localStorage.getItem("lastPath") || "/planner/budget-map";
+  const lastPath = localStorage.getItem("lastPath") || "/teacher/documents";
   return isAuthenticated ? (
     <Navigate to={lastPath} replace state={{ from: location }} />
   ) : (

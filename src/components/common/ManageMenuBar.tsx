@@ -34,7 +34,7 @@ const ManageMenuBar: React.FC<TabMenuProps> = ({
                 <span
                   className={`flex items-center gap-2 text-lg font-medium transition-colors ${
                     selectedTab === key
-                      ? "text-[#FF9E01] dark:text-[#FFB347]"
+                      ? "text-[#4D6BFE] dark:text-[#465dd1]"
                       : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                   }`}
                 >
@@ -42,7 +42,7 @@ const ManageMenuBar: React.FC<TabMenuProps> = ({
                   {label}
                 </span>
                 {selectedTab === key && (
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#FF9E01] dark:bg-[#FFB347] animate-slide-in" />
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#4D6BFE] dark:bg-[#465dd1] animate-slide-in" />
                 )}
               </button>
             ))}

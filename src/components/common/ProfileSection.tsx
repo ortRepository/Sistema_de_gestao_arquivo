@@ -335,7 +335,7 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
             <label className="block text-sm font-medium text-gray-700 dark:text-white">
               Nome Completo
             </label>
-            <div className="flex items-center gap-3 p-3 rounded border border-gray-200 focus-within:border-[#E1B927]">
+            <div className="flex items-center gap-3 p-3 rounded border border-gray-200 focus-within:border-[#4D6BFE]">
               <User className="text-gray-400" />
               <input
                 type="text"
@@ -348,28 +348,12 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
             </div>
           </div>
 
-          {/* Campo para Localização com LocationSelect */}
-          <div className="space-y-4 my-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-white">
-              Localização
-            </label>
-            <LocationSelect
-              value={String(updateData.location)}
-              onChange={(value) => {
-                setUpdateData((prev) => ({
-                  ...prev,
-                  location: value,
-                }));
-              }}
-            />
-          </div>
-
           {/* Campo para E-mail e verificação */}
           <div className="space-y-3 my-4">
             <label className="block text-sm font-medium text-gray-700 dark:text-white">
               Endereço de E-mail
             </label>
-            <div className="flex flex-col md:w-auto w-full md:flex-row items-center gap-2 p-2 rounded border border-gray-200 focus-within:border-[#E1B927]">
+            <div className="flex flex-col md:w-auto w-full md:flex-row items-center gap-2 p-2 rounded border border-gray-200 focus-within:border-[#4D6BFE]">
               <Mail className="text-gray-400" />
               <input
                 placeholder={userData?.email || String(userData?.email)}
@@ -392,7 +376,7 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
                   <button
                     onClick={sendVerificationCode}
                     disabled={loading.email || resendCountdown > 0}
-                    className="ml-auto px-4 py-2 bg-[#E1B927] text-white rounded cursor-pointer hover:bg-[#FF8E00] disabled:opacity-50"
+                    className="ml-auto px-4 py-2 bg-[#4D6BFE] text-white rounded cursor-pointer hover:bg-[#FF8E00] disabled:opacity-50"
                   >
                     {loading.email ? (
                       <Loader2 className="animate-spin" />
@@ -419,7 +403,7 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
               <label className="text-gray-700 dark:text-white text-sm w-32">
                 Senha Atual:
               </label>
-              <div className="flex flex-col md:flex-row items-center gap-2 p-2 rounded border border-gray-200 focus-within:border-[#E1B927] mt-4">
+              <div className="flex flex-col md:flex-row items-center gap-2 p-2 rounded border border-gray-200 focus-within:border-[#4D6BFE] mt-4">
                 <input
                   type="password"
                   value={emailEdit.password}
@@ -442,7 +426,7 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
 
           {/* Verificação de Código */}
           {emailEdit.step === 2 && (
-            <div className="space-y-4 mt-4 pl-4 border-l-4 border-[#E1B927]">
+            <div className="space-y-4 mt-4 pl-4 border-l-4 border-[#4D6BFE]">
               <div className="flex flex-col md:flex-row items-center gap-3">
                 <input
                   type="text"
@@ -458,13 +442,13 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
                   className={`flex-1 p-2 border-b-2 outline-none ${
                     codeError
                       ? "border-red-500"
-                      : "border-gray-200 focus:border-[#E1B927]"
+                      : "border-gray-200 focus:border-[#4D6BFE]"
                   }`}
                 />
                 <button
                   onClick={verifyCode}
                   disabled={loading.code || emailEdit.code.length !== 4}
-                  className="px-4 py-2 bg-[#E1B927] text-white rounded cursor-pointer hover:bg-[#FF8E00] disabled:opacity-50"
+                  className="px-4 py-2 bg-[#4D6BFE] text-white rounded cursor-pointer hover:bg-[#FF8E00] disabled:opacity-50"
                 >
                   {loading.code ? (
                     <Loader2 className="animate-spin" />

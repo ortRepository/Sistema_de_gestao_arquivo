@@ -8,7 +8,7 @@ import { resetPasswordSchema } from "@/types/type";
 import SliderComponent from "@/components/SliderComponent";
 import { useReceiveCode } from "@/hooks/DynamicApiHooks";
 import { getCache, setCache } from "@/lib/Cache";
-import image from "../../assets/image/Grupo 919.png";
+import image from "../../assets/image/Subtração 10.png";
 export function ResetPasswordScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -87,6 +87,7 @@ export function ResetPasswordScreen() {
 
   return (
     <div className="flex min-h-screen">
+      <SliderComponent img={image} />
       <div className="w-full lg:w-1/2 flex items-center relative justify-center px-4 md:px-8">
         <div className="px-4 md:px-8 w-full">
           <div className="flex justify-center my-4">
@@ -144,12 +145,11 @@ export function ResetPasswordScreen() {
               className="transition-colors"
             >
               Voltar para página{" "}
-              <span className="text-[#E1B927]">anterior</span>
+              <span className="text-[#4D6BFE]">anterior</span>
             </Link>
           </div>
         </div>
       </div>
-      <SliderComponent img={image} />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { loginSchema } from "@/types/type";
 import { clearCache, setCache } from "@/lib/Cache";
 import logo from "../../assets/logo/logo_login.svg";
 import SliderComponent from "@/components/SliderComponent";
-import image from "../../assets/image/Grupo 421.png";
+import image from "../../assets/image/Subtração 10.png";
 export function ChangeEmailScreen() {
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState({ email: "" });
@@ -42,7 +42,7 @@ export function ChangeEmailScreen() {
 
   return (
     <div className="flex min-h-screen">
-
+      <SliderComponent img={image} />
       <div className="w-full lg:w-1/2 flex items-center relative justify-center px-4 md:px-8">
         <div className="px-4 md:px-8 w-full">
           <div className="flex justify-center my-4">
@@ -78,12 +78,11 @@ export function ChangeEmailScreen() {
           </ComponetButton>
           <div className="my-6 flex justify-start">
             <Link to="/login" className="transition-colors truncate">
-              Voltar para <span className="text-[#FF9E01]">Login</span>
+              Voltar para <span className="text-[#4D6BFE]">Login</span>
             </Link>
           </div>
         </div>
       </div>
-      <SliderComponent img={image} />
     </div>
   );
 }
