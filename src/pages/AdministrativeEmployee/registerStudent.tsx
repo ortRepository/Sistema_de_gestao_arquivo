@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import SearchFilterBar from "@/components/common/SearchBar";
-import { Pencil, Trash2, Plus } from "lucide-react"; // Removed Upload since it's not used yet
+import { Pencil, Trash2, Plus, User } from "lucide-react"; // Removed Upload since it's not used yet
 import DeletePublicationModal from "@/components/common/DeletePublicationModal";
 import ComponetButton from "@/components/common/button";
 import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
@@ -16,7 +16,7 @@ const staticStudents: Student[] = [
     classGroup: "C",
     course: "Informática",
     birthDate: "12/06/2003",
-    photo: "https://via.placeholder.com/50",
+    photo: "",
   },
   {
     id: 2,
@@ -26,7 +26,7 @@ const staticStudents: Student[] = [
     classGroup: "C",
     course: "Informática",
     birthDate: "12/06/2003",
-    photo: "https://via.placeholder.com/50",
+    photo: "",
   },
   {
     id: 3,
@@ -36,7 +36,7 @@ const staticStudents: Student[] = [
     classGroup: "C",
     course: "Informática",
     birthDate: "12/06/2003",
-    photo: "https://via.placeholder.com/50",
+    photo: "",
   },
   {
     id: 4,
@@ -46,7 +46,7 @@ const staticStudents: Student[] = [
     classGroup: "C",
     course: "Informática",
     birthDate: "12/06/2003",
-    photo: "https://via.placeholder.com/50",
+    photo: "",
   },
   {
     id: 5,
@@ -56,7 +56,7 @@ const staticStudents: Student[] = [
     classGroup: "C",
     course: "Informática",
     birthDate: "12/06/2003",
-    photo: "https://via.placeholder.com/50",
+    photo: "",
   },
   {
     id: 6,
@@ -66,7 +66,7 @@ const staticStudents: Student[] = [
     classGroup: "C",
     course: "Informática",
     birthDate: "12/06/2003",
-    photo: "https://via.placeholder.com/50",
+    photo: "",
   },
   {
     id: 7,
@@ -76,7 +76,7 @@ const staticStudents: Student[] = [
     classGroup: "C",
     course: "Informática",
     birthDate: "12/06/2003",
-    photo: "https://via.placeholder.com/50",
+    photo: "",
   },
   {
     id: 8,
@@ -86,7 +86,7 @@ const staticStudents: Student[] = [
     classGroup: "C",
     course: "Informática",
     birthDate: "12/06/2003",
-    photo: "https://via.placeholder.com/50",
+    photo: "",
   },
 ];
 
@@ -222,11 +222,17 @@ export default function PageRegisterStudent() {
                       {student.id}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      <img
-                        src={student.photo}
-                        alt={`${student.name}'s photo`}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
+                      {student.photo ? (
+                        <img
+                          src={student.photo}
+                          alt={student.name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          <User size={20} className="text-gray-400" />
+                        </div>
+                      )}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
                       {student.name}

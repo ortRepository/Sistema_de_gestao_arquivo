@@ -243,6 +243,7 @@ export interface Teacher {
   subjects: Subject[];
   role: "Professor" | "Coordenador";
   curso: string; 
+  photo:string; 
 }
 
 export interface ModalRegisterTeacherProps {

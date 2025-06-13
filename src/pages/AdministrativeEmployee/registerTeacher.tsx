@@ -1,11 +1,10 @@
 import { useState, useMemo } from "react";
 import SearchFilterBar from "@/components/common/SearchBar";
-import { Pencil, Trash2, Plus, Eye, RefreshCw } from "lucide-react";
+import { Pencil, Trash2, Plus, Eye, RefreshCw, User } from "lucide-react";
 import DeletePublicationModal from "@/components/common/DeletePublicationModal";
 import ComponetButton from "@/components/common/button";
 import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
 import { truncateText } from "@/lib/utils";
-
 import { Teacher, Subject } from "@/types/interfaces";
 import ModalRegisterTeacher from "@/components/modals/modalEmployee/ModalRegisterTeacher";
 import ModalViewTeacher from "@/components/modals/modalEmployee/ModalViewTeacher";
@@ -21,7 +20,7 @@ const localSubjects: Subject[] = [
   { id: 6, name: "História", course: "Humanidades" },
 ];
 
-// Local static teachers (updated to match Teacher interface)
+// Local static teachers (updated with photo URLs)
 const initialTeachers: Teacher[] = [
   {
     id: 1,
@@ -34,6 +33,7 @@ const initialTeachers: Teacher[] = [
     role: "Professor",
     curso: "Ciências Exatas",
     licenseExpirationDate: new Date("2025-12-31").toISOString(),
+    photo:"",
   },
   {
     id: 2,
@@ -46,6 +46,7 @@ const initialTeachers: Teacher[] = [
     role: "Coordenador",
     curso: "Tecnologia",
     licenseExpirationDate: new Date("2025-06-30").toISOString(),
+    photo: "",
   },
 ];
 
@@ -74,8 +75,8 @@ export default function PageRegisTerteacher() {
     { value: "id", label: "Id" },
     { value: "name", label: "Nome" },
     { value: "email", label: "Email" },
-    { value: "curso", label: "Curso" }, // Fixed typo
-    { value: "role", label: "Função" }, // Added role filter
+    { value: "curso", label: "Curso" },
+    { value: "role", label: "Função" },
   ];
 
   const filtered = useMemo(() => {
@@ -148,6 +149,7 @@ export default function PageRegisTerteacher() {
     setIsRenewModalOpen(false);
   };
 
+
   return (
     <div className="p-6 w-full h-full dark:bg-gray-800 mb-16 md:mb-0 dark:text-white text-gray-800">
       <SearchFilterBar
@@ -181,12 +183,15 @@ export default function PageRegisTerteacher() {
           <table className="w-full text-left text-xs md:text-sm border-collapse">
             <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
               <tr>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Foto</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Nome</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Email</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Curso</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Função</th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Expiração da Licença</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">
+                  Expiração da Licença
+                </th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Ações</th>
               </tr>
             </thead>
@@ -197,6 +202,24 @@ export default function PageRegisTerteacher() {
                     key={teacher.id}
                     className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
                   >
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {teacher.photo ? (
+                        <img
+                          src={teacher.photo}
+                          alt={teacher.name}
+                          className="w-10 h-10 rounded-full object-cover"
+                          onError={(e) => {
+                            // se der erro no carregamento, remove src pra cair no fallback do ícone
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = "";
+                          }}
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          <User size={20} className="text-gray-400" />
+                        </div>
+                      )}
+                    </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
                       {teacher.id}
                     </td>
@@ -248,7 +271,7 @@ export default function PageRegisTerteacher() {
               ) : (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="py-6 px-4 text-center text-gray-500"
                   >
                     Nenhum professor encontrado.

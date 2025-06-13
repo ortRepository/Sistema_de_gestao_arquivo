@@ -173,6 +173,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
         role: result.data.role,
         curso: result.data.curso,
         licenseExpirationDate: "",
+        photo: ""
       };
       setStatusMessage({
         text: teacherData
