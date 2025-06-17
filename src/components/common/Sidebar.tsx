@@ -13,10 +13,12 @@ import {
   GitCompareIcon,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import logo from "@/assets/logo/logo.svg";
+import logo from "@/assets/logo/logo.png";
+import logobrnco from "@/assets/logo/logo-branco.png";
 import { useAuth } from "@/contexts/AuthContext";
 import "@/style/style.css";
 import React from "react";
+import { useTheme } from "@/contexts/ThemeProvider";
 
 type SidebarProps = {
   role: "teacher" | "admin" | "admin-employee";
@@ -33,7 +35,7 @@ const Sidebar = ({ role, availableRoutes }: SidebarProps) => {
   const location = useLocation();
   const { logout } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
-
+  const { darkMode } = useTheme();
   let menuItems: MenuItem[] = [];
 
   if (role === "admin-employee") {
@@ -188,15 +190,11 @@ const Sidebar = ({ role, availableRoutes }: SidebarProps) => {
                   isExpanded ? "justify-start" : "justify-center"
                 } ${isExpanded ? "w-28 h-28" : "w-12 h-12"}`}
               >
-                <span
-                  className={`text-xl font-bold transition-transform duration-300 hover:scale-105 ${
-                    isExpanded
-                      ? "text-3xl bg-clip-text text-transparent bg-[#4D6BFE]  "
-                      : "text-white"
-                  }`}
-                >
-                  Logo
-                </span>
+                <img
+                  src={darkMode ? logobrnco : logo}
+                  alt="Logo"
+                  className="w-auto"
+                />{" "}
               </div>
               <button
                 onClick={toggleExpand}

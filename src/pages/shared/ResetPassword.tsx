@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { AlertTriangle, Lock } from "lucide-react";
 import ComponentInput from "@/components/common/FormInput";
 import ComponetButton from "@/components/common/button";
-import logo from "../../assets/logo/logo_login.svg";
+import logo from "../../assets/logo/logo.png";
 import { Link, useNavigate } from "react-router-dom";
 import { resetPasswordSchema } from "@/types/type";
 import SliderComponent from "@/components/SliderComponent";
@@ -91,8 +91,7 @@ export function ResetPasswordScreen() {
       <div className="w-full lg:w-1/2 flex items-center relative justify-center px-4 md:px-8">
         <div className="px-4 md:px-8 w-full">
           <div className="flex justify-center my-4">
-            {/* <img src={logo} alt="" className="w-20 h-20" /> */}
-            <p className="text-3xl">Logo</p>
+            <img src={logo} alt="Logo" className="w-auto h-20" />{" "}
           </div>
           <div className="mb-8 my-8">
             <h2 className="text-2xl mb-2 ">Redefinir Senha</h2>

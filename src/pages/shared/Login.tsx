@@ -97,8 +97,7 @@ export default function LoginScreen() {
       <div className="w-full lg:w-1/2 flex items-center relative justify-center overflow-y-auto h-auto px-4 md:px-8">
         <div className="px-4 md:px-8 w-full">
           <div className="flex justify-center my-4">
-            {/* <img src={logo} alt="Logo" className="w-20 h-20" /> */}{" "}
-            <p className="text-3xl">Logo</p>
+            <img src={logo} alt="Logo" className="w-auto h-20" />{" "}
           </div>
           <div className="mb-8 my-8">
             <h2 className="text-2xl mb-2">Bem-vindo de volta!</h2>

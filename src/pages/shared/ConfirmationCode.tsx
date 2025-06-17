@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ConfirmationCodeInput } from "@/components/common/ConfirmationCodeInput";
 import { confirmationCodeSchema } from "@/types/type";
-import logo from "../../assets/logo/logo_login.svg";
+import logo from "../../assets/logo/logo.png";
 import SliderComponent from "@/components/SliderComponent";
 import ComponetButton from "@/components/common/button";
 import { truncateText } from "@/lib/utils";
@@ -177,8 +177,7 @@ export function ConfirmationCodeScreen() {
       <div className="w-full lg:w-1/2 flex items-center relative justify-center px-4 md:px-8">
         <div className="px-4 md:px-8 w-full">
           <div className="flex justify-center my-8">
-            {/* <img src={logo} alt="Logo" className="w-20 h-20" /> */}
-            <p className="text-3xl">Logo</p>
+         <img src={logo} alt="Logo" className="w-auto h-20" />{" "}
           </div>
           <h2 className="text-2xl mb-2">Código de Confirmação</h2>
           <p className="mb-6">
