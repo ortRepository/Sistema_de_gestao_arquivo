@@ -5,7 +5,8 @@ import DeletePublicationModal from "@/components/common/DeletePublicationModal";
 import ComponetButton from "@/components/common/button";
 import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
 import { truncateText } from "@/lib/utils";
-import ModalManageSubject from "@/components/modals/modalEmployee/Modalmanagesubject";
+import ModalManageSubject from "@/components/modals/modalEmployee/ModalManageSubject";
+
 
 interface Subject {
   id: number;

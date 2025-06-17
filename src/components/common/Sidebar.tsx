@@ -5,10 +5,8 @@ import {
   LogOut,
   Menu,
   FileText,
-  UserCog,
   Layers,
   BookOpen,
-  MapPin,
   User,
   Users,
   ClipboardList,
@@ -55,7 +53,7 @@ const Sidebar = ({ role, availableRoutes }: SidebarProps) => {
         icon: <Users size={22} />,
         path: "/admin-employee/register-teacher",
       },
-       {
+      {
         name: "Gerir Turma",
         icon: <ClipboardList size={22} />,
         path: "/admin-employee/manage-class",
@@ -105,12 +103,42 @@ const Sidebar = ({ role, availableRoutes }: SidebarProps) => {
         icon: <PieChart size={22} />,
         path: "/admin/statistics",
       },
-
       {
-        name: "Gerir Conta",
-        icon: <UserCog size={22} />,
-        path: "/admin/manage-account",
+        name: "Gerir Documento",
+        icon: <FileText size={22} />,
+        path: "/admin/document-management",
       },
+      {
+        name: "Gerir Aluno",
+        icon: <User size={22} />,
+        path: "/admin/register-student",
+      },
+      {
+        name: "Gerir Professor",
+        icon: <Users size={22} />,
+        path: "/admin/register-teacher",
+      },
+      {
+        name: "Gerir Turma",
+        icon: <ClipboardList size={22} />,
+        path: "/admin/manage-class",
+      },
+      {
+        name: "Gerir Sala",
+        icon: <GitCompareIcon size={22} />,
+        path: "/admin/manage-room",
+      },
+      {
+        name: "Gerir Disciplina",
+        icon: <BookOpen size={22} />,
+        path: "/admin/manage-subject",
+      },
+      {
+        name: "Gerir Curso",
+        icon: <Layers size={22} />, // layers icon
+        path: "/admin/manage-course",
+      },
+
       {
         name: "Configurações",
         icon: <Settings size={22} />,

@@ -4,7 +4,8 @@ import { Pencil, Trash2, Plus } from "lucide-react";
 import DeletePublicationModal from "@/components/common/DeletePublicationModal";
 import ComponetButton from "@/components/common/button";
 import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
-import ModalManageRoom from "@/components/modals/modalEmployee/Modalmanageroom";
+import ModalManageRoom from "@/components/modals/modalEmployee/ModalManageRoom";
+
 
 
 interface Room {

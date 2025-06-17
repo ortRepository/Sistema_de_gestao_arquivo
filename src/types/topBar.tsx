@@ -50,36 +50,36 @@ export const pageTitles: Record<
     title: "Estatística",
     description: "Visão geral dos indicadores e métricas da plataforma.",
   },
-
-  "/admin/cost-center-management": {
-    title: "Gerir Centros de Custo",
-    description: "Gerencie todos os centros de custo e orçamentos.",
+  "/admin/document-management": {
+    title: "Gerir Documento",
+    description: "Gerencie e organize documentos administrativos.",
   },
-
-  "/admin/organizational-structure": {
-    title: "Estrutura Organizacional",
-    description: "Gerencie direções, seções, departamentos e entidades.",
+  "/admin/register-student": {
+    title: "Gerir Aluno",
+    description: "Cadastre e atualize informações dos alunos.",
   },
-  "/admin/manage-account": {
-    title: "Gerir Conta",
-    description: "Administre contas de utilizador e permissões do sistema.",
+  "/admin/register-teacher": {
+    title: "Gerir Professor",
+    description: "Cadastre e atualize informações dos professores.",
+  },
+  "/admin/manage-room": {
+    title: "Gerir Sala",
+    description: "Gerencie os ambientes e salas de aula.",
+  },
+  "/admin/manage-subject": {
+    title: "Gerir Disciplina",
+    description: "Adicione e edite as disciplinas oferecidas.",
+  },
+  "/admin/manage-course": {
+    title: "Gerir Curso",
+    description: "Configure e mantenha os cursos disponíveis.",
   },
   "/admin/manage-class": {
-    title: "Gerir Classes",
-    description:
-      "Organize e edite informações sobre classes e estrutura de orçamento.",
-  },
-  "/admin/budget-controls": {
-    title: "Controlo Orçamental",
-    description:
-      "Monitore e controle os orçamentos atribuídos às categorias e classes.",
-  },
-  "/admin/schedules": {
-    title: "Cronogramas",
-    description: "Gerir cronogramas de tarefas e eventos.",
+    title: "Gerir Turma",
+    description: "Gerencie as turmas e suas atribuições.",
   },
   "/admin/settings": {
     title: "Configurações",
-    description: "Ajuste as configurações gerais e preferências da plataforma.",
+    description: "Ajuste suas preferências e dados da conta.",
   },
 };

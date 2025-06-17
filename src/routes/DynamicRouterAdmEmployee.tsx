@@ -5,12 +5,13 @@ import TopBar from "@/components/common/TopBar";
 import Settings from "@/pages/shared/Settings";
 import NotFoundScreen from "@/pages/shared/NotFound";
 import PageDocumentManagement from "@/pages/AdministrativeEmployee/documentManagement";
-import PageRegisterStudent from "@/pages/AdministrativeEmployee/registerstudent";
-import PageManageSubject from "@/pages/AdministrativeEmployee/managesubject";
-import PageManageCourse from "@/pages/AdministrativeEmployee/managecourse";
-import PageRegisTerteacher from "@/pages/AdministrativeEmployee/registerteacher";
+import PageRegisterStudent from "@/pages/AdministrativeEmployee/registerStudent";
+import PageRegisTerteacher from "@/pages/AdministrativeEmployee/registerTeacher";
 import PageManageClass from "@/pages/AdministrativeEmployee/manageClass";
-import PageManageRoom from "@/pages/AdministrativeEmployee/manageroom";
+import PageManageRoom from "@/pages/AdministrativeEmployee/manageRoom";
+import PageManageSubject from "@/pages/AdministrativeEmployee/manageSubject";
+import PageManageCourse from "@/pages/AdministrativeEmployee/manageCourse";
+
 
 const DynamicRouterAdmEmployee: React.FC = () => {
   const location = useLocation(); // Obtém a URL atual

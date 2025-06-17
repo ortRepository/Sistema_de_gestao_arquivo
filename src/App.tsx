@@ -33,6 +33,7 @@ import DynamicRouterTeacher from "./routes/DynamicRouterTeacher";
 const queryClient = new QueryClient();
 
 function App() {
+  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

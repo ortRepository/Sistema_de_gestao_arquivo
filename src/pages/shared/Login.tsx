@@ -103,8 +103,7 @@ export default function LoginScreen() {
           <div className="mb-8 my-8">
             <h2 className="text-2xl mb-2">Bem-vindo de volta!</h2>
             <p>
-              Acesse sua conta para gerenciar seus orçamentos e manter o
-              controle financeiro da sua empresa.
+              Acesse sua conta para gerenciar os arquivos e manter o controle.
             </p>
           </div>
           {/* Exibe o alerta de erro, se houver */}

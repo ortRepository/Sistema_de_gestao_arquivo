@@ -5,15 +5,12 @@ import DeletePublicationModal from "@/components/common/DeletePublicationModal";
 import ComponetButton from "@/components/common/button";
 import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
 import { truncateText } from "@/lib/utils";
-import ModalManageCourse from "@/components/modals/modalEmployee/Modalmanagecourse";
-import ModalManageDisciplinas from "@/components/modals/modalEmployee/ModalManageDisciplinas";
 
-interface CourseData {
-  id: number;
-  nome: string;
-  coordenadorDoCurso: string;
-  disciplinas: string[];
-}
+import ModalManageDisciplinas from "@/components/modals/modalEmployee/ModalManageDisciplinas";
+import ModalManageCourse from "@/components/modals/modalEmployee/ModalManageCourse";
+import { CourseData } from "@/types/interfaces";
+
+
 
 const initialCourses: CourseData[] = [
   {

@@ -76,6 +76,8 @@ const ModalManageCourse: React.FC<ModalManageCourseProps> = ({
       const newCourse: CourseData = {
         id: course ? course.id : Date.now(),
         nome: formData.nome,
+        coordenadorDoCurso: "",
+        disciplinas: [],
       };
       setStatusMessage({
         text: course

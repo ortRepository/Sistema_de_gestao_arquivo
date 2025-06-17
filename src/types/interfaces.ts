@@ -190,6 +190,8 @@ export interface OptionCourse {
 export interface CourseData {
   id: number;
   nome: string;
+  coordenadorDoCurso: string;
+  disciplinas: string[];
 }
 
 export interface ModalManageCourseProps {
@@ -242,8 +244,8 @@ export interface Teacher {
   licenseExpirationDate: string;
   subjects: Subject[];
   role: "Professor" | "Coordenador";
-  curso: string; 
-  photo:string; 
+  curso: string;
+  photo: string;
 }
 
 export interface ModalRegisterTeacherProps {
