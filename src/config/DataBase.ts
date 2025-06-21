@@ -78,7 +78,7 @@ class DatabaseService {
             name: adminConfig.name,
             role: 0,
             status: true,
-            telephone: adminConfig.phone,
+            phoneNumber: adminConfig.phone,
             token: "",
             createdIn:new Date()
           },
