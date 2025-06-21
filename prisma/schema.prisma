@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Students {
+  idStudent    Int         @id @default(autoincrement())
+  name         String
+  biNumber     String     
+  room         String
+  classe       String
+  course       String
+  dateOfBirth  DateTime
+  photo        String?
+  path         String?     @db.Text
+  createdIn    DateTime
+  updatedIn    DateTime?
+  status       Boolean
+
+  classeRef    Classes?    @relation(fields: [idClasse], references: [idClasse])
+  idClasse     Int?
+
+  documents    Documents[]
+}
+
+model Classes {
+  idClasse     Int         @id @default(autoincrement())
+  name         String     @unique
+  path         String?     @db.Text
+  createdIn    DateTime
+  updatedIn    DateTime?
+  status       Boolean
+
+  room         Rooms?      @relation(fields: [idRoom], references: [idRoom])
+  idRoom       Int?
+
+  students     Students[]
+  documents    Documents[]
+}
+
+model Rooms {
+  idRoom       Int         @id @default(autoincrement())
+  name         String     @unique
+  path         String?     @db.Text
+  createdIn    DateTime
+  updatedIn    DateTime?
+  status       Boolean
+
+  course       Courses?    @relation(fields: [idCourse], references: [idCourse])
+  idCourse     Int?
+
+  classes      Classes[]
+  documents    Documents[]
+}
+
+model Courses {
+  idCourse     Int         @id @default(autoincrement())
+  name         String       @unique
+  status       Boolean
+  path         String?     @db.Text
+  createdIn    DateTime
+  updatedIn    DateTime?
+  courseCoordinator String?
+
+  rooms        Rooms[]
+  subjects     Subjects[]
+  documents    Documents[]
+}
+
+model Subjects {
+  idSubject    Int         @id @default(autoincrement())
+  name         String     @unique
+  status       Boolean
+  path         String      @db.Text
+  createdIn    DateTime
+  updatedIn    DateTime?
+
+  course       Courses?    @relation(fields: [idCourse], references: [idCourse])
+  idCourse     Int?
+
+  teachers     Teachers[]
+}
+
+model Teachers {
+  idTeacher    Int         @id @default(autoincrement())
+  name         String
+  email        String
+  function     String
+  photo        String?     @db.Text
+  path         String?     @db.Text
+  createdIn    DateTime
+  updatedIn    DateTime?
+  status       Boolean
+
+  subject      Subjects?   @relation(fields: [idSubject], references: [idSubject])
+  idSubject    Int?
+
+  user         Users?      @relation(fields: [idUser], references: [idUser])
+  idUser       Int?
+
+  documents    Documents[]
+}
+
+model Users {
+  idUser       Int         @id @default(autoincrement())
+  name         String
+  email        String      @unique
+  password     String      @db.Text
+  photo        String?
+  role         Int
+  phoneNumber  String
+  path         String?     @db.Text
+  createdIn    DateTime
+  updatedIn    DateTime?
+  status       Boolean
+  token        String?   @db.Text
+
+  teachers     Teachers[]
+  notifications Notifications[]
+}
+
+model Notifications {
+  idNotification Int       @id @default(autoincrement())
+  description    String
+  read           Boolean
+  title          String
+  path           String?   @db.Text
+  createdIn      DateTime
+
+  user           Users     @relation(fields: [idUser], references: [idUser])
+  idUser         Int
+}
+
+model Documents {
+  idDocument   Int         @id @default(autoincrement())
+  description  String
+  urlLink      String      @db.Text
+  path         String?     @db.Text
+  createdIn    DateTime
+  updatedIn    DateTime?
+  status       Boolean
+
+  classe       Classes?    @relation(fields: [idClasse], references: [idClasse])
+  idClasse     Int?
+
+  student      Students?   @relation(fields: [idStudent], references: [idStudent])
+  idStudent    Int?
+
+  course       Courses?    @relation(fields: [idCourse], references: [idCourse])
+  idCourse     Int?
+
+  teacher      Teachers?   @relation(fields: [idTeacher], references: [idTeacher])
+  idTeacher    Int?
+
+  room         Rooms?      @relation(fields: [idRoom], references: [idRoom])
+  idRoom       Int?
+}
+
+model VerificationsCodes {
+  idVerificationCode Int     @id @default(autoincrement())
+  code               String  @db.VarChar(45)
+  email              String  @db.VarChar(255)
+  used               Boolean
+  createdIn          DateTime
+}
+

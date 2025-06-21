@@ -1,0 +1,51 @@
+import { z } from "zod";
+
+class CoursesSchema {
+  // Base course schema
+  static course = z.object({
+    idCourse: z.number().int().optional(),
+    name: z.string({
+      required_error: "The 'name' field is required.",
+      invalid_type_error: "The 'name' field must be a string."
+    }).nonempty("Name cannot be empty."),
+    status: z.boolean({
+      required_error: "The 'status' field is required.",
+      invalid_type_error: "The 'status' field must be a boolean."
+    }),
+    createdIn: z.date({
+      required_error: "The 'createdIn' field is required.",
+      invalid_type_error: "The 'createdIn' field must be a date."
+    }),
+    updatedIn: z.date().nullable().optional(),
+  });
+
+  // Operation-specific schemas
+  static courseInput = z.object({
+    name: z.string({
+      required_error: "The 'name' field is required.",
+      invalid_type_error: "The 'name' field must be a string."
+    }).nonempty("Name cannot be empty."),
+    status: z.boolean({
+      required_error: "The 'status' field is required.",
+      invalid_type_error: "The 'status' field must be a boolean."
+    }),
+  });
+
+  static idCourse = z.object({
+    idCourse: z.number({
+      required_error: "The 'idCourse' field is required.",
+      invalid_type_error: "The 'idCourse' field must be a number."
+    }).int().optional()
+  });
+
+  static token = z.object({
+    token: z.string({
+      required_error: "The 'token' field is required.",
+      invalid_type_error: "The 'token' field must be a string."
+    }).nonempty("Token cannot be empty.")
+  });
+
+  static courses = z.array(this.course);
+}
+
+export default CoursesSchema;
