@@ -77,7 +77,7 @@ export default class FileService {
   public createFolderSystem(): void {
     try {
         const baseFolder = 'storage';
-        const subFolders = ['users', 'restaurants'];
+        const subFolders = ['users', 'rooms','students','teachers','classes','courses','subjects'];
 
         // Create the base 'storage' folder if it doesn't exist
         const storagePath = path.resolve(baseFolder);

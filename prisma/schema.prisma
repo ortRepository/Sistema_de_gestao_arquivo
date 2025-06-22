@@ -12,7 +12,7 @@ model Students {
   name         String
   biNumber     String     
   room         String
-  classe       String
+  class       String
   course       String
   dateOfBirth  DateTime
   photo        String?
@@ -21,14 +21,14 @@ model Students {
   updatedIn    DateTime?
   status       Boolean
 
-  classeRef    Classes?    @relation(fields: [idClasse], references: [idClasse])
-  idClasse     Int?
+  classRef    Classes?    @relation(fields: [idClass], references: [idClass])
+  idClass     Int?
 
   documents    Documents[]
 }
 
 model Classes {
-  idClasse     Int         @id @default(autoincrement())
+  idClass     Int         @id @default(autoincrement())
   name         String     @unique
   path         String?     @db.Text
   createdIn    DateTime
@@ -144,8 +144,8 @@ model Documents {
   updatedIn    DateTime?
   status       Boolean
 
-  classe       Classes?    @relation(fields: [idClasse], references: [idClasse])
-  idClasse     Int?
+  class       Classes?    @relation(fields: [idClass], references: [idClass])
+  idClass     Int?
 
   student      Students?   @relation(fields: [idStudent], references: [idStudent])
   idStudent    Int?

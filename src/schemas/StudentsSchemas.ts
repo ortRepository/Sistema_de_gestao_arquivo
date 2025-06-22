@@ -58,10 +58,7 @@ class StudentsSchema {
       required_error: "The 'room' field is required.",
       invalid_type_error: "The 'room' field must be a string."
     }).nonempty("Room cannot be empty."),
-    classe: z.string({
-      required_error: "The 'class' field is required.",
-      invalid_type_error: "The 'class' field must be a string."
-    }).nonempty("Class cannot be empty."),
+    
     dateOfBirth: z.date({
       required_error: "The 'dateOfBirth' field is required.",
       invalid_type_error: "The 'dateOfBirth' field must be a date."
@@ -74,7 +71,7 @@ class StudentsSchema {
       required_error: "The 'status' field is required.",
       invalid_type_error: "The 'status' field must be a boolean."
     }),
-    idClasse: z.number({
+    idClass: z.number({
       required_error: "The 'idClass' field is required.",
       invalid_type_error: "The 'idClass' field must be a number."
     }).int(),

@@ -7,7 +7,9 @@ import ItemNotFoundException from '../errors/ItemNotFoundException';
 import InternalServerErrorException from '../errors/InternalServerErrorException';
 import RoomsSchema from '../schemas/RoomsSchemas';
 import ResponsesSchemas from '../schemas/ResponsesSchemas';
-
+import * as fs from 'fs';
+import path from 'path';
+const uploadsPath = path.resolve(__dirname, '../../storage/rooms');
 class Rooms {
   private tokenService: TokenService = new TokenService();
   private readonly responseSchema = ResponsesSchemas.success_response;
@@ -35,7 +37,18 @@ class Rooms {
           createdIn: new Date(),
         },
       });
+      const path_name = Date.now() + '' + newRoom.idRoom;
+      const newFolderPath = path.join(uploadsPath, path_name);
+      fs.mkdirSync(newFolderPath, { recursive: true });
 
+      await prisma.rooms.update({
+        where:{
+         idRoom :newRoom.idRoom
+        },
+        data:{
+          path:path_name
+        }
+      })
       return { message: 'Room added successfully' };
     } catch (error) {
       if (error instanceof AuthorizationException || error instanceof ItemNotFoundException) {

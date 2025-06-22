@@ -6,26 +6,29 @@ import ItemNotFoundException from '../errors/ItemNotFoundException';
 import AuthorizationException from '../errors/AuthorizationException';
 import InternalServerErrorException from '../errors/InternalServerErrorException';
 import TokenService from '../services/TokensServices';
-import EmailService from '../services/EmailsServices'; 
-import path, { resolve } from 'path';
+import EmailService from '../services/EmailsServices';
+import path from 'path';
 import bcrypt from 'bcryptjs';
 import * as fs from 'fs';
+
 const uploadsPath = path.resolve(__dirname, '../../storage/teachers');
 const saltRounds = 10;
 
 class TeachersController {
-  private tokenService: TokenService = new TokenService();
-  private emailService: EmailService = new EmailService(); // Placeholder for email service
+  private tokenService = new TokenService();
+  private emailService = new EmailService();
   private readonly responseSchema = TeachersSchemas.successResponse;
 
   // Generate a random 8-digit password
   private generateRandomPassword(): string {
-    const password = Math.floor(10000000 + Math.random() * 90000000).toString();
-    return password;
+    return Math.floor(10000000 + Math.random() * 90000000).toString();
   }
 
-  public async add(data: z.infer<typeof TeachersSchemas.addTeacher>, key: z.infer<typeof TeachersSchemas.token>): Promise<z.infer<typeof this.responseSchema>> {
-    const { name, email, telephone, role, function: teacherFunction, photo, path: teacherPath, status } = data;
+  public async add(
+    data: z.infer<typeof TeachersSchemas.addTeacher>,
+    key: z.infer<typeof TeachersSchemas.token>
+  ): Promise<z.infer<typeof this.responseSchema>> {
+    const { name, email, telephone, role, function: teacherFunction, photo, status } = data;
     const { token } = key;
 
     try {
@@ -49,22 +52,24 @@ class TeachersController {
         data: {
           name,
           email,
-          phoneNumber:"",
+          phoneNumber: telephone || '',
           password: hashedPassword,
           role,
           status: true,
-          token: "",
+          token: '',
           createdIn: new Date(),
         },
       });
 
-      const path_name = Date.now() + '' + newUser.idUser;
-      const newFolderPath = path.join(uploadsPath, path_name);
+      // Create folder for teacher
+      const pathName = `${Date.now()}${newUser.idUser}`;
+      const newFolderPath = path.join(uploadsPath, pathName);
       fs.mkdirSync(newFolderPath, { recursive: true });
 
+      // Update user with path
       await prisma.users.update({
         where: { idUser: newUser.idUser },
-        data: { path: path_name, token },
+        data: { path: pathName },
       });
 
       // Create teacher in Teachers table
@@ -72,9 +77,9 @@ class TeachersController {
         data: {
           function: teacherFunction,
           photo,
-          path: teacherPath,
+          path: pathName, // Use the same path as user
           name,
-          email:newUser.email,
+          email: newUser.email,
           status,
           createdIn: new Date(),
           user: { connect: { idUser: newUser.idUser } },
@@ -82,10 +87,10 @@ class TeachersController {
       });
 
       // Send email with credentials
-      if (!await this.emailService.send_message_code(email, password)) {
-        await prisma.users.delete({ where: { idUser: newUser.idUser } });
+      if (!(await this.emailService.send_message_code(email, password))) {
         await prisma.teachers.delete({ where: { idTeacher: teacher.idTeacher } });
-        throw new InvalidDataException("An error occurred while sending email");
+        await prisma.users.delete({ where: { idUser: newUser.idUser } });
+        throw new InvalidDataException('An error occurred while sending email');
       }
 
       console.log('[ADD] Teacher created:', teacher);
@@ -104,7 +109,10 @@ class TeachersController {
     }
   }
 
-  public async delete(data: z.infer<typeof TeachersSchemas.deleteTeacher>, key: z.infer<typeof TeachersSchemas.token>): Promise<z.infer<typeof this.responseSchema>> {
+  public async delete(
+    data: z.infer<typeof TeachersSchemas.deleteTeacher>,
+    key: z.infer<typeof TeachersSchemas.token>
+  ): Promise<z.infer<typeof this.responseSchema>> {
     const { idTeacher } = data;
     const { token } = key;
 
@@ -114,10 +122,7 @@ class TeachersController {
         throw new AuthorizationException('Not authorized');
       }
 
-      const teacher = await prisma.teachers.findUnique({
-        where: { idTeacher },
-      });
-
+      const teacher = await prisma.teachers.findUnique({ where: { idTeacher } });
       if (!teacher) {
         throw new ItemNotFoundException('Teacher not found');
       }
@@ -139,7 +144,10 @@ class TeachersController {
     }
   }
 
-  public async viewA(data: z.infer<typeof TeachersSchemas.viewTeacher>, key: z.infer<typeof TeachersSchemas.token>): Promise<z.infer<typeof TeachersSchemas.teacher>> {
+  public async viewA(
+    data: z.infer<typeof TeachersSchemas.viewTeacher>,
+    key: z.infer<typeof TeachersSchemas.token>
+  ): Promise<z.infer<typeof TeachersSchemas.teacher>> {
     const { idTeacher } = data;
     const { token } = key;
 
@@ -149,10 +157,7 @@ class TeachersController {
         throw new AuthorizationException('Not authorized');
       }
 
-      const teacher = await prisma.teachers.findUnique({
-        where: { idTeacher: Number(idTeacher) },
-      });
-
+      const teacher = await prisma.teachers.findUnique({ where: { idTeacher: Number(idTeacher) } });
       if (!teacher) {
         throw new ItemNotFoundException('Teacher not found');
       }
@@ -171,7 +176,10 @@ class TeachersController {
     }
   }
 
-  public async viewAll(data: z.infer<typeof TeachersSchemas.viewAllTeachers>, key: z.infer<typeof TeachersSchemas.token>): Promise<z.infer<typeof TeachersSchemas.teachers>> {
+  public async viewAll(
+    data: z.infer<typeof TeachersSchemas.viewAllTeachers>,
+    key: z.infer<typeof TeachersSchemas.token>
+  ): Promise<z.infer<typeof TeachersSchemas.teachers>> {
     const { idCourse } = data;
     const { token } = key;
 
@@ -183,13 +191,11 @@ class TeachersController {
 
       const whereClause: any = {};
       if (idCourse) {
-        const course = await prisma.courses.findUnique({
-          where: { idCourse },
-        });
+        const course = await prisma.courses.findUnique({ where: { idCourse } });
         if (!course) {
           throw new ItemNotFoundException('Course not found');
         }
-        whereClause.idCourse = idCourse; // Ajuste: Assumindo relação com Courses (se aplicável)
+        whereClause.idCourse = idCourse;
       }
 
       const teachers = await prisma.teachers.findMany({

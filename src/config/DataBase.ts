@@ -144,8 +144,10 @@ class DatabaseService {
       if (Array.isArray(databases) && databases.length === 0) {
         console.log(`Creating database "${databaseConfig.name}"...`);
         await connection.query(`CREATE DATABASE ${databaseConfig.name}`);
+        execSync('npx prisma migrate deploy', { stdio: 'inherit' });
       } else {
         console.log(`Database "${databaseConfig.name}" already exists.`);
+        execSync('npx prisma migrate deploy', { stdio: 'inherit' });
       }
 
       execSync('npx prisma migrate deploy', { stdio: 'inherit' });
@@ -176,6 +178,7 @@ class DatabaseService {
         execSync('npx prisma migrate dev --name init', { stdio: 'inherit' });
       } else {
         console.log(`Database "${databaseConfig.name}" already exists.`);
+        execSync('npx prisma migrate deploy', { stdio: 'inherit' });
       }
 
      

@@ -7,13 +7,20 @@ import ItemNotFoundException from '../errors/ItemNotFoundException';
 import InternalServerErrorException from '../errors/InternalServerErrorException';
 import StudentsSchema from '../schemas/StudentsSchemas';
 import ResponsesSchemas from '../schemas/ResponsesSchemas';
+import * as fs from 'fs';
+import path from 'path';
 
-class Students {
-  private tokenService: TokenService = new TokenService();
+const uploadsPath = path.resolve(__dirname, '../../storage/students');
+
+class StudentsController {
+  private tokenService = new TokenService();
   private readonly responseSchema = ResponsesSchemas.success_response;
 
-  public async register(data: z.infer<typeof StudentsSchema.studentInput>, key: z.infer<typeof StudentsSchema.token>) {
-    const { name, biNumber, room, classe: className, dateOfBirth, photo, status, idClasse } = data;
+  public async register(
+    data: z.infer<typeof StudentsSchema.studentInput>,
+    key: z.infer<typeof StudentsSchema.token>
+  ): Promise<z.infer<typeof this.responseSchema>> {
+    const { name, biNumber, dateOfBirth, photo, status, idClass } = data;
     const { token } = key;
 
     try {
@@ -27,23 +34,48 @@ class Students {
         throw new ItemNotFoundException('Student already exists');
       }
 
+      const classe = await prisma.classes.findUnique({ where: { idClass } });
+      if (!classe) {
+        throw new ItemNotFoundException('Class not found');
+      }
+
+      const room = await prisma.rooms.findUnique({ where: { idRoom: classe.idRoom as number } });
+      if (!room) {
+        throw new ItemNotFoundException('Room not found');
+      }
+
+      const course = await prisma.courses.findUnique({ where: { idCourse: room.idCourse as number } });
+      if (!course) {
+        throw new ItemNotFoundException('Course not found');
+      }
+
       const newStudent = await prisma.students.create({
         data: {
           name,
           biNumber,
-          room,
-          classe: className,
+          room: room.name,
+          class: classe.name,
           dateOfBirth,
           photo,
           status,
-          idClasse,
-          course:"",
+          idClass,
+          course: course.name,
           createdIn: new Date(),
         },
       });
 
+      const pathName = `${Date.now()}${newStudent.idStudent}`;
+      const newFolderPath = path.join(uploadsPath, pathName);
+      fs.mkdirSync(newFolderPath, { recursive: true });
+
+      await prisma.students.update({
+        where: { idStudent: newStudent.idStudent },
+        data: { path: pathName },
+      });
+
       return { message: 'Student registered successfully' };
     } catch (error) {
+      console.error('[REGISTER] Error occurred:', error);
       if (error instanceof AuthorizationException || error instanceof ItemNotFoundException) {
         throw error;
       }
@@ -51,8 +83,11 @@ class Students {
     }
   }
 
-  public async update(data: z.infer<typeof StudentsSchema.studentInput>, key: z.infer<typeof StudentsSchema.token>) {
-    const { name, biNumber, room, classe: className, dateOfBirth, photo, status, idClasse } = data;
+  public async update(
+    data: z.infer<typeof StudentsSchema.studentInput> & { idStudent: number },
+    key: z.infer<typeof StudentsSchema.token>
+  ): Promise<z.infer<typeof this.responseSchema>> {
+    const { idStudent, name, biNumber, dateOfBirth, photo, status, idClass } = data;
     const { token } = key;
 
     try {
@@ -61,28 +96,45 @@ class Students {
         throw new AuthorizationException('Not authorized');
       }
 
-      const student = await prisma.students.findFirst();
+      const student = await prisma.students.findUnique({ where: { idStudent } });
       if (!student) {
         throw new ItemNotFoundException('Student not found');
       }
 
+      const classe = await prisma.classes.findUnique({ where: { idClass } });
+      if (!classe) {
+        throw new ItemNotFoundException('Class not found');
+      }
+
+      const room = await prisma.rooms.findUnique({ where: { idRoom: classe.idRoom as number } });
+      if (!room) {
+        throw new ItemNotFoundException('Room not found');
+      }
+
+      const course = await prisma.courses.findUnique({ where: { idCourse: room.idCourse as number } });
+      if (!course) {
+        throw new ItemNotFoundException('Course not found');
+      }
+
       await prisma.students.update({
-        where: { idStudent: student.idStudent },
+        where: { idStudent },
         data: {
           name,
           biNumber,
-          room,
-          classe: className,
+          room: room.name,
+          class: classe.name,
           dateOfBirth,
           photo,
           status,
-          idClasse,
+          idClass,
+          course: course.name,
           updatedIn: new Date(),
         },
       });
 
       return { message: 'Student updated successfully' };
     } catch (error) {
+      console.error('[UPDATE] Error occurred:', error);
       if (error instanceof AuthorizationException || error instanceof ItemNotFoundException) {
         throw error;
       }
@@ -90,7 +142,10 @@ class Students {
     }
   }
 
-  public async delete(data: z.infer<typeof StudentsSchema.idStudent>, key: z.infer<typeof StudentsSchema.token>) {
+  public async delete(
+    data: z.infer<typeof StudentsSchema.idStudent>,
+    key: z.infer<typeof StudentsSchema.token>
+  ): Promise<z.infer<typeof this.responseSchema>> {
     const { idStudent } = data;
     const { token } = key;
 
@@ -109,6 +164,7 @@ class Students {
 
       return { message: 'Student deleted successfully' };
     } catch (error) {
+      console.error('[DELETE] Error occurred:', error);
       if (error instanceof AuthorizationException || error instanceof ItemNotFoundException) {
         throw error;
       }
@@ -116,26 +172,27 @@ class Students {
     }
   }
 
-  public async viewA(key: z.infer<typeof StudentsSchema.token>) {
+  public async viewA(
+    data: z.infer<typeof StudentsSchema.idStudent>,
+    key: z.infer<typeof StudentsSchema.token>
+  ): Promise<z.infer<typeof StudentsSchema.student>> {
+    const { idStudent } = data;
     const { token } = key;
 
     try {
-      if (!await this.tokenService.checkTokenUser(token)) {
+      const userRole = await this.tokenService.userRole(token);
+      if (!await this.tokenService.checkTokenUser(token) || userRole !== 0) {
         throw new AuthorizationException('Not authorized');
       }
 
-      const userId = await this.tokenService.userId(token);
-      if (!userId) {
-        throw new AuthorizationException('Invalid user ID');
-      }
-
-      const student = await prisma.students.findFirst({ where: { idStudent: userId } });
+      const student = await prisma.students.findUnique({ where: { idStudent } });
       if (!student) {
         throw new ItemNotFoundException('Student not found');
       }
 
       return StudentsSchema.student.parse(student);
     } catch (error) {
+      console.error('[VIEW] Error occurred:', error);
       if (error instanceof AuthorizationException || error instanceof ItemNotFoundException) {
         throw error;
       }
@@ -143,7 +200,9 @@ class Students {
     }
   }
 
-  public async viewAll(key: z.infer<typeof StudentsSchema.token>) {
+  public async viewAll(
+    key: z.infer<typeof StudentsSchema.token>
+  ): Promise<z.infer<typeof StudentsSchema.students>> {
     const { token } = key;
 
     try {
@@ -155,6 +214,7 @@ class Students {
       const students = await prisma.students.findMany();
       return StudentsSchema.students.parse(students);
     } catch (error) {
+      console.error('[VIEW_ALL] Error occurred:', error);
       if (error instanceof AuthorizationException) {
         throw error;
       }
@@ -163,4 +223,4 @@ class Students {
   }
 }
 
-export default Students;
+export default StudentsController;

@@ -7,7 +7,9 @@ import ItemNotFoundException from '../errors/ItemNotFoundException';
 import InternalServerErrorException from '../errors/InternalServerErrorException';
 import ClassesSchema from '../schemas/ClassesSchemas';
 import ResponsesSchemas from '../schemas/ResponsesSchemas';
-
+import * as fs from 'fs';
+import path from 'path';
+const uploadsPath = path.resolve(__dirname, '../../storage/classes');
 class Classes {
   private tokenService: TokenService = new TokenService();
   private readonly responseSchema = ResponsesSchemas.success_response;
@@ -27,6 +29,8 @@ class Classes {
         throw new ItemNotFoundException('Class already exists');
       }
 
+
+
       const newClass = await prisma.classes.create({
         data: {
           name,
@@ -35,6 +39,19 @@ class Classes {
           createdIn: new Date(),
         },
       });
+
+      const path_name = Date.now() + '' + newClass.idClass;
+      const newFolderPath = path.join(uploadsPath, path_name);
+      fs.mkdirSync(newFolderPath, { recursive: true });
+
+      await prisma.classes.update({
+        where:{
+          idClass:newClass.idClass
+        },
+        data:{
+          path:path_name
+        }
+      })
 
       return { message: 'Class added successfully' };
     } catch (error) {
@@ -45,8 +62,8 @@ class Classes {
     }
   }
 
-  public async delete(data: z.infer<typeof ClassesSchema.idClasse>, key: z.infer<typeof ClassesSchema.token>) {
-    const { idClasse } = data;
+  public async delete(data: z.infer<typeof ClassesSchema.idClass>, key: z.infer<typeof ClassesSchema.token>) {
+    const { idClass } = data;
     const { token } = key;
 
     try {
@@ -55,12 +72,12 @@ class Classes {
         throw new AuthorizationException('Not authorized');
       }
 
-      const classRecord = await prisma.classes.findUnique({ where: { idClasse } });
+      const classRecord = await prisma.classes.findUnique({ where: { idClass } });
       if (!classRecord) {
         throw new ItemNotFoundException('Class not found');
       }
 
-      await prisma.classes.delete({ where: { idClasse } });
+      await prisma.classes.delete({ where: { idClass } });
 
       return { message: 'Class deleted successfully' };
     } catch (error) {
@@ -87,7 +104,7 @@ class Classes {
       }
 
       await prisma.classes.update({
-        where: { idClasse: classRecord.idClasse },
+        where: { idClass: classRecord.idClass },
         data: {
           name,
           status,
@@ -105,8 +122,9 @@ class Classes {
     }
   }
 
-  public async viewA(key: z.infer<typeof ClassesSchema.token>) {
+  public async viewA(key: z.infer<typeof ClassesSchema.token>,data: z.infer<typeof ClassesSchema.idClass>) {
     const { token } = key;
+    const {idClass} = data
 
     try {
       if (!await this.tokenService.checkTokenUser(token)) {
@@ -118,7 +136,7 @@ class Classes {
         throw new AuthorizationException('Invalid user ID');
       }
 
-      const classRecord = await prisma.classes.findFirst({ where: { idClasse: userId } });
+      const classRecord = await prisma.classes.findFirst({ where: { idClass} });
       if (!classRecord) {
         throw new ItemNotFoundException('Class not found');
       }

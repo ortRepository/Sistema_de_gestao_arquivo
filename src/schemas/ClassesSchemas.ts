@@ -3,7 +3,7 @@ import { z } from "zod";
 class ClassesSchema {
   // Base class schema
   static class = z.object({
-    idClasse: z.number().int().optional(),
+    idClass: z.number().int().optional(),
     name: z.string({
       required_error: "The 'name' field is required.",
       invalid_type_error: "The 'name' field must be a string."
@@ -39,8 +39,8 @@ class ClassesSchema {
     }).int(),
   });
 
-  static idClasse = z.object({
-    idClasse: z.number({
+  static idClass = z.object({
+    idClass: z.number({
       required_error: "The 'idClass' field is required.",
       invalid_type_error: "The 'idClass' field must be a number."
     }).int().optional()

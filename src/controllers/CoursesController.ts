@@ -7,7 +7,9 @@ import ItemNotFoundException from '../errors/ItemNotFoundException';
 import InternalServerErrorException from '../errors/InternalServerErrorException';
 import CoursesSchema from '../schemas/CoursesSchemas';
 import ResponsesSchemas from '../schemas/ResponsesSchemas';
-
+import * as fs from 'fs';
+import path from 'path';
+const uploadsPath = path.resolve(__dirname, '../../storage/courses');
 class Courses {
   private tokenService: TokenService = new TokenService();
   private readonly responseSchema = ResponsesSchemas.success_response;
@@ -34,6 +36,19 @@ class Courses {
           createdIn: new Date(),
         },
       });
+
+      const path_name = Date.now() + '' + newCourse.idCourse;
+      const newFolderPath = path.join(uploadsPath, path_name);
+      fs.mkdirSync(newFolderPath, { recursive: true });
+
+      await prisma.courses.update({
+        where:{
+          idCourse:newCourse.idCourse
+        },
+        data:{
+          path:path_name
+        }
+      })
 
       return { message: 'Course added successfully' };
     } catch (error) {
