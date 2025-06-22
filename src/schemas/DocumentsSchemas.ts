@@ -54,35 +54,32 @@ class DocumentsSchemas {
       required_error: "The 'description' field is required.",
       invalid_type_error: "The 'description' field must be a string."
     }).nonempty("Description cannot be empty.").max(255),
-    idSubject: z.number({
+    idSubject: z.string({
       invalid_type_error: "The 'idSubject' field must be a number."
-    }).int().optional(),
-    path: z.string({
-      required_error: "The 'path' field is required.",
-      invalid_type_error: "The 'path' field must be a string."
-    }).max(255).optional(),
-    status: z.boolean({
+    }).optional(),
+    status: z.string({
       required_error: "The 'status' field is required.",
       invalid_type_error: "The 'status' field must be a boolean."
     }),
-    idClass: z.number({
+    idClass: z.string({
       invalid_type_error: "The 'idClasse' field must be a number."
-    }).int().optional(),
-    idStudent: z.number({
+    }).optional(),
+    idStudent: z.string({
       invalid_type_error: "The 'idStudent' field must be a number."
-    }).int().optional(),
-    idCourse: z.number({
+    }).optional(),
+    idCourse: z.string({
       invalid_type_error: "The 'idCourse' field must be a number."
-    }).int().optional(),
-    idTeacher: z.number({
+    }).optional(),
+    idTeacher: z.string({
       invalid_type_error: "The 'idTeacher' field must be a number."
-    }).int().optional(),
-    idRoom: z.number({
+    }).optional(),
+    idRoom: z.string({
       invalid_type_error: "The 'idRoom' field must be a number."
-    }).int().optional(),
+    }).optional(),
+    file:z.any().optional()
   }).refine((data) => data.idClass || data.idStudent || data.idCourse || data.idTeacher || data.idRoom, {
     message: "At least one of 'idClasse', 'idStudent', 'idCourse', 'idTeacher', or 'idRoom' must be provided.",
-  });
+  }).nullable();
 
   // Schema for deleting a document
   static deleteDocument = z.object({

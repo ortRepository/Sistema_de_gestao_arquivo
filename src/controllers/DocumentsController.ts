@@ -140,7 +140,10 @@ class DocumentsController {
   ): Promise<z.infer<typeof this.responseSchema>> {
     const validatedData = DocumentsSchemas.addDocument.parse(data);
     const validatedKey = DocumentsSchemas.token.parse(key);
-    const { description, path: documentPath, status, idClass, idStudent, idCourse, idTeacher, idRoom, idSubject } = validatedData;
+    if(!validatedData){
+      throw new InvalidDataException("Bad request")
+    }
+    const { description,status, idClass, idStudent, idCourse, idTeacher, idRoom, idSubject } = validatedData;
     const { token } = validatedKey;
 
     try {
@@ -152,12 +155,12 @@ class DocumentsController {
       }
 
       let entityInfo;
-      if (idClass) entityInfo = await this.getEntityInfo('class', idClass);
-      else if (idStudent) entityInfo = await this.getEntityInfo('student', idStudent);
-      else if (idCourse) entityInfo = await this.getEntityInfo('course', idCourse);
-      else if (idTeacher) entityInfo = await this.getEntityInfo('teacher', idTeacher);
-      else if (idRoom) entityInfo = await this.getEntityInfo('room', idRoom);
-      else if (idSubject) entityInfo = await this.getEntityInfo('subject', idSubject);
+      if (idClass) entityInfo = await this.getEntityInfo('class', Number(idClass));
+      else if (idStudent) entityInfo = await this.getEntityInfo('student', Number(idStudent));
+      else if (idCourse) entityInfo = await this.getEntityInfo('course',Number( idCourse));
+      else if (idTeacher) entityInfo = await this.getEntityInfo('teacher', Number(idTeacher));
+      else if (idRoom) entityInfo = await this.getEntityInfo('room',Number( idRoom));
+      else if (idSubject) entityInfo = await this.getEntityInfo('subject',Number( idSubject));
 
       const fileName = await this.processDocumentFile(
         file,
@@ -169,14 +172,14 @@ class DocumentsController {
         data: {
           description,
           urlLink: fileName,
-          path: documentPath,
-          status,
-          idClass,
-          idStudent,
-          idCourse,
-          idTeacher,
-          idRoom,
-          idSubject,
+          
+          status:Boolean(status),
+          idClass:Number(idClass),
+          idStudent:Number(idStudent),
+          idCourse:Number(idCourse),
+          idTeacher:Number(idTeacher),
+          idRoom:Number(idRoom),
+          idSubject:Number(idSubject),
           createdIn: new Date(),
         },
       });
