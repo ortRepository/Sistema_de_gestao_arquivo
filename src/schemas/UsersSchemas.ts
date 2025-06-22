@@ -8,9 +8,9 @@ class UserSchema {
       required_error: "The 'email' field is required.",
       invalid_type_error: "The 'email' field must be a string."
     }).email().max(255),
-    telephone: z.string({
-      required_error: "The 'telephone' field is required.",
-      invalid_type_error: "The 'telephone' field must be a string."
+    phoneNumber: z.string({
+      required_error: "The 'phoneNumber' field is required.",
+      invalid_type_error: "The 'phoneNumber' field must be a string."
     }).max(45),
     password: z.string({
       required_error: "The 'password' field is required.",

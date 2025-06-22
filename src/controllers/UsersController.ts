@@ -442,6 +442,7 @@ class Users {
       ) {
         throw error;
       }
+      console.log("Error:",error)
       throw new InternalServerErrorException('An error occurred when trying to retrieve user');
     }
   }
