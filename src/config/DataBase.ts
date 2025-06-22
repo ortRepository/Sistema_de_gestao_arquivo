@@ -178,11 +178,11 @@ class DatabaseService {
         execSync('npx prisma migrate dev --name init', { stdio: 'inherit' });
       } else {
         console.log(`Database "${databaseConfig.name}" already exists.`);
-        execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+        execSync('npx prisma migrate dev --name init')
       }
 
      
-
+ 
     } finally {
       await client.end();
     }

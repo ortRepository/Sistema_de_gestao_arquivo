@@ -37,7 +37,7 @@ export async function classRoutes(app: FastifyTypedInstance) {
       schema: {
         description: "Delete a class",
         tags: ["Classes"],
-        body: ClassesSchema.idClasse,
+        body: ClassesSchema.idClass,
         headers: ClassesSchema.token,
         response: {
           200: ResponsesSchemas.success_response,
@@ -84,6 +84,7 @@ export async function classRoutes(app: FastifyTypedInstance) {
         description: "View a specific class",
         tags: ["Classes"],
         headers: ClassesSchema.token,
+        params:ClassesSchema.idClass,
         response: {
           200: ClassesSchema.class,
           400: ResponsesSchemas.error_400_response,
@@ -94,7 +95,7 @@ export async function classRoutes(app: FastifyTypedInstance) {
       },
     },
     async (request, reply) => {
-      return reply.status(200).send(await controller.viewA(request.headers));
+      return reply.status(200).send(await controller.viewA(request.headers,request.params));
     }
   );
 
