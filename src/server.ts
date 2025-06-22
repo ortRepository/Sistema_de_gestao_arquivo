@@ -176,7 +176,7 @@ class Server {
     this.app.register(fastifySwagger, {
       openapi: {
         info: {
-          title: 'Ordering System  API',
+          title: 'File Management System  API',
           version: '1.0.0',
           description: process.env.API_DESCRIPTION || 'API Documentation'
         },
@@ -188,7 +188,7 @@ class Server {
     this.app.register(fastifySwaggerUi, {
       routePrefix: '/docs',
       theme: {
-        title: 'Ordering System  API',
+        title: 'File Management System  API',
         css: [{ filename: 'theme.css', content: swaggerCSS }]
       }
     });
