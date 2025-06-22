@@ -138,7 +138,7 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
       setSelectedFile(null);
     }
     setFieldErrors({});
-  }, [student, roomOptions]);
+  }, []);
 
   useEffect(() => {
     if (statusMessage) {
@@ -153,7 +153,7 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
         URL.revokeObjectURL(previewPhoto);
       }
     };
-  }, [previewPhoto, student]);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

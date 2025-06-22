@@ -141,27 +141,47 @@ export const teacherSchema = z.object({
   role: z.enum(["Professor", "Coordenador"]),
   function: z.string().min(1, "Função é obrigatória"),
   status: z.enum(["Ativo", "Inativo"], {
-    errorMap: (issue, ctx) => ({ message: "Status é obrigatório" }),
+    errorMap: () => ({ message: "Status é obrigatório" }),
   }),
 });
-// Zod schema for form validation
+
 export const classSchema = z.object({
-  turma: z.string().trim().min(1, "Turma é obrigatória"),
-  diretorDeTurma: z.string().trim().min(1, "Diretor de turma é obrigatório"),
-  sala: z
-    .number({ invalid_type_error: "Sala deve ser um número" })
+  name: z.string().trim().min(1, "Nome da turma é obrigatório"),
+  status: z.boolean(),
+  idRoom: z
+    .number()
     .positive("Sala deve ser um número positivo")
     .int("Sala deve ser um número inteiro"),
 });
 
-// Zod schema for subject validation
+export const courseSchema = z.object({
+  name: z.string().trim().min(1, "Nome do curso é obrigatório"),
+  status: z.boolean(),
+});
+
 export const subjectSchema = z.object({
-  name: z.string().trim().min(1, "Nome da disciplina é obrigatório"),
-  course: z.string().trim().min(1, "Curso é obrigatório"),
+  name: z
+    .string()
+    .min(1, { message: "Nome da disciplina é obrigatório" })
+    .max(100, {
+      message: "Nome da disciplina deve ter no máximo 100 caracteres",
+    }),
+  course: z
+    .string()
+    .min(1, { message: "Curso é obrigatório" })
+    .refine((value) => !isNaN(parseInt(value)), {
+      message: "Curso deve ser um ID válido",
+    }),
+  status: z.enum(["true", "false"], {
+    errorMap: () => ({
+      message: "Status deve ser 'Ativo' ou 'Inativo'",
+    }),
+  }),
 });
 
 // Zod Schema for Room validation
 export const roomSchema = z.object({
-  id: z.number(),
-  sala: z.number().min(1, "Número da sala deve ser maior que 0"),
+  name: z.string().min(1, "Nome da sala é obrigatório"),
+  status: z.boolean(),
+  idCourse: z.number().min(1, "Curso é obrigatório"),
 });

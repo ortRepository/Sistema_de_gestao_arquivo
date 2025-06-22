@@ -2,28 +2,21 @@ import { useState, useMemo } from "react";
 import SearchFilterBar from "@/components/common/SearchBar";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import DeletePublicationModal from "@/components/common/DeletePublicationModal";
-import ComponetButton from "@/components/common/button";
+import ComponentButton from "@/components/common/button";
 import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
 import { truncateText } from "@/lib/utils";
 import ModalManageSubject from "@/components/modals/modalEmployee/ModalManageSubject";
+import { useListSubjects, useDeleteSubject, useListCourses } from "@/hooks/DynamicApiHooks";
+import { Subject } from "@/types/interfaces";
 
-
-interface Subject {
-  id: number;
+interface ApiSubject {
+  idSubject: number;
   name: string;
-  course: string;
+  status: boolean;
+  idCourse: number;
+  createdIn: string;
+  updatedIn: string;
 }
-
-const staticSubjects: Subject[] = [
-  { id: 1, name: "Matemática", course: "Informática" },
-  { id: 2, name: "Programação", course: "Informática" },
-  { id: 3, name: "Física", course: "Engenharia" },
-  { id: 4, name: "Química", course: "Engenharia" },
-  { id: 5, name: "Banco de Dados", course: "Informática" },
-  { id: 6, name: "Literatura", course: "Letras" },
-  { id: 7, name: "História", course: "História" },
-  { id: 8, name: "Redes de Computadores", course: "Informática" },
-];
 
 export default function PageManageSubject() {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -32,7 +25,21 @@ export default function PageManageSubject() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [confirmSubjectId, setConfirmSubjectId] = useState<number | null>(null);
-  const [subjects, setSubjects] = useState<Subject[]>(staticSubjects);
+
+  // Fetch data
+  const { data: apiSubjects, isLoading, error, refetch } = useListSubjects();
+  const { data: courses } = useListCourses();
+  const { mutate: deleteSubject } = useDeleteSubject();
+
+  // Map API subjects to component's Subject format
+  const subjects: Subject[] = useMemo(() => {
+    if (!apiSubjects) return [];
+    return apiSubjects.map((subject: ApiSubject) => ({
+      ...subject,
+      id: subject.idSubject, // Map id to idSubject
+      course: courses?.find((c) => c.idCourse === subject.idCourse)?.name || "N/A",
+    }));
+  }, [apiSubjects, courses]);
 
   const filterOptions = [
     { value: "", label: "Todos" },
@@ -46,16 +53,17 @@ export default function PageManageSubject() {
     return subjects.filter((subject) => {
       switch (filterType) {
         case "id":
-          return subject.id.toString().includes(term);
+          return subject.idSubject.toString().includes(term);
         case "name":
           return subject.name.toLowerCase().includes(term);
         case "course":
-          return subject.course.toLowerCase().includes(term);
+          return subject.course?.toLowerCase().includes(term) || "n/a".includes(term);
         default:
           return (
-            subject.id.toString().includes(term) ||
+            subject.idSubject.toString().includes(term) ||
             subject.name.toLowerCase().includes(term) ||
-            subject.course.toLowerCase().includes(term)
+            subject.course?.toLowerCase().includes(term) ||
+            "n/a".includes(term)
           );
       }
     });
@@ -77,22 +85,26 @@ export default function PageManageSubject() {
 
   const handleDelete = () => {
     if (confirmSubjectId !== null) {
-      setSubjects((prev) => prev.filter((s) => s.id !== confirmSubjectId));
-      closeConfirm();
+      deleteSubject(
+        { idSubject: confirmSubjectId },
+        {
+          onSuccess: () => {
+            refetch(); // Refresh subjects after deletion
+            closeConfirm();
+          },
+          onError: (error) => {
+            console.error("Failed to delete subject:", error);
+            closeConfirm();
+          },
+        }
+      );
     }
   };
 
-  const handleSave = (subject: Subject) => {
-    if (selectedSubject) {
-      // Update existing subject
-      setSubjects((prev) =>
-        prev.map((s) => (s.id === subject.id ? subject : s))
-      );
-    } else {
-      // Add new subject
-      setSubjects((prev) => [...prev, { ...subject, id: prev.length + 1 }]);
-    }
-    setIsModalOpen(false);
+  const handleSave = () => {
+    refetch(); // Refresh subjects after save
+    setIsModalOpen(false); // Close modal
+    setSelectedSubject(null); // Clear selected subject
   };
 
   return (
@@ -110,16 +122,20 @@ export default function PageManageSubject() {
       />
 
       <div className="md:flex md:justify-end mb-4">
-        <ComponetButton
+        <ComponentButton
           variant="primary"
           className="flex items-center gap-2"
           onClick={openCreate}
         >
           <Plus size={16} /> Cadastrar
-        </ComponetButton>
+        </ComponentButton>
       </div>
       <div className="bg-white dark:bg-gray-900 px-3 md:px-0 rounded-lg shadow overflow-auto w-60 md:w-99 min-w-full md:h-[55vh] h-auto">
-        <DataStatusHandler isLoading={false} error={null} onRetry={() => {}}>
+        <DataStatusHandler
+          isLoading={isLoading}
+          error={error}
+          onRetry={refetch}
+        >
           <table className="w-full text-left text-xs md:text-sm border-collapse">
             <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
               <tr>
@@ -133,17 +149,17 @@ export default function PageManageSubject() {
               {filtered.length > 0 ? (
                 filtered.map((subject: Subject) => (
                   <tr
-                    key={subject.id}
+                    key={subject.idSubject}
                     className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
                   >
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {subject.id}
+                      {subject.idSubject}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
                       {truncateText(subject.name, 25, "end")}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {truncateText(subject.course, 25, "end")}
+                      {truncateText(subject.course || "N/A", 25, "end")}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap flex gap-2">
                       <button
@@ -153,7 +169,7 @@ export default function PageManageSubject() {
                         <Pencil size={16} className="text-green-600" />
                       </button>
                       <button
-                        onClick={() => openConfirm(subject.id)}
+                        onClick={() => openConfirm(subject.idSubject)}
                         className="p-2 cursor-pointer bg-red-50 hover:bg-red-100 rounded"
                       >
                         <Trash2 size={16} className="text-red-600" />
@@ -179,7 +195,7 @@ export default function PageManageSubject() {
       <ModalManageSubject
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        subjectData={selectedSubject}
+        subjectData={selectedSubject ? { ...selectedSubject, course: undefined } : null} // Remove course field
         onSave={handleSave}
       />
 

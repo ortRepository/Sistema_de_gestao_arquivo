@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
 import DynamicModal from "@/components/common/DynamicModal";
 import ComponentInput from "@/components/common/FormInput";
-import ComponetButton from "@/components/common/button";
+import ComponentButton from "@/components/common/button";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 import { SearchableSelect } from "@/components/common/SearchableSelect";
-import {
-  ClassData,
-  ModalManageClassProps,
-  OptionClass,
-} from "@/types/interfaces";
 import { classSchema } from "@/types/type";
+import { useAddClass, useListRooms, useUpdateClass } from "@/hooks/DynamicApiHooks";
+import { Class, ModalManageClassProps } from "@/types/interfaces";
+
 
 const ModalManageClass: React.FC<ModalManageClassProps> = ({
   isOpen,
@@ -17,76 +15,44 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
   classData,
   onSave,
 }) => {
-  const [formData, setFormData] = useState<{
-    turma: string;
-    diretorDeTurma: string;
-    sala: number | "";
-  }>({
-    turma: "",
-    diretorDeTurma: "",
-    sala: "",
+  const [formData, setFormData] = useState<Partial<Class>>({
+    name: "",
+    status: true,
+    idRoom: 0,
   });
-  const defaultForm = {
-    turma: "",
-    diretorDeTurma: "",
-    sala: 0,
-  };
 
   const [fieldErrors, setFieldErrors] = useState<{
-    turma?: string;
-    diretorDeTurma?: string;
-    sala?: string;
+    name?: string;
+    status?: string;
+    idRoom?: string;
   }>({});
 
-  // Static options for directors
-  const directorOptions: OptionClass[] = [
-    { value: "Prof. Ana Silva", label: "Prof. Ana Silva" },
-    { value: "Prof. João Pedro", label: "Prof. João Pedro" },
-    { value: "Prof. Maria Oliveira", label: "Prof. Maria Oliveira" },
-    { value: "Prof. Carlos Mendes", label: "Prof. Carlos Mendes" },
-  ];
-
-  useEffect(() => {
-    if (classData) {
-      setFormData({
-        turma: classData.turma,
-        diretorDeTurma: classData.diretorDeTurma,
-        sala: classData.sala,
-      });
-    } else {
-      setFormData(defaultForm);
-    }
-    setFieldErrors({});
-  }, [classData]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => {
-      if (name === "sala") {
-        // Allow empty string or valid integer string
-        if (value === "") {
-          return { ...prev, sala: "" };
-        }
-        if (/^\d+$/.test(value)) {
-          return { ...prev, sala: Number(value) }; // Convert to number
-        }
-        return prev; // No change if invalid
-      }
-      return { ...prev, [name]: value };
-    });
-    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
-  };
-
-  const handleSelectChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, diretorDeTurma: value }));
-    setFieldErrors((prev) => ({ ...prev, diretorDeTurma: undefined }));
-  };
-
+  const { data: rooms, isLoading: isRoomsLoading } = useListRooms();
+  const { mutateAsync: addClass } = useAddClass();
+  const { mutateAsync: updateClass } = useUpdateClass();
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{
     text: string;
     type: "success" | "error";
   } | null>(null);
+
+  useEffect(() => {
+    if (classData) {
+      setFormData({
+        idClass: classData.idClass,
+        name: classData.name,
+        status: classData.status,
+        idRoom: classData.idRoom,
+      });
+    } else {
+      setFormData({
+        name: "",
+        status: true,
+        idRoom: 0,
+      });
+    }
+    setFieldErrors({});
+  }, [classData]);
 
   useEffect(() => {
     if (statusMessage) {
@@ -95,8 +61,22 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
     }
   }, [statusMessage]);
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "status" ? value === "true" : parseInt(value, 10) || 0,
+    }));
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
   const handleClose = () => {
-    setFormData(defaultForm);
+    setFormData({ name: "", status: true, idRoom: 0 });
     setFieldErrors({});
     setStatusMessage(null);
     setIsLoading(false);
@@ -104,58 +84,69 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
   };
 
   const handleSubmit = () => {
-    // Prepare data for validation
-    const dataToValidate = {
-      turma: formData.turma,
-      diretorDeTurma: formData.diretorDeTurma,
-      sala: formData.sala === "" ? undefined : Number(formData.sala),
-    };
-
-    // Validate with Zod
-    const result = classSchema.safeParse(dataToValidate);
-    if (!result.success) {
-      const errors = result.error.flatten().fieldErrors;
+    const validation = classSchema.safeParse(formData);
+    if (!validation.success) {
+      const errors = validation.error.format();
       setFieldErrors({
-        turma: errors.turma?.[0],
-        diretorDeTurma: errors.diretorDeTurma?.[0],
-        sala: errors.sala?.[0],
+        name: errors.name?._errors[0],
+        status: errors.status?._errors[0],
+        idRoom: errors.idRoom?._errors[0],
       });
       return;
     }
 
     setIsLoading(true);
-    try {
-      const newClass: ClassData = {
-        id: classData ? classData.id : Date.now(),
-        turma: result.data.turma,
-        diretorDeTurma: result.data.diretorDeTurma,
-        sala: result.data.sala,
-      };
+    const payload = {
+      name: formData.name!,
+      status: formData.status!,
+      idRoom: formData.idRoom!,
+    };
+
+    const onSuccess = () => {
       setStatusMessage({
-        text: classData
-          ? "Turma atualizada com sucesso!"
-          : "Turma cadastrada com sucesso!",
+        text: classData ? "Turma atualizada com sucesso!" : "Turma cadastrada com sucesso!",
         type: "success",
       });
-      setTimeout(() => {
-        onSave(newClass);
-        setIsLoading(false);
-        handleClose();
-      }, 2000);
-    } catch (error) {
+      setIsLoading(false);
+      onSave({
+        ...payload,
+        idClass: classData ? classData.idClass : 0,
+        createdIn: classData ? classData.createdIn : new Date().toISOString(),
+        updatedIn: new Date().toISOString(),
+      });
+      handleClose();
+    };
+
+    const onError = (error: any) => {
       setStatusMessage({
-        text: "Erro ao salvar. Tente novamente!",
+        text: error.message || "Erro ao salvar. Tente novamente!",
         type: "error",
       });
       setIsLoading(false);
+    };
+
+    if (classData) {
+      updateClass(payload, { onSuccess, onError });
+    } else {
+      addClass(payload, { onSuccess, onError });
     }
   };
+
+  const roomOptions = (rooms || []).map((room) => ({
+    value: room.idRoom.toString(),
+    label: room.name,
+  }));
+
+  const statusOptions = [
+    { value: "true", label: "Ativo" },
+    { value: "false", label: "Inativo" },
+  ];
 
   return (
     <DynamicModal
       title={classData ? "Editar Turma" : "Cadastrar Turma"}
       isOpen={isOpen}
-      onClose={classData ? onClose : handleClose}
+      onClose={handleClose}
     >
       {statusMessage && (
         <div
@@ -183,49 +174,52 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
       )}
       <div className="space-y-4">
         <ComponentInput
-          label="Turma"
-          name="turma"
+          label="Nome da Turma"
+          name="name"
           type="text"
           placeholder="Digite o nome da turma"
-          value={formData.turma}
-          error={fieldErrors.turma || ""}
+          value={formData.name || ""}
+          error={fieldErrors.name || ""}
           onChange={handleChange}
           required
         />
         <SearchableSelect
-          label="Diretor de Turma"
-          value={formData.diretorDeTurma}
-          onChange={handleSelectChange}
-          options={directorOptions}
-          error={fieldErrors.diretorDeTurma}
+          label="Status"
+          value={formData.status?.toString() || "true"}
+          onChange={(value) => handleSelectChange("status", value)}
+          options={statusOptions}
+          error={fieldErrors.status}
         />
-        <ComponentInput
-          label="Sala"
-          name="sala"
-          type="number"
-          placeholder="Digite o número da sala"
-          value={formData.sala.toString()}
-          error={fieldErrors.sala || ""}
-          onChange={handleChange}
-          required
-        />
+        {isRoomsLoading ? (
+          <p className="text-gray-500">Carregando salas...</p>
+        ) : roomOptions.length === 0 ? (
+          <p className="text-gray-500">Nenhuma sala disponível</p>
+        ) : (
+          <SearchableSelect
+            label="Sala"
+            value={formData.idRoom?.toString() || ""}
+            onChange={(value) => handleSelectChange("idRoom", value)}
+            options={roomOptions}
+            error={fieldErrors.idRoom}
+          />
+        )}
       </div>
       <div className="flex flex-wrap-reverse justify-end mt-4 gap-2">
-        <ComponetButton
+        <ComponentButton
           className="w-full md:w-auto"
           variant="secondary"
-          onClick={classData ? onClose : handleClose}
+          onClick={handleClose}
         >
           Cancelar
-        </ComponetButton>
-        <ComponetButton
+        </ComponentButton>
+        <ComponentButton
           variant="primary"
           onClick={handleSubmit}
           className="w-full md:w-auto"
           loading={isLoading}
         >
           {classData ? "Atualizar" : "Cadastrar"}
-        </ComponetButton>
+        </ComponentButton>
       </div>
     </DynamicModal>
   );

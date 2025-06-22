@@ -1,34 +1,32 @@
 import React, { useEffect, useState } from "react";
 import DynamicModal from "@/components/common/DynamicModal";
-import ComponetButton from "@/components/common/button";
-
-interface CourseData {
-  id: number;
-  nome: string;
-  coordenadorDoCurso: string;
-  disciplinas: string[];
-}
+import ComponentButton from "@/components/common/button"; // Fixed typo
+import { useListSubjects } from "@/hooks/DynamicApiHooks";
+import { Course, Subject } from "@/types/interfaces";
 
 interface ModalManageDisciplinasProps {
   isOpen: boolean;
   onClose: () => void;
-  course: CourseData | null;
+  course: Course | null;
 }
-
 const ModalManageDisciplinas: React.FC<ModalManageDisciplinasProps> = ({
   isOpen,
   onClose,
   course,
 }) => {
-  const [disciplinas, setDisciplinas] = useState<string[]>([]);
+  const { data: subjects, isLoading, error } = useListSubjects();
+  const [disciplinas, setDisciplinas] = useState<Subject[]>([]);
 
   useEffect(() => {
-    if (course) {
-      setDisciplinas([...course.disciplinas]); // Copy to avoid mutation
+    if (course && subjects) {
+      const courseDisciplinas = subjects.filter(
+        (subject: Subject) => subject.idCourse === course.idCourse
+      );
+      setDisciplinas(courseDisciplinas);
     } else {
       setDisciplinas([]);
     }
-  }, [course]);
+  }, [course, subjects]);
 
   const handleClose = () => {
     setDisciplinas([]);
@@ -43,12 +41,22 @@ const ModalManageDisciplinas: React.FC<ModalManageDisciplinasProps> = ({
     >
       <div className="space-y-4">
         <h4 className="font-semibold text-gray-700 dark:text-gray-300">
-          Disciplinas do Curso: {course?.nome}
+          Disciplinas do Curso: {course?.name || "N/A"}
         </h4>
-        {disciplinas.length > 0 ? (
+        {isLoading ? (
+          <p className="text-gray-500 dark:text-gray-400">
+            Carregando disciplinas...
+          </p>
+        ) : error ? (
+          <p className="text-red-500 dark:text-red-400">
+            Erro ao carregar disciplinas.
+          </p>
+        ) : disciplinas.length > 0 ? (
           <ul className="list-disc list-inside mb-2 text-sm text-gray-600 dark:text-gray-400">
-            {disciplinas.map((disc, index) => (
-              <li key={index}>{disc}</li>
+            {disciplinas.map((disc: Subject) => (
+              <li key={disc.idSubject}>
+                {disc.name} ({disc.status ? "Ativo" : "Inativo"})
+              </li>
             ))}
           </ul>
         ) : (
@@ -58,13 +66,13 @@ const ModalManageDisciplinas: React.FC<ModalManageDisciplinasProps> = ({
         )}
       </div>
       <div className="flex flex-wrap-reverse justify-end mt-4 gap-2">
-        <ComponetButton
+        <ComponentButton
           className="w-full md:w-auto"
           variant="secondary"
           onClick={handleClose}
         >
           Fechar
-        </ComponetButton>
+        </ComponentButton>
       </div>
     </DynamicModal>
   );

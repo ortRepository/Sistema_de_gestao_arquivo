@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   MoreHorizontal,
   FileText,
@@ -11,31 +11,51 @@ import {
 import { jsPDF } from "jspdf";
 import SearchFilterBar from "@/components/common/SearchBar";
 import { SendDocumentModal } from "@/components/modals/teacher/SendDocumentsModaalTeste";
-import ComponetButton from "@/components/common/button";
+import ComponentButton from "@/components/common/button";
 import { AddDocumentModal } from "@/components/modals/teacher/AddDocumentModa";
 import DeletePublicationModal from "@/components/common/DeletePublicationModal";
 import ViewDocumentModal from "@/components/modals/teacher/ViewDocumentModal";
+import {
+  useListDocuments,
+  useListClasses,
+  useListCourses,
+  useListSubjects,
+  useListStudents,
+  useListTeachers,
+  useListRooms,
+  useDeleteDocument,
+} from "@/hooks/DynamicApiHooks";
+import {
+  Document,
+  Class,
+  Course,
+  Subject,
+  Student,
+  Teacher,
+  Room,
+} from "@/types/interfaces";
 
 interface DocumentItem {
   id: number;
-  title: string;
+  description: string;
+  urlLink: string;
+  path: string;
+  status: boolean;
+  createdIn: string;
+  updatedIn: string;
+  className: string;
+  subjectName: string;
+  courseName: string;
+  studentName: string;
+  teacherName: string;
+  roomName: string;
   category: string;
-  author: string;
-  date: string;
 }
-
-const dummyData: DocumentItem[] = Array.from({ length: 24 }).map((_, i) => ({
-  id: i + 1,
-  title: "Plano de Aula - Ciências",
-  category: "Plano de Aula",
-  author: "Prof. Ana Marta",
-  date: new Date().toLocaleDateString("pt-BR"),
-}));
 
 export default function AcademicDocuments() {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("Categoria");
+  const [filterType, setFilterType] = useState("description");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -50,14 +70,90 @@ export default function AcademicDocuments() {
   const [confirmDocumentId, setConfirmDocumentId] = useState<number | null>(
     null
   );
+  const [error, setError] = useState<string | null>(null);
+
+  const { data: apiDocuments } = useListDocuments();
+  const { data: classes } = useListClasses();
+  const { data: courses } = useListCourses();
+  const { data: subjects } = useListSubjects();
+  const { data: students } = useListStudents();
+  const { data: teachers } = useListTeachers();
+  const { data: rooms } = useListRooms();
+  const { mutateAsync: deleteDocument} = useDeleteDocument();
+
+  const mappedDocuments: DocumentItem[] = useMemo(() => {
+    if (!apiDocuments) return [];
+    return apiDocuments.map((doc: Document) => ({
+      id: doc.idDocument,
+      description: doc.description,
+      urlLink: doc.urlLink,
+      path: doc.path,
+      status: doc.status,
+      createdIn: new Date(doc.createdIn).toLocaleDateString("pt-BR"),
+      updatedIn: new Date(doc.updatedIn).toLocaleDateString("pt-BR"),
+      className:
+        classes?.find((c: Class) => c.idClass === doc.idClass)?.name || "N/A",
+      subjectName:
+        subjects?.find((s: Subject) => s.idSubject === doc.idSubject)?.name ||
+        "N/A",
+      courseName:
+        courses?.find((c: Course) => c.idCourse === doc.idCourse)?.name ||
+        "N/A",
+      studentName:
+        students?.find((s: Student) => s.idStudent === doc.idStudent)?.name ||
+        "N/A",
+      teacherName:
+        teachers?.find((t: Teacher) => t.idTeacher === doc.idTeacher)?.name ||
+        "N/A",
+      roomName:
+        rooms?.find((r: Room) => r.idRoom === doc.idRoom)?.name || "N/A",
+      category:
+        subjects?.find((s: Subject) => s.idSubject === doc.idSubject)?.name ||
+        "Documento Geral",
+    }));
+  }, [apiDocuments, classes, courses, subjects, students, teachers, rooms]);
 
   useEffect(() => {
-    setDocuments(dummyData);
-  }, []);
+    setDocuments(mappedDocuments);
+  }, [mappedDocuments]);
 
-  const filtered = documents.filter((doc) =>
-    doc.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filterOptions = [
+    { value: "description", label: "Descrição" },
+    { value: "subjectName", label: "Disciplina" },
+    { value: "courseName", label: "Curso" },
+    { value: "className", label: "Turma" },
+    { value: "teacherName", label: "Professor" },
+    { value: "createdIn", label: "Data de Criação" },
+  ];
+
+  const filtered = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    return documents.filter((doc) => {
+      switch (filterType) {
+        case "description":
+          return doc.description.toLowerCase().includes(term);
+        case "subjectName":
+          return doc.subjectName.toLowerCase().includes(term);
+        case "courseName":
+          return doc.courseName.toLowerCase().includes(term);
+        case "className":
+          return doc.className.toLowerCase().includes(term);
+        case "teacherName":
+          return doc.teacherName.toLowerCase().includes(term);
+        case "createdIn":
+          return doc.createdIn.toLowerCase().includes(term);
+        default:
+          return (
+            doc.description.toLowerCase().includes(term) ||
+            doc.subjectName.toLowerCase().includes(term) ||
+            doc.courseName.toLowerCase().includes(term) ||
+            doc.className.toLowerCase().includes(term) ||
+            doc.teacherName.toLowerCase().includes(term) ||
+            doc.createdIn.toLowerCase().includes(term)
+          );
+      }
+    });
+  }, [documents, searchTerm, filterType]);
 
   const handleDownload = (id: number) => {
     const doc = documents.find((d) => d.id === id);
@@ -69,16 +165,13 @@ export default function AcademicDocuments() {
       format: "a4",
     });
 
-    // Colors as tuples
     const red: [number, number, number] = [200, 0, 0];
     const black: [number, number, number] = [0, 0, 0];
     const yellow: [number, number, number] = [255, 204, 0];
 
-    // Header Background
     pdf.setFillColor(...black);
     pdf.rect(0, 0, 210, 50, "F");
 
-    // Header Text
     pdf.setTextColor(255, 255, 255);
     pdf.setFont("times", "bold");
     pdf.setFontSize(16);
@@ -86,31 +179,27 @@ export default function AcademicDocuments() {
     pdf.setFontSize(14);
     pdf.text("MINISTÉRIO DA EDUCAÇÃO", 105, 25, { align: "center" });
     pdf.setFontSize(12);
-    pdf.text("INSTITUTO POLITÉCNICO 30 DE SETEMBRO", 105, 35, { align: "center" });
+    pdf.text("INSTITUTO POLITÉCNICO 30 DE SETEMBRO", 105, 35, {
+      align: "center",
+    });
 
-    // Logo Placeholder (Text-based Monogram)
     pdf.setFillColor(...yellow);
     pdf.setDrawColor(...red);
     pdf.setLineWidth(1);
-    pdf.circle(105, 70, 20, "FD"); // Circle for logo
+    pdf.circle(105, 70, 20, "FD");
     pdf.setTextColor(...black);
     pdf.setFontSize(18);
     pdf.setFont("times", "bold");
-    pdf.text("IP30S", 105, 73, { align: "center" }); // Monogram for Instituto Politécnico 30 de Setembro
+    pdf.text("IP30S", 105, 73, { align: "center" });
 
-    // Note: To use a real logo, convert it to base64 or host it online and use:
-    // pdf.addImage(logoBase64, "PNG", 85, 50, 40, 40);
-
-    // Document Title
     pdf.setTextColor(...black);
     pdf.setFontSize(16);
     pdf.setFont("times", "bold");
-    pdf.text(doc.title.toUpperCase(), 105, 100, { align: "center" });
+    pdf.text(doc.description.toUpperCase(), 105, 100, { align: "center" });
 
-    // Content Section
     pdf.setDrawColor(...red);
     pdf.setLineWidth(0.5);
-    pdf.rect(20, 110, 170, 80, "S"); // Border around details
+    pdf.rect(20, 110, 170, 120, "S");
 
     pdf.setFont("times", "bold");
     pdf.setFontSize(14);
@@ -119,37 +208,45 @@ export default function AcademicDocuments() {
     pdf.setFont("times", "normal");
     pdf.setFontSize(12);
     const details = [
-      { label: "Título:", value: doc.title },
+      { label: "Descrição:", value: doc.description },
       { label: "Categoria:", value: doc.category },
-      { label: "Autor:", value: doc.author },
-      { label: "Data:", value: doc.date },
+      { label: "Disciplina:", value: doc.subjectName },
+      { label: "Curso:", value: doc.courseName },
+      { label: "Turma:", value: doc.className },
+      { label: "Professor:", value: doc.teacherName },
+      { label: "Estudante:", value: doc.studentName },
+      { label: "Sala:", value: doc.roomName },
+      { label: "Status:", value: doc.status ? "Ativo" : "Inativo" },
+      { label: "Data de Criação:", value: doc.createdIn },
+      { label: "Data de Atualização:", value: doc.updatedIn },
     ];
 
     details.forEach((item, index) => {
       pdf.setFont("times", "bold");
-      pdf.text(item.label, 25, 130 + index * 15);
+      pdf.text(item.label, 25, 130 + index * 10);
       pdf.setFont("times", "normal");
-      pdf.text(item.value, 50, 130 + index * 15);
+      pdf.text(item.value, 60, 130 + index * 10);
     });
 
-    // Decorative Line
     pdf.setDrawColor(...yellow);
     pdf.setLineWidth(0.3);
-    pdf.line(20, 195, 190, 195);
+    pdf.line(20, 235, 190, 235);
 
-    // Footer
     pdf.setFontSize(10);
     pdf.setTextColor(100, 100, 100);
     pdf.setFont("times", "italic");
     pdf.text(
-      `Gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`,
+      `Gerado em: ${new Date().toLocaleDateString(
+        "pt-BR"
+      )} às ${new Date().toLocaleTimeString("pt-BR")}`,
       20,
       280
     );
-    pdf.text("Instituto Politécnico 30 de Setembro", 190, 280, { align: "right" });
+    pdf.text("Instituto Politécnico 30 de Setembro", 190, 280, {
+      align: "right",
+    });
 
-    // Save the PDF
-    pdf.save(`${doc.title}.pdf`);
+    pdf.save(`${doc.description}.pdf`);
     setOpenMenuId(null);
   };
 
@@ -168,11 +265,25 @@ export default function AcademicDocuments() {
   };
 
   const handleDelete = () => {
-    if (confirmDocumentId !== null) {
-      setDocuments((prev) => prev.filter((d) => d.id !== confirmDocumentId));
-      setOpenMenuId(null);
-      setDeleteModalOpen(false);
-    }
+    if (confirmDocumentId === null) return;
+
+    deleteDocument(
+      { idDocument: confirmDocumentId },
+      {
+        onSuccess: () => {
+          setDocuments((prev) =>
+            prev.filter((d) => d.id !== confirmDocumentId)
+          );
+          setOpenMenuId(null);
+          setDeleteModalOpen(false);
+          setError(null);
+        },
+        onError: (error: any) => {
+          setError(error.message || "Erro ao excluir documento");
+          setDeleteModalOpen(false);
+        },
+      }
+    );
   };
 
   const handleSend = (doc: DocumentItem) => {
@@ -185,62 +296,40 @@ export default function AcademicDocuments() {
     console.log(`Documento ${selectedDocument?.id} enviado!`);
   };
 
-  const onAddSuccess = (newDoc: {
-    name: string;
-    file: File;
-    category: string;
-    classDest: string;
-    year: Date;
-  }) => {
-    const nextId = documents.length
-      ? Math.max(...documents.map((d) => d.id)) + 1
-      : 1;
-    setDocuments((prev) => [
-      {
-        id: nextId,
-        title: newDoc.name,
-        category: newDoc.category,
-        author: "Você",
-        date: newDoc.year.toLocaleDateString("pt-BR"),
-      },
-      ...prev,
-    ]);
-  };
-
   const closeDeleteModal = () => {
     setDeleteModalOpen(false);
-    setSelectedDocument(null);
+    setConfirmDocumentId(null);
+    setError(null);
   };
 
   return (
     <div className="flex h-full">
-      <div className="flex-1 p-8  dark:bg-gray-800">
+      <div className="flex-1 p-8 dark:bg-gray-800">
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
         <SearchFilterBar
           title="Documentos acadêmicos"
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           filterType={filterType}
           setFilterType={setFilterType}
-          filterOptions={[
-            { value: "Categoria", label: "Categoria" },
-            { value: "Ano Letivo", label: "Ano Letivo" },
-            { value: "Turma", label: "Turma" },
-            { value: "Disciplina", label: "Disciplina" },
-            { value: "Data de envio", label: "Data de envio" },
-          ]}
+          filterOptions={filterOptions}
           isFilterOpen={isFilterOpen}
           toggleFilterDropdown={() => setIsFilterOpen((o) => !o)}
           closeFilterDropdown={() => setIsFilterOpen(false)}
         />
 
         <div className="md:flex md:justify-end mb-4">
-          <ComponetButton
+          <ComponentButton
             variant="primary"
             className="flex items-center gap-2"
             onClick={() => setAddModalOpen(true)}
           >
             <Plus size={16} /> Adicionar Documento
-          </ComponetButton>
+          </ComponentButton>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -250,10 +339,12 @@ export default function AcademicDocuments() {
               className="relative bg-white dark:bg-gray-900 p-4 rounded-lg shadow hover:shadow-md"
             >
               <FileText size={48} className="text-[#4D6BFE] mb-2" />
-              <h3 className="font-semibold">{doc.title}</h3>
+              <h3 className="font-semibold">{doc.description}</h3>
               <p className="text-sm text-gray-500">Categoria: {doc.category}</p>
-              <p className="text-sm text-gray-500">Autor: {doc.author}</p>
-              <p className="text-xs text-gray-400">{doc.date}</p>
+              <p className="text-sm text-gray-500">
+                Professor: {doc.teacherName}
+              </p>
+              <p className="text-xs text-gray-400">{doc.createdIn}</p>
 
               <div className="absolute top-2 right-2">
                 <MoreHorizontal
@@ -302,7 +393,6 @@ export default function AcademicDocuments() {
           ))}
         </div>
 
-        {/* Modais */}
         <SendDocumentModal
           isOpen={sendModalOpen}
           onClose={() => setSendModalOpen(false)}
@@ -312,7 +402,6 @@ export default function AcademicDocuments() {
         <AddDocumentModal
           isOpen={addModalOpen}
           onClose={() => setAddModalOpen(false)}
-          onAddSuccess={onAddSuccess}
         />
         <ViewDocumentModal
           isOpen={viewModalOpen}

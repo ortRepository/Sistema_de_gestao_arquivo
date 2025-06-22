@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from "react";
+import { z } from "zod";
 import DynamicModal from "@/components/common/DynamicModal";
 import ComponentInput from "@/components/common/FormInput";
-import ComponetButton from "@/components/common/button";
+import ComponentButton from "@/components/common/button";
 import { AlertTriangle, CheckCircle } from "lucide-react";
-import { CourseData, ModalManageCourseProps } from "@/types/interfaces";
+import { SearchableSelect } from "@/components/common/SearchableSelect";
+import { ModalManageCourseProps } from "@/types/interfaces";
+import { useAddCourse, useUpdateCourse } from "@/hooks/DynamicApiHooks";
+import { courseSchema } from "@/types/type";
+
+interface Option {
+  value: string;
+  label: string;
+}
+
+type CourseForm = z.infer<typeof courseSchema>;
 
 const ModalManageCourse: React.FC<ModalManageCourseProps> = ({
   isOpen,
@@ -11,36 +22,20 @@ const ModalManageCourse: React.FC<ModalManageCourseProps> = ({
   course,
   onSave,
 }) => {
-  const [formData, setFormData] = useState<{
-    nome: string;
-  }>({
-    nome: "",
+  const [formData, setFormData] = useState<CourseForm>({
+    name: "",
+    status: true,
   });
-  const defaultForm = {
-    nome: "",
+
+  const defaultForm: CourseForm = {
+    name: "",
+    status: true,
   };
 
   const [fieldErrors, setFieldErrors] = useState<{
-    nome?: string;
-    coordenadorDoCurso?: string;
+    name?: string;
+    status?: string;
   }>({});
-
-  useEffect(() => {
-    if (course) {
-      setFormData({
-        nome: course.nome,
-      });
-    } else {
-      setFormData(defaultForm);
-    }
-    setFieldErrors({});
-  }, [course]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
-  };
 
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{
@@ -48,12 +43,41 @@ const ModalManageCourse: React.FC<ModalManageCourseProps> = ({
     type: "success" | "error";
   } | null>(null);
 
+  const { mutateAsync: addCourse } = useAddCourse();
+  const { mutateAsync: updateCourse } = useUpdateCourse();
+
+  useEffect(() => {
+    if (course) {
+      setFormData({
+        name: course.name,
+        status: course.status,
+      });
+    } else {
+      setFormData(defaultForm);
+    }
+    setFieldErrors({});
+  }, [course]);
+
   useEffect(() => {
     if (statusMessage) {
       const timer = setTimeout(() => setStatusMessage(null), 3000);
       return () => clearTimeout(timer);
     }
   }, [statusMessage]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "status" ? value === "true" : value,
+    }));
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
 
   const handleClose = () => {
     setFormData(defaultForm);
@@ -64,46 +88,67 @@ const ModalManageCourse: React.FC<ModalManageCourseProps> = ({
   };
 
   const handleSubmit = () => {
-    const errors: { nome?: string; coordenadorDoCurso?: string } = {};
-    if (!formData.nome.trim()) errors.nome = "Nome é obrigatório";
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
+    const validation = courseSchema.safeParse(formData);
+    if (!validation.success) {
+      const errors = validation.error.flatten().fieldErrors;
+      setFieldErrors({
+        name: errors.name?.[0],
+        status: errors.status?.[0],
+      });
       return;
     }
 
     setIsLoading(true);
-    try {
-      const newCourse: CourseData = {
-        id: course ? course.id : Date.now(),
-        nome: formData.nome,
-        coordenadorDoCurso: "",
-        disciplinas: [],
-      };
+    const payload = {
+      name: formData.name,
+      status: formData.status,
+    };
+
+    const onSuccess = () => {
       setStatusMessage({
         text: course
           ? "Curso atualizado com sucesso!"
           : "Curso cadastrado com sucesso!",
         type: "success",
       });
-      setTimeout(() => {
-        onSave(newCourse);
-        setIsLoading(false);
-        handleClose();
-      }, 2000);
-    } catch (error) {
+      setIsLoading(false);
+      onSave({
+        ...payload,
+        idCourse: course ? course.idCourse : 0,
+        createdIn: course ? course.createdIn : new Date().toISOString(),
+        updatedIn: new Date().toISOString(),
+      });
+      setTimeout(handleClose, 3000);
+    };
+
+    const onError = (error: any) => {
       setStatusMessage({
-        text: "Erro ao salvar. Tente novamente!",
+        text: error.message || "Erro ao salvar. Tente novamente!",
         type: "error",
       });
       setIsLoading(false);
+    };
+
+    if (course) {
+      updateCourse(
+        { ...payload, idcourses: course.idCourse },
+        { onSuccess, onError }
+      );
+    } else {
+      addCourse(payload, { onSuccess, onError });
     }
   };
+
+  const statusOptions: Option[] = [
+    { value: "true", label: "Ativo" },
+    { value: "false", label: "Inativo" },
+  ];
 
   return (
     <DynamicModal
       title={course ? "Editar Curso" : "Cadastrar Curso"}
       isOpen={isOpen}
-      onClose={course ? onClose : handleClose}
+      onClose={handleClose}
     >
       {statusMessage && (
         <div
@@ -131,32 +176,39 @@ const ModalManageCourse: React.FC<ModalManageCourseProps> = ({
       )}
       <div className="space-y-4">
         <ComponentInput
-          label="Nome"
-          name="nome"
+          label="Nome do Curso"
+          name="name"
           type="text"
           placeholder="Digite o nome do curso"
-          value={formData.nome}
-          error={fieldErrors.nome || ""}
+          value={formData.name}
+          error={fieldErrors.name || ""}
           onChange={handleChange}
           required
         />
+        <SearchableSelect
+          label="Status"
+          value={formData.status.toString()}
+          onChange={(value) => handleSelectChange("status", value)}
+          options={statusOptions}
+          error={fieldErrors.status}
+        />
       </div>
       <div className="flex flex-wrap-reverse justify-end mt-4 gap-2">
-        <ComponetButton
+        <ComponentButton
           className="w-full md:w-auto"
           variant="secondary"
-          onClick={course ? onClose : handleClose}
+          onClick={handleClose}
         >
           Cancelar
-        </ComponetButton>
-        <ComponetButton
+        </ComponentButton>
+        <ComponentButton
           variant="primary"
           onClick={handleSubmit}
           className="w-full md:w-auto"
           loading={isLoading}
         >
           {course ? "Atualizar" : "Cadastrar"}
-        </ComponetButton>
+        </ComponentButton>
       </div>
     </DynamicModal>
   );

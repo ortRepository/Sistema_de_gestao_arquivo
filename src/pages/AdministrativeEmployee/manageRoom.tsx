@@ -5,20 +5,10 @@ import DeletePublicationModal from "@/components/common/DeletePublicationModal";
 import ComponetButton from "@/components/common/button";
 import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
 import ModalManageRoom from "@/components/modals/modalEmployee/ModalManageRoom";
+import { useDeleteRoom, useListRooms } from "@/hooks/DynamicApiHooks";
+import { Room } from "@/types/interfaces";
 
-
-
-interface Room {
-  id: number;
-  sala: number;
-}
-
-const initialRooms: Room[] = [
-  { id: 1, sala: 101 },
-  { id: 2, sala: 102 },
-  { id: 3, sala: 103 },
-];
-
+// Room interface from API
 export default function PageManageRoom() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filterType, setFilterType] = useState<string>("");
@@ -26,26 +16,29 @@ export default function PageManageRoom() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [confirmRoomId, setConfirmRoomId] = useState<number | null>(null);
-  const [rooms, setRooms] = useState<Room[]>(initialRooms);
+
+  // API hooks
+  const { data: rooms = [], isLoading, error, refetch } = useListRooms();
+  const { mutateAsync: deleteRoom } = useDeleteRoom();
 
   const filterOptions = [
     { value: "", label: "Todos" },
-    { value: "id", label: "Id" },
-    { value: "sala", label: "Sala" },
+    { value: "idRoom", label: "Id" },
+    { value: "name", label: "Nome" },
   ];
 
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
     return rooms.filter((room) => {
       switch (filterType) {
-        case "id":
-          return room.id.toString().includes(term);
-        case "sala":
-          return room.sala.toString().includes(term);
+        case "idRoom":
+          return room.idRoom.toString().includes(term);
+        case "name":
+          return room.name.toLowerCase().includes(term);
         default:
           return (
-            room.id.toString().includes(term) ||
-            room.sala.toString().includes(term)
+            room.idRoom.toString().includes(term) ||
+            room.name.toLowerCase().includes(term)
           );
       }
     });
@@ -66,19 +59,25 @@ export default function PageManageRoom() {
 
   const handleDelete = () => {
     if (confirmRoomId !== null) {
-      setRooms((prev) => prev.filter((r) => r.id !== confirmRoomId));
-      closeConfirm();
+      deleteRoom(
+        { idRoom: confirmRoomId },
+        {
+          onSuccess: () => {
+            refetch(); // Refresh the room list after deletion
+            closeConfirm();
+          },
+          onError: (err) => {
+            console.error("Failed to delete room:", err);
+            closeConfirm();
+          },
+        }
+      );
     }
   };
 
-  const handleSave = (room: Room) => {
-    if (selectedRoom) {
-      setRooms((prev) =>
-        prev.map((r) => (r.id === room.id ? room : r))
-      );
-    } else {
-      setRooms((prev) => [...prev, { ...room, id: prev.length + 1 }]);
-    }
+  const handleSave = (_room: Room) => {
+    // Note: Assuming ModalManageRoom handles API calls for create/update
+    // If not, you'll need to add API hooks for create/update here
     setIsModalOpen(false);
   };
 
@@ -107,12 +106,16 @@ export default function PageManageRoom() {
       </div>
 
       <div className="bg-white dark:bg-gray-900 px-3 md:px-0 rounded-lg shadow overflow-auto w-60 md:w-99 min-w-full md:h-[55vh] h-auto">
-        <DataStatusHandler isLoading={false} error={null} onRetry={() => {}}>
+        <DataStatusHandler
+          isLoading={isLoading}
+          error={error}
+          onRetry={refetch}
+        >
           <table className="w-full text-left text-xs md:text-sm border-collapse">
             <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
               <tr>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Sala</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Nome</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Ações</th>
               </tr>
             </thead>
@@ -120,14 +123,14 @@ export default function PageManageRoom() {
               {filtered.length > 0 ? (
                 filtered.map((room: Room) => (
                   <tr
-                    key={room.id}
+                    key={room.idRoom}
                     className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
                   >
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {room.id}
+                      {room.idRoom}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {room.sala}
+                      {room.name}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap flex gap-2">
                       <button
@@ -137,7 +140,7 @@ export default function PageManageRoom() {
                         <Pencil size={16} className="text-green-600" />
                       </button>
                       <button
-                        onClick={() => openConfirm(room.id)}
+                        onClick={() => openConfirm(room.idRoom)}
                         className="p-2 cursor-pointer bg-red-50 hover:bg-red-100 rounded"
                       >
                         <Trash2 size={16} className="text-red-600" />

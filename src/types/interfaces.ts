@@ -140,6 +140,7 @@ export interface Subject {
   idCourse: number;
   createdIn: string;
   updatedIn: string;
+   course?:string;
 }
 //-------------------------Teacher------------------------
 export interface Teacher {

@@ -4,6 +4,7 @@ import { UseQueryResult, UseMutationResult } from "@tanstack/react-query";
 import {
   Class,
   Course,
+  Document,
   Notification,
   Room,
   Student,
@@ -222,17 +223,10 @@ export const useDeleteDocument = createApiHook<
 >(endpoints.documents.delete);
 
 // View all documents (GET /api/documents)
-export const useListDocuments = createApiHook<
-  Document[],
-  {
-    idStudent?: number;
-    idCourse?: number;
-    idTeacher?: number;
-    idRoom?: number;
-  }
->(endpoints.documents.list);
+export const useListDocuments = createApiHook<Document[]>(
+  endpoints.documents.list
+);
 
-// View a single document (GET /api/documents/{idDocument})
 export const useGetDocument = createApiHook<Document, { idDocument: number }>(
   endpoints.documents.getById
 );
@@ -248,18 +242,16 @@ export const useAddClass = createApiHook<
   { code: number; message: string },
   { name: string; status: boolean; idRoom: number }
 >(endpoints.classes.create);
-
-// Delete a class (DELETE /api/classes)
-export const useDeleteClass = createApiHook<
-  { code: number; message: string },
-  { idClass: number }
->(endpoints.classes.delete);
-
 // Edit a class (PUT /api/classes)
 export const useUpdateClass = createApiHook<
   { code: number; message: string },
   { name: string; status: boolean; idRoom: number }
 >(endpoints.classes.update);
+// Delete a class (DELETE /api/classes)
+export const useDeleteClass = createApiHook<
+  { code: number; message: string },
+  { idClass: number }
+>(endpoints.classes.delete);
 
 // View all classes (GET /api/classes)
 export const useListClasses = createApiHook<Class[]>(endpoints.classes.list);
@@ -290,7 +282,7 @@ export const useDeleteCourse = createApiHook<
 // Edit a course (PUT /api/courses)
 export const useUpdateCourse = createApiHook<
   { code: number; message: string },
-  { name: string; status: boolean }
+  { name: string; status: boolean; idcourses: number }
 >(endpoints.courses.update);
 
 // View all courses (GET /api/courses)
@@ -389,17 +381,16 @@ export const useAddSubject = createApiHook<
   { name: string; status: boolean; idCourse: number }
 >(endpoints.subjects.create);
 
-// Delete a subject (DELETE /api/subjects)
-export const useDeleteSubject = createApiHook<
-  { code: number; message: string },
-  { idSubject: number }
->(endpoints.subjects.delete);
-
 // Update a subject (PUT /api/subjects)
 export const useUpdateSubject = createApiHook<
   { code: number; message: string },
   { name: string; status: boolean; idCourse: number }
 >(endpoints.subjects.update);
+// Delete a subject (DELETE /api/subjects)
+export const useDeleteSubject = createApiHook<
+  { code: number; message: string },
+  { idSubject: number }
+>(endpoints.subjects.delete);
 
 // View all subjects (GET /api/subjects)
 export const useListSubjects = createApiHook<Subject[]>(

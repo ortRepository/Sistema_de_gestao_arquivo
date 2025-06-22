@@ -2,15 +2,18 @@ import { useState, useMemo } from "react";
 import SearchFilterBar from "@/components/common/SearchBar";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import DeletePublicationModal from "@/components/common/DeletePublicationModal";
-import ComponetButton from "@/components/common/button";
+import ComponentButton from "@/components/common/button";
 import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
 import { truncateText } from "@/lib/utils";
 import ModalManageClass from "@/components/modals/modalEmployee/ModalManageClass";
-import { Class } from "@/types/interfaces";
-
-
-
-
+import {
+  useListClasses,
+  useDeleteClass,
+  useListRooms,
+  useListCourses,
+} from "@/hooks/DynamicApiHooks";
+import { Class,} from "@/types/interfaces";
+import { AlertTriangle, CheckCircle } from "lucide-react";
 
 export default function PageManageClass() {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -19,45 +22,61 @@ export default function PageManageClass() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [confirmClassId, setConfirmClassId] = useState<number | null>(null);
-  const [classes, setClasses] = useState<Class[]>(initialClasses);
+  const [statusMessage, setStatusMessage] = useState<{
+    text: string;
+    type: "success" | "error";
+  } | null>(null);
+
+  const { data: classes, isLoading, error, refetch } = useListClasses();
+  const { data: rooms } = useListRooms();
+  const { data: courses } = useListCourses();
+  const { mutate: deleteClass } = useDeleteClass();
 
   const filterOptions = [
     { value: "", label: "Todos" },
     { value: "id", label: "Id" },
-    { value: "turma", label: "Turma" },
-    { value: "diretorDeTurma", label: "Diretor de Turma" },
-    { value: "sala", label: "Sala" }, // New filter option
+    { value: "name", label: "Turma" },
+    { value: "room", label: "Sala" },
+    { value: "course", label: "Curso" }, // Added course filter
+    { value: "status", label: "Status" },
   ];
 
-const filtered = useMemo(() => {
+  const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return classes.filter((cls) => {
+    return (classes || []).filter((cls: Class) => {
+      const room = rooms?.find((r) => r.idRoom === cls.idRoom);
+      const courseName =
+        courses?.find((c) => c.idCourse === room?.idCourse)?.name || "N/A";
+      const roomName = room?.name || "N/A";
       switch (filterType) {
         case "id":
-          return cls.id.toString().includes(term);
-        case "turma":
-          return cls.turma.toLowerCase().includes(term);
-        case "diretorDeTurma":
-          return cls.diretorDeTurma.toLowerCase().includes(term);
-        case "sala":
-          return cls.sala.toString().includes(term); // Convert number to string for search
+          return cls.idClass.toString().includes(term);
+        case "name":
+          return cls.name.toLowerCase().includes(term);
+        case "room":
+          return roomName.toLowerCase().includes(term);
+        case "course":
+          return courseName.toLowerCase().includes(term);
+        case "status":
+          return (cls.status ? "ativo" : "inativo").includes(term);
         default:
           return (
-            cls.id.toString().includes(term) ||
-            cls.turma.toLowerCase().includes(term) ||
-            cls.diretorDeTurma.toLowerCase().includes(term) ||
-            cls.sala.toString().includes(term)
+            cls.idClass.toString().includes(term) ||
+            cls.name.toLowerCase().includes(term) ||
+            roomName.toLowerCase().includes(term) ||
+            courseName.toLowerCase().includes(term) ||
+            (cls.status ? "ativo" : "inativo").includes(term)
           );
       }
     });
-  }, [classes, searchTerm, filterType]);
+  }, [classes, rooms, courses, searchTerm, filterType]);
 
   const openCreate = () => {
     setSelectedClass(null);
     setIsModalOpen(true);
   };
 
-  const openEdit = (cls: ClassData) => {
+  const openEdit = (cls: Class) => {
     setSelectedClass(cls);
     setIsModalOpen(true);
   };
@@ -67,26 +86,66 @@ const filtered = useMemo(() => {
 
   const handleDelete = () => {
     if (confirmClassId !== null) {
-      setClasses((prev) => prev.filter((c) => c.id !== confirmClassId));
-      closeConfirm();
+      deleteClass(
+        { idClass: confirmClassId },
+        {
+          onSuccess: () => {
+            refetch();
+            closeConfirm();
+            setStatusMessage({
+              text: "Turma excluída com sucesso!",
+              type: "success",
+            });
+          },
+          onError: (error: any) => {
+            setStatusMessage({
+              text: error.message || "Erro ao excluir turma.",
+              type: "error",
+            });
+            closeConfirm();
+          },
+        }
+      );
     }
   };
 
-  const handleSave = (cls: ClassData) => {
-    if (selectedClass) {
-      // Update existing class
-      setClasses((prev) =>
-        prev.map((c) => (c.id === cls.id ? cls : c))
-      );
-    } else {
-      // Add new class
-      setClasses((prev) => [...prev, { ...cls, id: prev.length + 1 }]);
-    }
+  const handleSave = (cls: Class) => {
+    refetch();
     setIsModalOpen(false);
+    setStatusMessage({
+      text: cls.idClass
+        ? "Turma atualizada com sucesso!"
+        : "Turma cadastrada com sucesso!",
+      type: "success",
+    });
   };
 
   return (
     <div className="p-6 w-full h-full dark:bg-gray-800 mb-16 md:mb-0 dark:text-white text-gray-800">
+      {statusMessage && (
+        <div
+          className={`${
+            statusMessage.type === "success"
+              ? "border-green-500 bg-green-50"
+              : "border-red-500 bg-red-50"
+          } border-t-4 mb-4 p-4 rounded-lg shadow-md`}
+        >
+          <p
+            className={`${
+              statusMessage.type === "success"
+                ? "text-green-700"
+                : "text-red-700"
+            } text-sm flex items-center gap-2`}
+          >
+            {statusMessage.type === "success" ? (
+              <CheckCircle className="w-4 h-4" />
+            ) : (
+              <AlertTriangle className="w-4 h-4" />
+            )}
+            {statusMessage.text}
+          </p>
+        </div>
+      )}
       <SearchFilterBar
         title="Gerir Turmas"
         searchTerm={searchTerm}
@@ -100,70 +159,82 @@ const filtered = useMemo(() => {
       />
 
       <div className="md:flex md:justify-end mb-4">
-        <ComponetButton
+        <ComponentButton
           variant="primary"
           className="flex items-center gap-2"
           onClick={openCreate}
         >
           <Plus size={16} /> Cadastrar
-        </ComponetButton>
+        </ComponentButton>
       </div>
 
       <div className="bg-white dark:bg-gray-900 px-3 md:px-0 rounded-lg shadow overflow-auto w-60 md:w-99 min-w-full md:h-[55vh] h-auto">
-        <DataStatusHandler isLoading={false} error={null} onRetry={() => {}}>
+        <DataStatusHandler
+          isLoading={isLoading}
+          error={error}
+          onRetry={refetch}
+        >
           <table className="w-full text-left text-xs md:text-sm border-collapse">
             <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
               <tr>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Turma</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Sala</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">
-                  Diretor de Turma
-                </th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Sala</th> {/* New column */}
+                  Curso
+                </th>{" "}
+                {/* Added */}
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Status</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Ações</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length > 0 ? (
-                filtered.map((cls: ClassData) => (
-                  <tr
-                    key={cls.id}
-                    className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
-                  >
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {cls.id}
-                    </td>
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {cls.turma}
-                    </td>
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {truncateText(cls.diretorDeTurma, 25, "end")}
-                    </td>
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {cls.sala}
-                    </td>
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap flex gap-2">
-                      <button
-                        onClick={() => openEdit(cls)}
-                        className="p-2 cursor-pointer bg-green-50 hover:bg-green-100 rounded"
-                      >
-                        <Pencil size={16} className="text-green-600" />
-                      </button>
-                      <button
-                        onClick={() => openConfirm(cls.id)}
-                        className="p-2 cursor-pointer bg-red-50 hover:bg-red-100 rounded"
-                      >
-                        <Trash2 size={16} className="text-red-600" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                filtered.map((cls: Class) => {
+                  const room = rooms?.find((r) => r.idRoom === cls.idRoom);
+                  const courseName =
+                    courses?.find((c) => c.idCourse === room?.idCourse)?.name ||
+                    "N/A";
+                  return (
+                    <tr
+                      key={cls.idClass}
+                      className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
+                    >
+                      <td className="py-2 px-2 md:px-4 md:y-3 whitespace-nowrap">
+                        {cls.idClass}
+                      </td>
+                      <td className="py-2 px-2 md:px-4 md:y-3 whitespace-nowrap">
+                        {truncateText(cls.name, 25, "end")}
+                      </td>
+                      <td className="py-2 px-2 md:px-4 md:y-3 whitespace-nowrap">
+                        {truncateText(room?.name || "N/A", 25, "end")}
+                      </td>
+                      <td className="py-2 px-2 md:px-4 md:y-3 whitespace-nowrap">
+                        {truncateText(courseName, 25, "end")}
+                      </td>
+                      <td className="py-2 px-2 md:px-4 md:y-3 whitespace-nowrap">
+                        {cls.status ? "Ativo" : "Inativo"}
+                      </td>
+                      <td className="py-2 px-2 md:px-4 md:y-3 whitespace-nowrap flex gap-2">
+                        <button
+                          onClick={() => openEdit(cls)}
+                          className="p-2 cursor-pointer bg-green-50 hover:bg-green-100 rounded"
+                        >
+                          <Pencil size={16} className="text-green-600" />
+                        </button>
+                        <button
+                          onClick={() => openConfirm(cls.idClass)}
+                          className="p-2 cursor-pointer bg-red-50 hover:bg-red-100 rounded"
+                        >
+                          <Trash2 size={16} className="text-red-600" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td
-                    colSpan={5} 
-                    className="py-6 px-4 text-center text-gray-500"
-                  >
+                  <td className="py-6 px-4 text-center text-gray-500">
                     Nenhuma turma encontrada.
                   </td>
                 </tr>

@@ -2,47 +2,70 @@ import React, { useEffect, useState } from "react";
 import { z } from "zod";
 import DynamicModal from "@/components/common/DynamicModal";
 import ComponentInput from "@/components/common/FormInput";
-import ComponetButton from "@/components/common/button";
+import ComponentButton from "@/components/common/button";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 import { SearchableSelect } from "@/components/common/SearchableSelect";
-import { Subject, SubjectModalProps } from "@/types/interfaces";
 import { subjectSchema } from "@/types/type";
+import { SubjectModalProps } from "@/types/interfaces";
+import {
+  useAddSubject,
+  useListCourses,
+  useUpdateSubject,
+} from "@/hooks/DynamicApiHooks";
+
+// Define Option type for SearchableSelect
+interface Option {
+  value: string;
+  label: string;
+}
 
 type SubjectForm = z.infer<typeof subjectSchema>;
-
-// Predefined course options
-const courseOptions = [
-  { value: "Informática", label: "Informática" },
-  { value: "Engenharia", label: "Engenharia" },
-  { value: "Letras", label: "Letras" },
-  { value: "História", label: "História" },
-];
 
 const ModalManageSubject: React.FC<SubjectModalProps> = ({
   isOpen,
   onClose,
   subjectData,
-  onSave,
 }) => {
   const [formData, setFormData] = useState<SubjectForm>({
     name: "",
     course: "",
+    status: "true", // Default to "Ativo"
   });
   const defaultForm: SubjectForm = {
     name: "",
     course: "",
+    status: "true",
   };
+  const { data: courses } = useListCourses();
+  const { mutateAsync: addSubject } = useAddSubject();
+  const { mutateAsync: updateSubject } = useUpdateSubject();
 
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
     course?: string;
+    status?: string;
   }>({});
+
+  // Transform courses into options for SearchableSelect
+  const courseOptions: Option[] = courses
+    ? courses.map((course) => ({
+        value: course.idCourse.toString(),
+        label: course.name,
+      }))
+    : [];
+
+  // Status options for SearchableSelect
+  const statusOptions: Option[] = [
+    { value: "true", label: "Ativo" },
+    { value: "false", label: "Inativo" },
+  ];
 
   useEffect(() => {
     if (subjectData) {
       setFormData({
         name: subjectData.name,
-        course: subjectData.course,
+        course: subjectData.idCourse.toString(),
+        status: subjectData.status ? "true" : "false",
       });
     } else {
       setFormData(defaultForm);
@@ -56,9 +79,9 @@ const ModalManageSubject: React.FC<SubjectModalProps> = ({
     setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const handleSelectChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, course: value }));
-    setFieldErrors((prev) => ({ ...prev, course: undefined }));
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const [isLoading, setIsLoading] = useState(false);
@@ -89,31 +112,41 @@ const ModalManageSubject: React.FC<SubjectModalProps> = ({
       setFieldErrors({
         name: errors.name?.[0],
         course: errors.course?.[0],
+        status: errors.status?.[0],
       });
+      setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
     try {
-      const newSubject: Subject = {
-        id: subjectData ? subjectData.id : Date.now(), // Temporary ID for static data
-        name: result.data.name,
-        course: result.data.course,
+      const payload = {
+        name: formData.name,
+        status: formData.status === "true", // Convert string to boolean
+        idCourse: parseInt(formData.course),
       };
+
+      if (subjectData) {
+        await updateSubject({
+          ...payload,
+          idCourse: subjectData.idSubject, 
+        });
+        setStatusMessage({
+          text: "Disciplina atualizada com sucesso!",
+          type: "success",
+        });
+      } else {
+        await addSubject(payload);
+        setStatusMessage({
+          text: "Disciplina cadastrada com sucesso!",
+          type: "success",
+        });
+      }
+      setFormData(defaultForm);
+      setTimeout(handleClose, 3000);
+    } catch (error: any) {
       setStatusMessage({
-        text: subjectData
-          ? "Disciplina atualizada com sucesso!"
-          : "Disciplina cadastrada com sucesso!",
-        type: "success",
-      });
-      setTimeout(() => {
-        onSave(newSubject);
-        setIsLoading(false);
-        handleClose();
-      }, 2000);
-    } catch (error) {
-      setStatusMessage({
-        text: "Erro ao salvar. Tente novamente!",
+        text: error.message || "Erro ao salvar. Tente novamente!",
         type: "error",
       });
       setIsLoading(false);
@@ -161,30 +194,41 @@ const ModalManageSubject: React.FC<SubjectModalProps> = ({
           onChange={handleChange}
           required
         />
+        {courseOptions.length === 0 ? (
+          <p className="text-gray-500">Nenhum curso disponível</p>
+        ) : (
+          <SearchableSelect
+            label="Curso"
+            value={formData.course}
+            onChange={(value) => handleSelectChange("course", value)}
+            options={courseOptions}
+            error={fieldErrors.course}
+          />
+        )}
         <SearchableSelect
-          label="Curso"
-          value={formData.course}
-          onChange={handleSelectChange}
-          options={courseOptions}
-          error={fieldErrors.course}
+          label="Status"
+          value={formData.status}
+          onChange={(value) => handleSelectChange("status", value)}
+          options={statusOptions}
+          error={fieldErrors.status}
         />
       </div>
       <div className="flex flex-wrap-reverse justify-end mt-4 gap-2">
-        <ComponetButton
+        <ComponentButton
           className="w-full md:w-auto"
           variant="secondary"
           onClick={subjectData ? onClose : handleClose}
         >
           Cancelar
-        </ComponetButton>
-        <ComponetButton
+        </ComponentButton>
+        <ComponentButton
           variant="primary"
           onClick={handleSubmit}
           className="w-full md:w-auto"
           loading={isLoading}
         >
           {subjectData ? "Atualizar" : "Cadastrar"}
-        </ComponetButton>
+        </ComponentButton>
       </div>
     </DynamicModal>
   );
