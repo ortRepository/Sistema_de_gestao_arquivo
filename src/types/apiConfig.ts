@@ -12,9 +12,18 @@ export const endpoints = {
   },
   notifications: {
     list: { method: "GET" as const, path: "/api/notifications" },
-    getById: { method: "GET" as const, path: "/api/notifications/{idNotification}" },
-    delete: { method: "DELETE" as const, path: "/api/notifications/{idNotification}" },
-    read: { method: "PATCH" as const, path: "/api/notifications/{idNotification}/read" },
+    getById: {
+      method: "GET" as const,
+      path: "/api/notifications/{idNotification}",
+    },
+    delete: {
+      method: "DELETE" as const,
+      path: "/api/notifications/{idNotification}",
+    },
+    read: {
+      method: "PATCH" as const,
+      path: "/api/notifications/{idNotification}/read",
+    },
   },
   users: {
     getAll: { method: "GET" as const, path: "/api/users" },
@@ -24,13 +33,28 @@ export const endpoints = {
     register: { method: "POST" as const, path: "/api/users/register" },
     authenticate: { method: "POST" as const, path: "/api/users/authenticate" },
     receiveCode: { method: "POST" as const, path: "/api/users/receive-code" },
-    recoverPassword: { method: "POST" as const, path: "/api/users/recover-password" },
+    recoverPassword: {
+      method: "POST" as const,
+      path: "/api/users/recover-password",
+    },
     changeEmail: { method: "PATCH" as const, path: "/api/users/change-email" },
-    passwordEdit: { method: "PATCH" as const, path: "/api/users/password-edit" },
+    passwordEdit: {
+      method: "PATCH" as const,
+      path: "/api/users/password-edit",
+    },
     uploadPhoto: { method: "PATCH" as const, path: "/api/users/upload-photo" },
-    updatePassword: { method: "PUT" as const, path: "/api/users/{idUser}/password" },
-    changePassword: { method: "PUT" as const, path: "/api/users/change-password" },
-    updatePasswordWithCode: { method: "POST" as const, path: "/users/update-password-with-code" },
+    updatePassword: {
+      method: "PUT" as const,
+      path: "/api/users/{idUser}/password",
+    },
+    changePassword: {
+      method: "PUT" as const,
+      path: "/api/users/change-password",
+    },
+    updatePasswordWithCode: {
+      method: "POST" as const,
+      path: "/users/update-password-with-code",
+    },
     upload: { method: "POST" as const, path: "/users/upload" },
   },
   documents: {

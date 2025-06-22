@@ -83,9 +83,8 @@ const TopBar = () => {
       notifications.forEach((notif) => {
         if (notif.unread) {
           if (!notif.isLicense) {
-            readNotification({ idNotification: String(notif.id) }).catch(
-              (error) =>
-                console.error("Erro ao marcar notificação como lida", error)
+            readNotification({ idNotification: notif.id }).catch((error) =>
+              console.error("Erro ao marcar notificação como lida", error)
             );
           }
           setNotifications((prev) =>
@@ -110,7 +109,7 @@ const TopBar = () => {
     try {
       const apiNotifications = notifications.filter((n) => !n.isLicense);
       for (const notif of apiNotifications) {
-        await deleteNotification({ idNotification: String(notif.id) });
+        await deleteNotification({ idNotification: notif.id });
       }
       setNotifications([]);
     } catch (error) {
@@ -133,10 +132,13 @@ const TopBar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const entityName = userData?.role ? getEntityName(userData.role) : "";
+  const role = userData ? userData?.role ?? 0 : 0;
+  const entityName = getEntityName(role);
+
   const handleLogout = () => {
     logout();
   };
+
   return (
     <header className="flex flex-col-reverse md:flex-row md:items-center justify-between bg-white dark:bg-gray-800 p-6 py-6 w-full">
       {/* Título da Página */}

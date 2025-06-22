@@ -49,19 +49,15 @@ export const getBase64ImageFromUrl = (url: string): Promise<string> => {
 };
 
 // Por exemplo, em um arquivo utils/roles.ts ou diretamente no componente
-export function getEntityName(type: string): string {
-  switch (type.toLowerCase()) {
-    case "admin":
+export function getEntityName(type: number): string {
+  switch (type) {
+    case 0:
       return "Administrador Central";
-    case "user_master":
-      return "Master User";
-    case "reviewer":
-      return "Revisor";
-    case "approver":
-      return "Aprovador";
-    case "planner":
-      return "Planeador";
+    case 1:
+      return "Professor";
+    case 2:
+      return "Secretário";
     default:
-      return "Planeador";
+      return "Professor";
   }
 }

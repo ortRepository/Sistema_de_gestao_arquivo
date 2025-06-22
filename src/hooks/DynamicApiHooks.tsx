@@ -21,7 +21,8 @@ import {
 // Sobrecargas para endpoints GET
 export function createApiHook<T, U = unknown>(
   endpoint: { method: "GET"; path: string },
-  onSuccessCallback?: () => void
+  onSuccessCallback?: () => void,
+  options?: { autoRefreshOn401?: boolean }
 ): (enabled?: boolean) => UseQueryResult<T, Error>;
 
 // Sobrecargas para endpoints que não são GET (POST, PUT, DELETE, etc.)
@@ -30,21 +31,22 @@ export function createApiHook<T, U = unknown>(
   onSuccessCallback?: () => void
 ): () => UseMutationResult<T, Error, U>;
 
-// Implementação: retorna um hook baseado no método do endpoint
-export function createApiHook<
-  T,
-  U extends Record<string, any> | FormData = Record<string, any>
->(endpoint: EndpointConfig, onSuccessCallback?: () => void) {
+export function createApiHook<T, U = unknown>(
+  endpoint: EndpointConfig,
+  onSuccessCallback?: () => void,
+  options?: { autoRefreshOn401?: boolean }
+) {
   if (endpoint.method === "GET") {
-    return function useDynamicQuery(
-      enabled: boolean = true
-    ): UseQueryResult<T, Error> {
-      return useApiQuery<T>([endpoint.path], endpoint.path, enabled);
+    return function useDynamicQuery(enabled: boolean = true) {
+      return useApiQuery<T>(
+        [endpoint.path],
+        endpoint.path,
+        enabled,
+        options?.autoRefreshOn401 ?? false
+      );
     };
   } else {
-    return function useDynamicMutation(): ReturnType<
-      typeof useApiMutation<T, U>
-    > {
+    return function useDynamicMutation() {
       return useApiMutation<T, U>(
         endpoint.method,
         endpoint.path,
@@ -112,7 +114,7 @@ export const useGetAll = createApiHook<
     status: boolean;
     token: string;
   }[]
->(endpoints.users.viewAll);
+>(endpoints.users.getAll);
 
 // View user information (GET /api/users/view-a)
 export const useGetUser = createApiHook<{
@@ -128,7 +130,7 @@ export const useGetUser = createApiHook<{
   updatedIn: string;
   status: boolean;
   token: string;
-}>(endpoints.users.getAll);
+}>(endpoints.users.viewAll, undefined, { autoRefreshOn401: true });
 
 // Upload user photo (PATCH /api/users/upload-photo)
 export const useUploadPhoto = createApiHook<

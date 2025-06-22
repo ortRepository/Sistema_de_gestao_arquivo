@@ -12,8 +12,8 @@ import {
   useListRooms,
   useListCourses,
 } from "@/hooks/DynamicApiHooks";
-import { Class,} from "@/types/interfaces";
-import { AlertTriangle, CheckCircle } from "lucide-react";
+import { Class } from "@/types/interfaces";
+
 
 export default function PageManageClass() {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -22,10 +22,7 @@ export default function PageManageClass() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [confirmClassId, setConfirmClassId] = useState<number | null>(null);
-  const [statusMessage, setStatusMessage] = useState<{
-    text: string;
-    type: "success" | "error";
-  } | null>(null);
+ 
 
   const { data: classes, isLoading, error, refetch } = useListClasses();
   const { data: rooms } = useListRooms();
@@ -37,7 +34,7 @@ export default function PageManageClass() {
     { value: "id", label: "Id" },
     { value: "name", label: "Turma" },
     { value: "room", label: "Sala" },
-    { value: "course", label: "Curso" }, // Added course filter
+    { value: "course", label: "Curso" },
     { value: "status", label: "Status" },
   ];
 
@@ -88,64 +85,19 @@ export default function PageManageClass() {
     if (confirmClassId !== null) {
       deleteClass(
         { idClass: confirmClassId },
-        {
-          onSuccess: () => {
-            refetch();
-            closeConfirm();
-            setStatusMessage({
-              text: "Turma excluída com sucesso!",
-              type: "success",
-            });
-          },
-          onError: (error: any) => {
-            setStatusMessage({
-              text: error.message || "Erro ao excluir turma.",
-              type: "error",
-            });
-            closeConfirm();
-          },
-        }
+     
       );
     }
   };
 
-  const handleSave = (cls: Class) => {
+  const handleSave = () => {
     refetch();
-    setIsModalOpen(false);
-    setStatusMessage({
-      text: cls.idClass
-        ? "Turma atualizada com sucesso!"
-        : "Turma cadastrada com sucesso!",
-      type: "success",
-    });
+
   };
 
   return (
     <div className="p-6 w-full h-full dark:bg-gray-800 mb-16 md:mb-0 dark:text-white text-gray-800">
-      {statusMessage && (
-        <div
-          className={`${
-            statusMessage.type === "success"
-              ? "border-green-500 bg-green-50"
-              : "border-red-500 bg-red-50"
-          } border-t-4 mb-4 p-4 rounded-lg shadow-md`}
-        >
-          <p
-            className={`${
-              statusMessage.type === "success"
-                ? "text-green-700"
-                : "text-red-700"
-            } text-sm flex items-center gap-2`}
-          >
-            {statusMessage.type === "success" ? (
-              <CheckCircle className="w-4 h-4" />
-            ) : (
-              <AlertTriangle className="w-4 h-4" />
-            )}
-            {statusMessage.text}
-          </p>
-        </div>
-      )}
+
       <SearchFilterBar
         title="Gerir Turmas"
         searchTerm={searchTerm}
@@ -234,7 +186,10 @@ export default function PageManageClass() {
                 })
               ) : (
                 <tr>
-                  <td className="py-6 px-4 text-center text-gray-500">
+                  <td
+                    colSpan={9}
+                    className="py-6 px-4 text-center text-gray-500"
+                  >
                     Nenhuma turma encontrada.
                   </td>
                 </tr>

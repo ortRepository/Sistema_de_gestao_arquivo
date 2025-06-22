@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setCache("token", data.accessToken);
       const userData: User = {
-        userRole:data.userRole,
+        userRole: data.userRole,
         accessToken: data.accessToken,
       };
       setIsAuthenticated(true);

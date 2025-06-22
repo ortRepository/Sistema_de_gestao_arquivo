@@ -9,7 +9,7 @@ import ModalManageCourse from "@/components/modals/modalEmployee/ModalManageCour
 import ModalManageDisciplinas from "@/components/modals/modalEmployee/ModalManageDisciplinas";
 import { useListCourses, useDeleteCourse } from "@/hooks/DynamicApiHooks";
 import { Course } from "@/types/interfaces";
-import { AlertTriangle, CheckCircle } from "lucide-react";
+
 
 
 export default function PageManageCourse() {
@@ -20,10 +20,7 @@ export default function PageManageCourse() {
   const [isDisciplinasModalOpen, setIsDisciplinasModalOpen] = useState<boolean>(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [confirmCourseId, setConfirmCourseId] = useState<number | null>(null);
-  const [statusMessage, setStatusMessage] = useState<{
-    text: string;
-    type: "success" | "error";
-  } | null>(null);
+
 
   const { data: courses, isLoading, error, refetch } = useListCourses();
   const { mutate: deleteCourse } = useDeleteCourse();
@@ -77,62 +74,19 @@ export default function PageManageCourse() {
     if (confirmCourseId !== null) {
       deleteCourse(
         { idCourse: confirmCourseId },
-        {
-          onSuccess: () => {
-            refetch();
-            closeConfirm();
-            setStatusMessage({
-              text: "Curso excluído com sucesso!",
-              type: "success",
-            });
-          },
-          onError: (error: any) => {
-            setStatusMessage({
-              text: error.message || "Erro ao excluir curso.",
-              type: "error",
-            });
-            closeConfirm();
-          },
-        }
+
       );
     }
   };
 
-  const handleSave = (course: Course) => {
+  const handleSave = (_course: Course) => {
     refetch();
-    setIsModalOpen(false);
-    setStatusMessage({
-      text: course.idCourse ? "Curso atualizado com sucesso!" : "Curso cadastrado com sucesso!",
-      type: "success",
-    });
+ 
   };
 
   return (
     <div className="p-6 w-full h-full dark:bg-gray-800 mb-16 md:mb-0 dark:text-white text-gray-800">
-      {statusMessage && (
-        <div
-          className={`${
-            statusMessage.type === "success"
-              ? "border-green-500 bg-green-50"
-              : "border-red-500 bg-red-50"
-          } border-t-4 mb-4 p-4 rounded-lg shadow-md`}
-        >
-          <p
-            className={`${
-              statusMessage.type === "success"
-                ? "text-green-700"
-                : "text-red-700"
-            } text-sm flex items-center gap-2`}
-          >
-            {statusMessage.type === "success" ? (
-              <CheckCircle className="w-4 h-4" />
-            ) : (
-              <AlertTriangle className="w-4 h-4" />
-            )}
-            {statusMessage.text}
-          </p>
-        </div>
-      )}
+ 
       <SearchFilterBar
         title="Gerir Cursos"
         searchTerm={searchTerm}

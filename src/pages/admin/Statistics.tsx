@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Users, BookOpen, School, User, DoorOpen } from "lucide-react";
 import SearchFilterBar from "@/components/common/SearchBar";
 import DeletePublicationModal from "@/components/common/DeletePublicationModal";
-
 import {
   useListTeachers,
   useListClasses,
@@ -11,12 +10,12 @@ import {
   useListStudents,
   useListRooms,
   useDeleteTeacher,
-  useDeleteRoom, // Added
+  useDeleteRoom,
 } from "@/hooks/DynamicApiHooks";
-import { Teacher, Student, Subject, Room } from "@/types/interfaces";
+import { Teacher, Student, Subject } from "@/types/interfaces";
 import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
 
-// Truncate and filter utility functions remain unchanged
+// Truncate and filter utility functions
 const truncateText = (
   text: string,
   maxLength: number,
@@ -48,13 +47,8 @@ export default function Statistics() {
   const [isTeacherFilterOpen, setIsTeacherFilterOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
-  const [filteredRooms, setFilteredRooms] = useState<Room[]>([]); // Added for rooms
-  const [roomSearchTerm, setRoomSearchTerm] = useState(""); // Added for rooms
-  const [isRoomFilterOpen, setIsRoomFilterOpen] = useState(false); // Added for rooms
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [deleteType, setDeleteType] = useState<"teacher" | "room" | null>(null); // Added to differentiate
+  const [deleteType, setDeleteType] = useState<"teacher" | "room" | null>(null);
   const [confirmId, setConfirmId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,7 +56,7 @@ export default function Statistics() {
     data: teachers,
     isLoading: teachersLoading,
     error: teachersError,
-    refetch: refetchTeachers, // Added for retry
+    refetch: refetchTeachers,
   } = useListTeachers();
   const {
     data: classes,
@@ -88,10 +82,10 @@ export default function Statistics() {
     data: rooms,
     isLoading: roomsLoading,
     error: roomsError,
-    refetch: refetchRooms, // Added for retry
+    refetch: refetchRooms,
   } = useListRooms();
   const { mutate: deleteTeacher } = useDeleteTeacher();
-  const { mutate: deleteRoom } = useDeleteRoom(); // Added
+  const { mutate: deleteRoom } = useDeleteRoom();
 
   const isLoading =
     teachersLoading ||
@@ -107,7 +101,6 @@ export default function Statistics() {
     { value: "Coordenador", label: "Coordenador" },
   ];
 
-  // Handle all errors and teacher filtering
   useEffect(() => {
     const errors = [
       teachersError,
@@ -120,7 +113,6 @@ export default function Statistics() {
     if (errors.length) {
       setError(errors[0]?.message || "Erro ao carregar dados");
     } else {
-      // Teacher filtering
       if (teachers) {
         let updatedTeachers = filterByMonthYear(
           teachers,
@@ -145,20 +137,9 @@ export default function Statistics() {
         }
         setFilteredTeachers(updatedTeachers);
       }
-      // Room filtering
-      if (rooms) {
-        let updatedRooms = rooms; // No month/year filter for rooms (adjust if needed)
-        if (roomSearchTerm) {
-          updatedRooms = updatedRooms.filter((room) =>
-            room.name.toLowerCase().includes(roomSearchTerm.toLowerCase())
-          );
-        }
-        setFilteredRooms(updatedRooms);
-      }
     }
   }, [
     teachers,
-    rooms,
     teachersError,
     classesError,
     coursesError,
@@ -169,7 +150,6 @@ export default function Statistics() {
     selectedYear,
     teacherSearchTerm,
     teacherFilterType,
-    roomSearchTerm,
   ]);
 
   const studentsPerClass = (classes || []).map((cls) => ({
@@ -217,9 +197,6 @@ export default function Statistics() {
         { idRoom: confirmId },
         {
           onSuccess: () => {
-            setFilteredRooms((prev) =>
-              prev.filter((r) => r.idRoom !== confirmId)
-            );
             setDeleteModalOpen(false);
             setConfirmId(null);
             setDeleteType(null);
@@ -244,63 +221,85 @@ export default function Statistics() {
   const refetchData = () => {
     refetchTeachers();
     refetchRooms();
-    // Add other refetch functions if needed
   };
 
   return (
-    <div className="flex flex-col min-h-screen p-4 gap-6 dark:bg-gray-800">
-      <div className="flex gap-4 mb-4">
-        <select
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(Number(e.target.value))}
-          className="p-2 border dark:border-white rounded dark:bg-gray-800 dark:text-gray-200"
-        >
-          {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-            <option key={month} value={month}>
-              {new Date(0, month - 1).toLocaleString("pt-BR", {
-                month: "long",
-              })}
-            </option>
-          ))}
-        </select>
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="p-2 border dark:border-white rounded dark:bg-gray-800 dark:text-gray-200"
-        >
-          {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + i).map(
-            (year) => (
-              <option key={year} value={year}>
-                {year}
+    <div className="min-h-screen p-6  transition-colors duration-300">
+      {/* Date Filters */}
+      <div className="flex gap-4 mb-6">
+        <div className="relative">
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(Number(e.target.value))}
+            className="p-3 pl-10 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:text-gray-200 transition-all duration-200"
+          >
+            {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+              <option key={month} value={month}>
+                {new Date(0, month - 1).toLocaleString("pt-BR", {
+                  month: "long",
+                })}
               </option>
-            )
-          )}
-        </select>
+            ))}
+          </select>
+          <BookOpen
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            size={18}
+          />
+        </div>
+        <div className="relative">
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
+            className="p-3 pl-10 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:text-gray-200 transition-all duration-200"
+          >
+            {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + i).map(
+              (year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              )
+            )}
+          </select>
+          <BookOpen
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            size={18}
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow flex flex-col items-center">
-          <h3 className="text-md font-semibold">Estudantes por Turma</h3>
-          <p className="text-2xl font-bold">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+          <Users size={24} className="mb-2" />
+          <h3 className="text-lg font-semibold">Estudantes por Turma</h3>
+          <p className="text-3xl font-bold">
             {studentsPerClass.reduce((sum, cls) => sum + cls.studentCount, 0)}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow flex flex-col items-center">
-          <h3 className="text-md font-semibold">Disciplinas por Curso</h3>
-          <p className="text-2xl font-bold">
+        <div className="bg-gradient-to-br from-green-500 to-green-600 dark:from-green-700 dark:to-green-800 p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+          <BookOpen size={24} className="mb-2" />
+          <h3 className="text-lg font-semibold">Disciplinas por Curso</h3>
+          <p className="text-3xl font-bold">
             {subjectsPerCourse.reduce(
               (sum, course) => sum + course.subjectCount,
               0
             )}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow flex flex-col items-center">
-          <h3 className="text-md font-semibold">Quantidade de Cursos</h3>
-          <p className="text-2xl font-bold">{courses?.length || 0}</p>
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-700 dark:to-purple-800 p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+          <School size={24} className="mb-2" />
+          <h3 className="text-lg font-semibold">Quantidade de Cursos</h3>
+          <p className="text-3xl font-bold">{courses?.length || 0}</p>
         </div>
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow flex flex-col items-center">
-          <h3 className="text-md font-semibold">Quantidade de Professores</h3>
-          <p className="text-2xl font-bold">{filteredTeachers.length}</p>
+        <div className="bg-gradient-to-br from-red-500 to-red-600 dark:from-red-700 dark:to-red-800 p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+          <User size={24} className="mb-2" />
+          <h3 className="text-lg font-semibold">Quantidade de Professores</h3>
+          <p className="text-3xl font-bold">{filteredTeachers.length}</p>
+        </div>
+        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 dark:from-yellow-700 dark:to-yellow-800 p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+          <DoorOpen size={24} className="mb-2" />
+          <h3 className="text-lg font-semibold">Quantidade de Salas</h3>
+          <p className="text-3xl font-bold">{rooms?.length || 0}</p>
         </div>
       </div>
 
@@ -316,130 +315,70 @@ export default function Statistics() {
         toggleFilterDropdown={() => setIsTeacherFilterOpen((o) => !o)}
         closeFilterDropdown={() => setIsTeacherFilterOpen(false)}
       />
-      <div className="bg-white dark:bg-gray-900 px-3 md:px-0 rounded-lg shadow overflow-auto w-60 md:w-99 min-w-full md:h-[55vh] h-auto">
-        <DataStatusHandler
-          isLoading={isLoading}
-          error={error}
-          onRetry={refetchData}
-        >
-          <table className="w-full text-left text-xs md:text-sm border-collapse">
-            <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
-              <tr>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Nome</th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Email</th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTeachers.length > 0 ? (
-                filteredTeachers.map((teacher) => (
-                  <tr
-                    key={teacher.idTeacher}
-                    className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
-                  >
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {teacher.idTeacher}
-                    </td>
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {truncateText(teacher.name, 25)}
-                    </td>
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {truncateText(teacher.email, 25)}
-                    </td>
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap flex gap-2">
-                      <button
-                        onClick={() => openDelete(teacher.idTeacher, "teacher")}
-                        className="p-2 cursor-pointer bg-red-50 hover:bg-red-100 rounded"
-                      >
-                        <Trash2 size={16} className="text-red-600" />
-                      </button>
+      <DataStatusHandler
+        isLoading={isLoading}
+        error={error}
+        onRetry={refetchData}
+      >
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-200 dark:bg-gray-900 text-gray-700 dark:text-gray-200 sticky top-0 z-10">
+                <tr>
+                  <th className="py-4 px-6 font-semibold">Id</th>
+                  <th className="py-4 px-6 font-semibold">Nome</th>
+                  <th className="py-4 px-6 font-semibold">Email</th>
+                  <th className="py-4 px-6 font-semibold">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTeachers.length > 0 ? (
+                  filteredTeachers.map((teacher, index) => (
+                    <tr
+                      key={teacher.idTeacher}
+                      className={`border-b dark:border-gray-700 ${
+                        index % 2 === 0
+                          ? "bg-gray-50 dark:bg-gray-800"
+                          : "bg-white dark:bg-gray-900"
+                      } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200`}
+                    >
+                      <td className="py-4 px-6">{teacher.idTeacher}</td>
+                      <td className="py-4 px-6">
+                        {truncateText(teacher.name, 25)}
+                      </td>
+                      <td className="py-4 px-6">
+                        {truncateText(teacher.email, 25)}
+                      </td>
+                      <td className="py-4 px-6">
+                        <button
+                          onClick={() =>
+                            openDelete(teacher.idTeacher, "teacher")
+                          }
+                          className="p-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 rounded-full hover:bg-red-200 dark:hover:bg-red-800 transition-colors duration-200"
+                          title="Excluir Professor"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="py-8 px-6 text-center text-gray-500 dark:text-gray-400"
+                    >
+                      Nenhum professor encontrado.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="py-6 px-4 text-center text-gray-500"
-                  >
-                    Nenhum professor encontrado.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </DataStatusHandler>
-      </div>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </DataStatusHandler>
 
-      {/* Rooms Table */}
-      <SearchFilterBar
-        title="Salas"
-        searchTerm={roomSearchTerm}
-        setSearchTerm={setRoomSearchTerm}
-        filterType=""
-        setFilterType={() => {}} // No filter for rooms (adjust if needed)
-        filterOptions={[]}
-        isFilterOpen={isRoomFilterOpen}
-        toggleFilterDropdown={() => setIsRoomFilterOpen((o) => !o)}
-        closeFilterDropdown={() => setIsRoomFilterOpen(false)}
-      />
-      <div className="bg-white dark:bg-gray-900 px-3 md:px-0 rounded-lg shadow overflow-auto w-60 md:w-99 min-w-full md:h-[55vh] h-auto">
-        <DataStatusHandler
-          isLoading={isLoading}
-          error={error}
-          onRetry={refetchData}
-        >
-          <table className="w-full text-left text-xs md:text-sm border-collapse">
-            <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
-              <tr>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Nome</th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Status</th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRooms.length > 0 ? (
-                filteredRooms.map((room) => (
-                  <tr
-                    key={room.idRoom}
-                    className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
-                  >
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {room.idRoom}
-                    </td>
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {truncateText(room.name, 25, "end")}
-                    </td>
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {room.status ? "Ativo" : "Inativo"}
-                    </td>
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap flex gap-2">
-                      <button
-                        onClick={() => openDelete(room.idRoom, "room")}
-                        className="p-2 cursor-pointer bg-red-50 hover:bg-red-100 rounded"
-                      >
-                        <Trash2 size={16} className="text-red-600" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="py-6 px-4 text-center text-gray-500"
-                  >
-                    Nenhuma sala encontrada.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </DataStatusHandler>
-      </div>
-
+      {/* Delete Modal */}
       <DeletePublicationModal
         isOpen={deleteModalOpen}
         onClose={closeDeleteModal}
