@@ -16,6 +16,123 @@ class DocumentsController {
   private fileService: FileService = new FileService();
   private readonly responseSchema = DocumentsSchemas.successResponse;
 
+  // Helper methods
+  private async verifyAuthorization(token: string): Promise<number> {
+    const userId = await this.tokenService.userId(token);
+    if (!userId) {
+      throw new AuthorizationException('Not authorized');
+    }
+    return userId;
+  }
+
+  private async getEntityInfo(
+    entityType: 'class' | 'student' | 'course' | 'teacher' | 'room' | 'subject',
+    id: number
+  ): Promise<{ entityName: string; path: string }> {
+    let entity;
+    let entityName;
+
+    switch (entityType) {
+      case 'class':
+        entity = await prisma.classes.findUnique({ where: { idClass: id } });
+        entityName = 'classes';
+        break;
+      case 'student':
+        entity = await prisma.students.findUnique({ where: { idStudent: id } });
+        entityName = 'students';
+        break;
+      case 'course':
+        entity = await prisma.courses.findUnique({ where: { idCourse: id } });
+        entityName = 'courses';
+        break;
+      case 'teacher':
+        entity = await prisma.teachers.findUnique({ where: { idTeacher: id } });
+        entityName = 'teachers';
+        break;
+      case 'room':
+        entity = await prisma.rooms.findUnique({ where: { idRoom: id } });
+        entityName = 'rooms';
+        break;
+      case 'subject':
+        entity = await prisma.subjects.findUnique({ where: { idSubject: id } });
+        entityName = 'subjects';
+        break;
+    }
+
+    if (!entity) {
+      throw new ItemNotFoundException(`${entityType} not found`);
+    }
+
+    return { entityName, path: entity.path || '' };
+  }
+
+  private async processDocumentFile(
+    file: MultipartFile,
+    entityName: string,
+    entityPath: string
+  ): Promise<string> {
+    if (!file) {
+      throw new InvalidDataException('File not provided');
+    }
+
+    const fileBuffer = await file.toBuffer();
+    const fileExtension = path.extname(file.filename);
+    const fileName = `${Date.now()}${fileExtension}`;
+
+    await this.fileService.saveFile(fileBuffer, fileName, `${entityName}/${entityPath}`);
+    return fileName;
+  }
+
+  private getDocumentFilePath(document: any): string {
+    let entityType: 'class' | 'student' | 'course' | 'teacher' | 'room' | 'subject' | null = null;
+    let entityId: number | null = null;
+
+    if (document.idClass) {
+      entityType = 'class';
+      entityId = document.idClass;
+    } else if (document.idStudent) {
+      entityType = 'student';
+      entityId = document.idStudent;
+    } else if (document.idCourse) {
+      entityType = 'course';
+      entityId = document.idCourse;
+    } else if (document.idTeacher) {
+      entityType = 'teacher';
+      entityId = document.idTeacher;
+    } else if (document.idRoom) {
+      entityType = 'room';
+      entityId = document.idRoom;
+    } else if (document.idSubject) {
+      entityType = 'subject';
+      entityId = document.idSubject;
+    }
+
+    if (!entityType || !entityId) {
+      return `documents/${document.path || ''}/${document.urlLink}`;
+    }
+
+    return `${entityType}s/${document.path || ''}/${document.urlLink}`;
+  }
+
+  private generateDocumentLink(document: any, req: FastifyRequest): string {
+    const filePath = this.getDocumentFilePath(document);
+    return this.fileService.generateLink(filePath, req, document.urlLink);
+  }
+
+  private async verifyDocumentOwnership(
+    document: any,
+    userId: number
+  ): Promise<boolean> {
+    if (document.idTeacher) {
+      const teacher = await prisma.teachers.findUnique({
+        where: { idTeacher: document.idTeacher },
+      });
+      return teacher?.idUser === userId;
+    }
+    return false;
+  }
+
+  // Main methods
   public async add(
     data: z.infer<typeof DocumentsSchemas.addDocument>,
     key: z.infer<typeof DocumentsSchemas.token>,
@@ -23,79 +140,46 @@ class DocumentsController {
   ): Promise<z.infer<typeof this.responseSchema>> {
     const validatedData = DocumentsSchemas.addDocument.parse(data);
     const validatedKey = DocumentsSchemas.token.parse(key);
-    const { description, urlLink, path: documentPath, status, idClasse, idStudent, idCourse, idTeacher, idRoom } = validatedData;
+    const { description, path: documentPath, status, idClass, idStudent, idCourse, idTeacher, idRoom, idSubject } = validatedData;
     const { token } = validatedKey;
 
     try {
-      const userId = await this.tokenService.userId(token);
-      if (!userId) {
-        throw new AuthorizationException('Not authorized');
+      await this.verifyAuthorization(token);
+
+      // Verify at least one relation exists
+      if (!idClass && !idStudent && !idCourse && !idTeacher && !idRoom && !idSubject) {
+        throw new InvalidDataException('At least one relation (class, student, course, teacher, room, or subject) must be provided');
       }
 
-      // Verifica se pelo menos um critério de relação está presente
-      if (!idClasse && !idStudent && !idCourse && !idTeacher && !idRoom) {
-        throw new InvalidDataException('At least one relation (class, student, course, teacher, or room) must be provided');
-      }
+      let entityInfo;
+      if (idClass) entityInfo = await this.getEntityInfo('class', idClass);
+      else if (idStudent) entityInfo = await this.getEntityInfo('student', idStudent);
+      else if (idCourse) entityInfo = await this.getEntityInfo('course', idCourse);
+      else if (idTeacher) entityInfo = await this.getEntityInfo('teacher', idTeacher);
+      else if (idRoom) entityInfo = await this.getEntityInfo('room', idRoom);
+      else if (idSubject) entityInfo = await this.getEntityInfo('subject', idSubject);
 
-      // Verifica existência das entidades relacionadas
-      let authorized = false;
-      if (idClasse) {
-        const classe = await prisma.classes.findUnique({ where: { idClasse } });
-        if (!classe) throw new ItemNotFoundException('Class not found');
-      }
-         
-      if (idStudent) {
-        const student = await prisma.students.findUnique({ where: { idStudent } });
-        if (!student) throw new ItemNotFoundException('Student not found');
-      }
-      
-      if (idCourse) {
-        const course = await prisma.courses.findUnique({ where: { idCourse } });
-        if (!course) throw new ItemNotFoundException('Course not found');
-      }
-      
-      if (idTeacher) {
-        const teacher = await prisma.teachers.findUnique({ where: { idTeacher } });
-        if (!teacher) throw new ItemNotFoundException('Teacher not found');
-        if (teacher.idUser === userId) authorized = true;
-      }
-      
-      if (idRoom) {
-        const room = await prisma.rooms.findUnique({ where: { idRoom } });
-        if (!room) throw new ItemNotFoundException('Room not found');
-      }
+      const fileName = await this.processDocumentFile(
+        file,
+        entityInfo!.entityName,
+        entityInfo!.path
+      );
 
-      if (!authorized) {
-        throw new AuthorizationException('Not authorized to add documents');
-      }
-
-      if (!file) {
-        throw new InvalidDataException('File not provided');
-      }
-
-      const fileBuffer = await file.toBuffer();
-      const fileExtension = path.extname(file.filename);
-      const fileName = `${Date.now()}${fileExtension}`;
-      const pathName = `${Date.now()}_${idClasse || idStudent || idCourse || idTeacher || idRoom || userId}`;
-
-      await this.fileService.saveFile(fileBuffer, fileName, `documents/${pathName}/`);
-
-      const document = await prisma.documents.create({
+      await prisma.documents.create({
         data: {
           description,
           urlLink: fileName,
           path: documentPath,
           status,
-          idClasse,
+          idClass,
           idStudent,
           idCourse,
           idTeacher,
           idRoom,
+          idSubject,
           createdIn: new Date(),
         },
       });
-
-      console.log('[ADD] Document created:', document);
 
       return { message: 'Document added successfully' };
     } catch (error) {
@@ -124,10 +208,7 @@ class DocumentsController {
     const { token } = validatedKey;
 
     try {
-      const userId = await this.tokenService.userId(token);
-      if (!userId) {
-        throw new AuthorizationException('Not authorized');
-      }
+      const userId = await this.verifyAuthorization(token);
 
       const document = await prisma.documents.findUnique({
         where: { idDocument },
@@ -137,31 +218,16 @@ class DocumentsController {
         throw new ItemNotFoundException('Document not found');
       }
 
-      let authorized = false;
-      if (document.idClasse) {
-        const classe = await prisma.classes.findUnique({ where: { idClasse: document.idClasse } });
-         
-      }
-      if (document.idStudent) {
-        const student = await prisma.students.findUnique({ where: { idStudent: document.idStudent } });
-         
-      }
-      if (document.idCourse) {
-        const course = await prisma.courses.findUnique({ where: { idCourse: document.idCourse } });
-         
-      }
-      if (document.idTeacher) {
-        const teacher = await prisma.teachers.findUnique({ where: { idTeacher: document.idTeacher } });
-        if (teacher?.idUser === userId) authorized = true;
-      }
-      if (document.idRoom) {
-        const room = await prisma.rooms.findUnique({ where: { idRoom: document.idRoom } });
-        
-      }
-      if (!authorized) {
+      const isOwner = await this.verifyDocumentOwnership(document, userId);
+      if (!isOwner) {
         throw new AuthorizationException('Not authorized to delete this document');
       }
 
+      // Delete the physical file
+      const filePath = this.getDocumentFilePath(document);
+      await this.fileService.deleteFile(filePath);
+
+      // Delete the database record
       await prisma.documents.delete({ where: { idDocument } });
 
       return { message: 'Document deleted successfully' };
@@ -192,10 +258,7 @@ class DocumentsController {
     const { token } = validatedKey;
 
     try {
-      const userId = await this.tokenService.userId(token);
-      if (!userId) {
-        throw new AuthorizationException('Not authorized');
-      }
+      const userId = await this.verifyAuthorization(token);
 
       const document = await prisma.documents.findUnique({
         where: { idDocument: Number(idDocument) },
@@ -205,33 +268,13 @@ class DocumentsController {
         throw new ItemNotFoundException('Document not found');
       }
 
-      let authorized = false;
-      if (document.idClasse) {
-        const classe = await prisma.classes.findUnique({ where: { idClasse: document.idClasse } });
-        
-      }
-      if (document.idStudent) {
-        const student = await prisma.students.findUnique({ where: { idStudent: document.idStudent } });
-        
-      }
-      if (document.idCourse) {
-        const course = await prisma.courses.findUnique({ where: { idCourse: document.idCourse } });
-        
-      }
-      if (document.idTeacher) {
-        const teacher = await prisma.teachers.findUnique({ where: { idTeacher: document.idTeacher } });
-        if (teacher?.idUser === userId) authorized = true;
-      }
-      if (document.idRoom) {
-        const room = await prisma.rooms.findUnique({ where: { idRoom: document.idRoom } });
-      
-      }
-      if (!authorized) {
+      const isOwner = await this.verifyDocumentOwnership(document, userId);
+      if (!isOwner) {
         throw new AuthorizationException('Not authorized to view this document');
       }
 
       if (document.urlLink) {
-        document.urlLink = this.fileService.generateLink(`documents/${document.path || ''}/${document.urlLink}`, req, document.urlLink);
+        document.urlLink = this.generateDocumentLink(document, req);
       }
 
       return DocumentsSchemas.document.parse(document);
@@ -251,7 +294,51 @@ class DocumentsController {
     }
   }
 
-  
+  private async viewByEntity(
+    entityType: 'class' | 'student' | 'course' | 'teacher' | 'room' | 'subject',
+    id: number,
+    token: string,
+    req: FastifyRequest
+  ): Promise<z.infer<typeof DocumentsSchemas.documents>> {
+    try {
+      const userId = await this.verifyAuthorization(token);
+      
+      if (entityType === 'teacher') {
+        const teacher = await prisma.teachers.findUnique({ where: { idTeacher: id } });
+        if (!teacher || teacher.idUser !== userId) {
+          throw new AuthorizationException(`Not authorized to view documents for this ${entityType}`);
+        }
+      } else {
+        await this.getEntityInfo(entityType, id);
+      }
+
+      const documents = await prisma.documents.findMany({
+        where: { [`id${entityType.charAt(0).toUpperCase() + entityType.slice(1)}`]: id },
+        orderBy: { createdIn: 'desc' },
+      });
+
+      for (const document of documents) {
+        if (document.urlLink) {
+          document.urlLink = this.generateDocumentLink(document, req);
+        }
+      }
+
+      return DocumentsSchemas.documents.parse(documents);
+    } catch (error) {
+      console.error(`[VIEW_BY_${entityType.toUpperCase()}] Error occurred:`, error);
+      if (error instanceof z.ZodError) {
+        throw new InvalidDataException(error.errors.map(e => e.message).join(', '));
+      }
+      if (
+        error instanceof AuthorizationException ||
+        error instanceof InvalidDataException ||
+        error instanceof ItemNotFoundException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(`An error occurred when trying to retrieve documents by ${entityType}`);
+    }
+  }
 
   public async viewByClasse(
     data: z.infer<typeof DocumentsSchemas.viewDocumentByClasse>,
@@ -263,43 +350,7 @@ class DocumentsController {
     const { idClasse } = validatedData;
     const { token } = validatedKey;
 
-    try {
-      const userId = await this.tokenService.userId(token);
-      if (!userId) {
-        throw new AuthorizationException('Not authorized');
-      }
-
-      const classe = await prisma.classes.findUnique({ where: { idClasse: Number(idClasse) } });
-      if (!classe  ) {
-        throw new AuthorizationException('Not authorized to view documents for this class');
-      }
-
-      const documents = await prisma.documents.findMany({
-        where: { idClasse: Number(idClasse) },
-        orderBy: { createdIn: 'desc' },
-      });
-
-      for (const document of documents) {
-        if (document.urlLink) {
-          document.urlLink = this.fileService.generateLink(`documents/${document.path || ''}/${document.urlLink}`, req, document.urlLink);
-        }
-      }
-
-      return DocumentsSchemas.documents.parse(documents);
-    } catch (error) {
-      console.error('[VIEW_BY_CLASSE] Error occurred:', error);
-      if (error instanceof z.ZodError) {
-        throw new InvalidDataException(error.errors.map(e => e.message).join(', '));
-      }
-      if (
-        error instanceof AuthorizationException ||
-        error instanceof InvalidDataException ||
-        error instanceof ItemNotFoundException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException('An error occurred when trying to retrieve documents by class');
-    }
+    return this.viewByEntity('class', Number(idClasse), token, req);
   }
 
   public async viewByStudent(
@@ -312,43 +363,7 @@ class DocumentsController {
     const { idStudent } = validatedData;
     const { token } = validatedKey;
 
-    try {
-      const userId = await this.tokenService.userId(token);
-      if (!userId) {
-        throw new AuthorizationException('Not authorized');
-      }
-
-      const student = await prisma.students.findUnique({ where: { idStudent: Number(idStudent) } });
-      if (!student  ) {
-        throw new AuthorizationException('Not authorized to view documents for this student');
-      }
-
-      const documents = await prisma.documents.findMany({
-        where: { idStudent: Number(idStudent) },
-        orderBy: { createdIn: 'desc' },
-      });
-
-      for (const document of documents) {
-        if (document.urlLink) {
-          document.urlLink = this.fileService.generateLink(`documents/${document.path || ''}/${document.urlLink}`, req, document.urlLink);
-        }
-      }
-
-      return DocumentsSchemas.documents.parse(documents);
-    } catch (error) {
-      console.error('[VIEW_BY_STUDENT] Error occurred:', error);
-      if (error instanceof z.ZodError) {
-        throw new InvalidDataException(error.errors.map(e => e.message).join(', '));
-      }
-      if (
-        error instanceof AuthorizationException ||
-        error instanceof InvalidDataException ||
-        error instanceof ItemNotFoundException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException('An error occurred when trying to retrieve documents by student');
-    }
+    return this.viewByEntity('student', Number(idStudent), token, req);
   }
 
   public async viewByCourse(
@@ -361,43 +376,7 @@ class DocumentsController {
     const { idCourse } = validatedData;
     const { token } = validatedKey;
 
-    try {
-      const userId = await this.tokenService.userId(token);
-      if (!userId) {
-        throw new AuthorizationException('Not authorized');
-      }
-
-      const course = await prisma.courses.findUnique({ where: { idCourse: Number(idCourse) } });
-      if (!course  ) {
-        throw new AuthorizationException('Not authorized to view documents for this course');
-      }
-
-      const documents = await prisma.documents.findMany({
-        where: { idCourse: Number(idCourse) },
-        orderBy: { createdIn: 'desc' },
-      });
-
-      for (const document of documents) {
-        if (document.urlLink) {
-          document.urlLink = this.fileService.generateLink(`documents/${document.path || ''}/${document.urlLink}`, req, document.urlLink);
-        }
-      }
-
-      return DocumentsSchemas.documents.parse(documents);
-    } catch (error) {
-      console.error('[VIEW_BY_COURSE] Error occurred:', error);
-      if (error instanceof z.ZodError) {
-        throw new InvalidDataException(error.errors.map(e => e.message).join(', '));
-      }
-      if (
-        error instanceof AuthorizationException ||
-        error instanceof InvalidDataException ||
-        error instanceof ItemNotFoundException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException('An error occurred when trying to retrieve documents by course');
-    }
+    return this.viewByEntity('course', Number(idCourse), token, req);
   }
 
   public async viewByTeacher(
@@ -410,43 +389,7 @@ class DocumentsController {
     const { idTeacher } = validatedData;
     const { token } = validatedKey;
 
-    try {
-      const userId = await this.tokenService.userId(token);
-      if (!userId) {
-        throw new AuthorizationException('Not authorized');
-      }
-
-      const teacher = await prisma.teachers.findUnique({ where: { idTeacher: Number(idTeacher) } });
-      if (!teacher || teacher.idUser !== userId) {
-        throw new AuthorizationException('Not authorized to view documents for this teacher');
-      }
-
-      const documents = await prisma.documents.findMany({
-        where: { idTeacher: Number(idTeacher) },
-        orderBy: { createdIn: 'desc' },
-      });
-
-      for (const document of documents) {
-        if (document.urlLink) {
-          document.urlLink = this.fileService.generateLink(`documents/${document.path || ''}/${document.urlLink}`, req, document.urlLink);
-        }
-      }
-
-      return DocumentsSchemas.documents.parse(documents);
-    } catch (error) {
-      console.error('[VIEW_BY_TEACHER] Error occurred:', error);
-      if (error instanceof z.ZodError) {
-        throw new InvalidDataException(error.errors.map(e => e.message).join(', '));
-      }
-      if (
-        error instanceof AuthorizationException ||
-        error instanceof InvalidDataException ||
-        error instanceof ItemNotFoundException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException('An error occurred when trying to retrieve documents by teacher');
-    }
+    return this.viewByEntity('teacher', Number(idTeacher), token, req);
   }
 
   public async viewByRoom(
@@ -459,75 +402,45 @@ class DocumentsController {
     const { idRoom } = validatedData;
     const { token } = validatedKey;
 
-    try {
-      const userId = await this.tokenService.userId(token);
-      if (!userId) {
-        throw new AuthorizationException('Not authorized');
-      }
-
-      const room = await prisma.rooms.findUnique({ where: { idRoom: Number(idRoom) } });
-      
-
-      const documents = await prisma.documents.findMany({
-        where: { idRoom: Number(idRoom) },
-        orderBy: { createdIn: 'desc' },
-      });
-
-      for (const document of documents) {
-        if (document.urlLink) {
-          document.urlLink = this.fileService.generateLink(`documents/${document.path || ''}/${document.urlLink}`, req, document.urlLink);
-        }
-      }
-
-      return DocumentsSchemas.documents.parse(documents);
-    } catch (error) {
-      console.error('[VIEW_BY_ROOM] Error occurred:', error);
-      if (error instanceof z.ZodError) {
-        throw new InvalidDataException(error.errors.map(e => e.message).join(', '));
-      }
-      if (
-        error instanceof AuthorizationException ||
-        error instanceof InvalidDataException ||
-        error instanceof ItemNotFoundException
-      ) {
-        throw error;
-      }
-      throw new InternalServerErrorException('An error occurred when trying to retrieve documents by room');
-    }
+    return this.viewByEntity('room', Number(idRoom), token, req);
   }
 
-  
-  public async viewAll(
-    
+  public async viewBySubject(
+    data: z.infer<typeof DocumentsSchemas.viewDocumentBySubject>,
     key: z.infer<typeof DocumentsSchemas.token>,
     req: FastifyRequest
   ): Promise<z.infer<typeof DocumentsSchemas.documents>> {
-   
+    const validatedData = DocumentsSchemas.viewDocumentBySubject.parse(data);
     const validatedKey = DocumentsSchemas.token.parse(key);
- 
+    const { idSubject } = validatedData;
+    const { token } = validatedKey;
+
+    return this.viewByEntity('subject', Number(idSubject), token, req);
+  }
+
+  public async viewAll(
+    key: z.infer<typeof DocumentsSchemas.token>,
+    req: FastifyRequest
+  ): Promise<z.infer<typeof DocumentsSchemas.documents>> {
+    const validatedKey = DocumentsSchemas.token.parse(key);
     const { token } = validatedKey;
 
     try {
-      const userId = await this.tokenService.userId(token);
-      if (!userId) {
-        throw new AuthorizationException('Not authorized');
-      }
-
+      await this.verifyAuthorization(token);
 
       const documents = await prisma.documents.findMany({
-      
         orderBy: { createdIn: 'desc' },
       });
 
       for (const document of documents) {
         if (document.urlLink) {
-          document.urlLink = this.fileService.generateLink(`documents/${document.path || ''}/${document.urlLink}`, req, document.urlLink);
+          document.urlLink = this.generateDocumentLink(document, req);
         }
       }
 
       return DocumentsSchemas.documents.parse(documents);
     } catch (error) {
-      console.error('[VIEW_BY_ROOM] Error occurred:', error);
+      console.error('[VIEW_ALL] Error occurred:', error);
       if (error instanceof z.ZodError) {
         throw new InvalidDataException(error.errors.map(e => e.message).join(', '));
       }
@@ -538,12 +451,9 @@ class DocumentsController {
       ) {
         throw error;
       }
-      throw new InternalServerErrorException('An error occurred when trying to retrieve documents by room');
+      throw new InternalServerErrorException('An error occurred when trying to retrieve all documents');
     }
   }
-
-  
-
 }
 
 export default DocumentsController;
