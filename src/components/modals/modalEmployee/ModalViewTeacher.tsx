@@ -1,7 +1,7 @@
 import React from "react";
 import DynamicModal from "@/components/common/DynamicModal";
 import ComponetButton from "@/components/common/button";
-import { User, Mail, Book, Phone, Calendar, Layers } from "lucide-react";
+import { User, Mail, Book, Phone, Calendar} from "lucide-react";
 import { Teacher } from "@/types/interfaces";
 
 interface ModalViewTeacherProps {
@@ -54,31 +54,10 @@ const ModalViewTeacher: React.FC<ModalViewTeacherProps> = ({
             </label>
           </div>
           <p className="ml-8 text-gray-600 dark:text-gray-400">
-            {teacherData.role}
+            {teacherData.function}
           </p>
         </div>
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3 mb-2">
-            <Layers className="w-5 h-5 text-blue-500" />
-            <label className="font-semibold text-gray-700 dark:text-gray-300">
-              Curso:
-            </label>
-          </div>
-          <p className="ml-8 text-gray-600 dark:text-gray-400">
-            {teacherData.curso}
-          </p>
-        </div>
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3 mb-2">
-            <User className="w-5 h-5 text-blue-500" />
-            <label className="font-semibold text-gray-700 dark:text-gray-300">
-              Gênero:
-            </label>
-          </div>
-          <p className="ml-8 text-gray-600 dark:text-gray-400">
-            {teacherData.gender}
-          </p>
-        </div>
+
         <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-2">
             <Phone className="w-5 h-5 text-blue-500" />
@@ -87,30 +66,10 @@ const ModalViewTeacher: React.FC<ModalViewTeacherProps> = ({
             </label>
           </div>
           <p className="ml-8 text-gray-600 dark:text-gray-400">
-            {teacherData.phoneNumber}
+            {teacherData.telephone}
           </p>
         </div>
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3 mb-2">
-            <Book className="w-5 h-5 text-blue-500" />
-            <label className="font-semibold text-gray-700 dark:text-gray-300">
-              Disciplinas:
-            </label>
-          </div>
-          {teacherData.subjects.length > 0 ? (
-            <ul className="list-disc pl-8 text-gray-600 dark:text-gray-400">
-              {teacherData.subjects.map((subject) => (
-                <li key={subject.id} className="ml-2">
-                  {subject.name} ({subject.course})
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="ml-8 text-gray-600 dark:text-gray-400">
-              Nenhuma disciplina selecionada.
-            </p>
-          )}
-        </div>
+
         <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-2">
             <Calendar className="w-5 h-5 text-blue-500" />
@@ -120,17 +79,6 @@ const ModalViewTeacher: React.FC<ModalViewTeacherProps> = ({
           </div>
           <p className="ml-8 text-gray-600 dark:text-gray-400">
             {new Date(teacherData.createdIn).toLocaleString()}
-          </p>
-        </div>
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3 mb-2">
-            <Calendar className="w-5 h-5 text-blue-500" />
-            <label className="font-semibold text-gray-700 dark:text-gray-300">
-              Expiração da Licença:
-            </label>
-          </div>
-          <p className="ml-8 text-gray-600 dark:text-gray-400">
-            {new Date(teacherData.licenseExpirationDate).toLocaleDateString()}
           </p>
         </div>
       </div>

@@ -30,7 +30,7 @@ const ModalManageRoom: React.FC<ModalManageRoomProps> = ({
     idCourse?: string;
   }>({});
 
-  const { data: courses, isLoading: isCoursesLoading } = useListCourses();
+  const { data: courses } = useListCourses();
   const { mutateAsync: addRoom } = useAddRoom();
   const { mutateAsync: updateRoom } = useUpdateRoom();
   const [isLoading, setIsLoading] = useState(false);
@@ -39,23 +39,23 @@ const ModalManageRoom: React.FC<ModalManageRoomProps> = ({
     type: "success" | "error";
   } | null>(null);
 
-  // useEffect(() => {
-  //   if (room) {
-  //     setFormData({
-  //       idRoom: room.idRoom,
-  //       name: room.name,
-  //       status: room.status,
-  //       idCourse: room.idCourse,
-  //     });
-  //   } else {
-  //     setFormData({
-  //       name: "",
-  //       status: true,
-  //       idCourse: 0,
-  //     });
-  //   }
-  //   setFieldErrors({});
-  // }, [room]);
+  useEffect(() => {
+    if (room) {
+      setFormData({
+        idRoom: room.idRoom,
+        name: room.name,
+        status: room.status,
+        idCourse: room.idCourse,
+      });
+    } else {
+      setFormData({
+        name: "",
+        status: true,
+        idCourse: 0,
+      });
+    }
+    setFieldErrors({});
+  }, [room]);
 
   useEffect(() => {
     if (statusMessage) {
@@ -195,19 +195,14 @@ const ModalManageRoom: React.FC<ModalManageRoomProps> = ({
           options={statusOptions}
           error={fieldErrors.status}
         />
-        {isCoursesLoading ? (
-          <p className="text-gray-500">Carregando cursos...</p>
-        ) : courseOptions.length === 0 ? (
-          <p className="text-gray-500">Nenhum curso disponível</p>
-        ) : (
-          <SearchableSelect
-            label="Curso"
-            value={formData.idCourse?.toString() || ""}
-            onChange={(value) => handleSelectChange("idCourse", value)}
-            options={courseOptions}
-            error={fieldErrors.idCourse}
-          />
-        )}
+
+        <SearchableSelect
+          label="Curso"
+          value={formData.idCourse?.toString() || ""}
+          onChange={(value) => handleSelectChange("idCourse", value)}
+          options={courseOptions}
+          error={fieldErrors.idCourse}
+        />
       </div>
       <div className="flex flex-wrap-reverse justify-end mt-4 gap-2">
         <ComponentButton

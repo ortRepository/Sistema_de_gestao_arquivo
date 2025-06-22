@@ -79,7 +79,7 @@ export default function AcademicDocuments() {
   const { data: students } = useListStudents();
   const { data: teachers } = useListTeachers();
   const { data: rooms } = useListRooms();
-  const { mutateAsync: deleteDocument} = useDeleteDocument();
+  const { mutateAsync: deleteDocument } = useDeleteDocument();
 
   const mappedDocuments: DocumentItem[] = useMemo(() => {
     if (!apiDocuments) return [];
@@ -333,64 +333,74 @@ export default function AcademicDocuments() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filtered.map((doc) => (
-            <div
-              key={doc.id}
-              className="relative bg-white dark:bg-gray-900 p-4 rounded-lg shadow hover:shadow-md"
-            >
-              <FileText size={48} className="text-[#4D6BFE] mb-2" />
-              <h3 className="font-semibold">{doc.description}</h3>
-              <p className="text-sm text-gray-500">Categoria: {doc.category}</p>
-              <p className="text-sm text-gray-500">
-                Professor: {doc.teacherName}
-              </p>
-              <p className="text-xs text-gray-400">{doc.createdIn}</p>
+          {filtered.length > 0 ? (
+            filtered.map((doc) => (
+              <div
+                key={doc.id}
+                className="relative bg-white dark:bg-gray-900 p-4 rounded-lg shadow hover:shadow-md"
+              >
+                <FileText size={48} className="text-[#4D6BFE] mb-2" />
+                <h3 className="font-semibold">{doc.description}</h3>
+                <p className="text-sm text-gray-500">
+                  Categoria: {doc.category}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Professor: {doc.teacherName}
+                </p>
+                <p className="text-xs text-gray-400">{doc.createdIn}</p>
 
-              <div className="absolute top-2 right-2">
-                <MoreHorizontal
-                  size={16}
-                  className="text-gray-400 cursor-pointer"
-                  onClick={() =>
-                    setOpenMenuId(openMenuId === doc.id ? null : doc.id)
-                  }
-                />
-                {openMenuId === doc.id && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border rounded shadow-lg z-10">
-                    <button
-                      onClick={() => {
-                        handleDownload(doc.id);
-                        setOpenMenuId(null);
-                      }}
-                      className="flex items-center cursor-pointer gap-2 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <Download size={16} /> Baixar
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleView(doc.id);
-                        setOpenMenuId(null);
-                      }}
-                      className="flex items-center cursor-pointer gap-2 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <Eye size={16} /> Visualizar
-                    </button>
-                    <button
-                      onClick={() => handleSend(doc)}
-                      className="flex items-center gap-2 cursor-pointer w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <SendIcon size={16} /> Enviar
-                    </button>
-                    <button
-                      onClick={() => openConfirm(doc.id)}
-                      className="flex items-center gap-2 w-full cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-red-500"
-                    >
-                      <Trash size={16} /> Excluir
-                    </button>
-                  </div>
-                )}
+                <div className="absolute top-2 right-2">
+                  <MoreHorizontal
+                    size={16}
+                    className="text-gray-400 cursor-pointer"
+                    onClick={() =>
+                      setOpenMenuId(openMenuId === doc.id ? null : doc.id)
+                    }
+                  />
+                  {openMenuId === doc.id && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border rounded shadow-lg z-10">
+                      <button
+                        onClick={() => {
+                          handleDownload(doc.id);
+                          setOpenMenuId(null);
+                        }}
+                        className="flex items-center cursor-pointer gap-2 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        <Download size={16} /> Baixar
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleView(doc.id);
+                          setOpenMenuId(null);
+                        }}
+                        className="flex items-center cursor-pointer gap-2 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        <Eye size={16} /> Visualizar
+                      </button>
+                      <button
+                        onClick={() => handleSend(doc)}
+                        className="flex items-center gap-2 cursor-pointer w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        <SendIcon size={16} /> Enviar
+                      </button>
+                      <button
+                        onClick={() => openConfirm(doc.id)}
+                        className="flex items-center gap-2 w-full cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-red-500"
+                      >
+                        <Trash size={16} /> Excluir
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
+            ))
+          ) : (
+         <div className="col-span-full flex justify-center items-center min-h-[200px]">
+              <p className="py-6 px-4 text-center text-gray-500">
+                Nenhum documento encontrado.
+              </p>
             </div>
-          ))}
+          )}
         </div>
 
         <SendDocumentModal

@@ -129,7 +129,7 @@ const ModalManageSubject: React.FC<SubjectModalProps> = ({
       if (subjectData) {
         await updateSubject({
           ...payload,
-          idCourse: subjectData.idSubject, 
+          idCourse: subjectData.idSubject,
         });
         setStatusMessage({
           text: "Disciplina atualizada com sucesso!",
@@ -143,7 +143,7 @@ const ModalManageSubject: React.FC<SubjectModalProps> = ({
         });
       }
       setFormData(defaultForm);
-      setTimeout(handleClose, 3000);
+      setTimeout(subjectData ? onClose : handleClose, 3000);
     } catch (error: any) {
       setStatusMessage({
         text: error.message || "Erro ao salvar. Tente novamente!",
@@ -194,17 +194,15 @@ const ModalManageSubject: React.FC<SubjectModalProps> = ({
           onChange={handleChange}
           required
         />
-        {courseOptions.length === 0 ? (
-          <p className="text-gray-500">Nenhum curso disponível</p>
-        ) : (
-          <SearchableSelect
-            label="Curso"
-            value={formData.course}
-            onChange={(value) => handleSelectChange("course", value)}
-            options={courseOptions}
-            error={fieldErrors.course}
-          />
-        )}
+
+        <SearchableSelect
+          label="Curso"
+          value={formData.course}
+          onChange={(value) => handleSelectChange("course", value)}
+          options={courseOptions}
+          error={fieldErrors.course}
+        />
+
         <SearchableSelect
           label="Status"
           value={formData.status}

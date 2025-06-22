@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { z } from "zod";
 import DynamicModal from "@/components/common/DynamicModal";
 import ComponentInput from "@/components/common/FormInput";
 import ComponetButton from "@/components/common/button";
@@ -12,18 +11,7 @@ import {
   useListClasses,
   useListRooms,
 } from "@/hooks/DynamicApiHooks";
-
-// Zod schema for form validation
-const studentSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  biNumber: z.string().min(1, "Número do BI é obrigatório"),
-  room: z.string().min(1, "Sala é obrigatória"),
-  plainToClassFromExist: z.string().min(1, "Turma é obrigatória"),
-  dateOfBirth: z.string().min(1, "Data de nascimento é obrigatória"),
-  idClass: z.number().min(1, "Classe é obrigatória"),
-});
-
-type StudentForm = z.infer<typeof studentSchema>;
+import { studentSchema } from "@/types/type";
 
 const ModalStudent: React.FC<ModalStudentProps> = ({
   isOpen,
@@ -65,27 +53,12 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
   } | null>(null);
 
   // Fetch rooms and classes
-  const {
-    data: rooms,
-    isLoading: isLoadingRooms,
-    error: roomsError,
-  } = useListRooms();
-  const {
-    data: classes,
-    isLoading: isLoadingClasses,
-    error: classesError,
-  } = useListClasses();
+  const { data: rooms } = useListRooms();
+  const { data: classes } = useListClasses();
 
   // API hooks for add/update
   const { mutateAsync: addStudent } = useAddStudent();
   const { mutateAsync: updateStudent } = useUpdateStudent();
-
-  // Course mapping (placeholder, replace with actual course data)
-  const courseMap: { [key: number]: string } = {
-    1: "Informática",
-    2: "Gestão",
-    3: "Eletrónica",
-  };
 
   // Room options
   const roomOptions =
@@ -101,11 +74,9 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
     classes
       ?.filter((cls) => cls.status)
       .map((cls) => {
-        const room = rooms?.find((r) => r.idRoom === cls.idRoom);
-        const course = courseMap[room?.idCourse || 0] || "Desconhecido";
         return {
           value: cls.idClass.toString(),
-          label: `${cls.name} - ${course}`,
+          label: `${cls.name}`,
           className: cls.name,
         };
       }) || [];
@@ -313,20 +284,20 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
       } else {
         await addStudent(payload, {
           onSuccess: (_data: { code: number; message: string }) => {
-            const newStudent: Student = {
-              ...formData,
-              ...payload,
-              idStudent: Date.now(), // Temporary ID, replace with data.idStudent if available
-              createdIn: new Date().toISOString(),
-              updatedIn: new Date().toISOString(),
-            };
+            // const newStudent: Student = {
+            //   ...formData,
+            //   ...payload,
+            //   idStudent: Date.now(), // Temporary ID, replace with data.idStudent if available
+            //   createdIn: new Date().toISOString(),
+            //   updatedIn: new Date().toISOString(),
+            // };
             setStatusMessage({
               text: "Aluno cadastrado com sucesso!",
               type: "success",
             });
             setTimeout(() => {
-              onSave(newStudent);
-              handleClose();
+              // onSave(newStudent);
+              student ? onClose : handleClose;
             }, 2000);
           },
           onError: (error: any) => {
@@ -351,7 +322,7 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
     <DynamicModal
       title={student ? "Editar Aluno" : "Cadastrar Aluno"}
       isOpen={isOpen}
-      onClose={handleClose}
+      onClose={student ? onClose : handleClose}
     >
       {statusMessage && (
         <div
@@ -377,14 +348,7 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
           </p>
         </div>
       )}
-      {(isLoadingRooms || isLoadingClasses) && (
-        <div className="text-center text-gray-500">Carregando opções...</div>
-      )}
-      {(roomsError || classesError) && (
-        <div className="text-center text-red-500">
-          Erro ao carregar dados. Tente novamente.
-        </div>
-      )}
+
       <div className="space-y-4 overflow-y-auto max-h-[50vh] px-2">
         <div className="flex flex-col items-center space-y-4">
           <label className="block text-gray-700 dark:text-gray-300 font-medium">
@@ -411,9 +375,7 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
               </div>
             )}
           </div>
-          {fieldErrors.photo && (
-            <p className="text-red-500 text-xs mt-2">{fieldErrors.photo}</p>
-          )}
+
           {previewPhoto && (
             <div className="mt-4 relative group">
               <p className="text-sm text-gray-500 mb-2">Pré-visualização:</p>
@@ -510,7 +472,7 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
         <ComponetButton
           className="w-full md:w-auto"
           variant="secondary"
-          onClick={handleClose}
+          onClick={student ? onClose : handleClose}
         >
           Cancelar
         </ComponetButton>

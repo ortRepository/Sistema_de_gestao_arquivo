@@ -118,7 +118,7 @@ const ModalManageCourse: React.FC<ModalManageCourseProps> = ({
         createdIn: course ? course.createdIn : new Date().toISOString(),
         updatedIn: new Date().toISOString(),
       });
-      setTimeout(handleClose, 3000);
+      setTimeout(course ? onClose : handleClose, 3000);
     };
 
     const onError = (error: any) => {
@@ -148,7 +148,7 @@ const ModalManageCourse: React.FC<ModalManageCourseProps> = ({
     <DynamicModal
       title={course ? "Editar Curso" : "Cadastrar Curso"}
       isOpen={isOpen}
-      onClose={handleClose}
+      onClose={course ? onClose : handleClose}
     >
       {statusMessage && (
         <div
@@ -197,7 +197,7 @@ const ModalManageCourse: React.FC<ModalManageCourseProps> = ({
         <ComponentButton
           className="w-full md:w-auto"
           variant="secondary"
-          onClick={handleClose}
+          onClick={course ? onClose : handleClose}
         >
           Cancelar
         </ComponentButton>

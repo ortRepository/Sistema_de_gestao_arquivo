@@ -211,17 +211,12 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
                   viewBox="0 0 48 48"
                   aria-hidden="true"
                 >
-                  <path
-                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-12 12m0 0l-12-12"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                  <path d="M" />
                 </svg>
                 <div className="flex text-sm text-gray-600 dark:text-gray-400">
                   <label
                     htmlFor="file-upload"
-                    className="relative cursor-pointer bg-gray-200 dark:bg-gray-700 rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-500 focus-within:ring-2 focus-within:ring-blue-500"
+                    className="relative cursor-pointer  rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800  "
                   >
                     <span>Selecione um arquivo</span>
                     <input

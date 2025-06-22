@@ -123,16 +123,14 @@ export const sendDocumentSchema = z.object({
 });
 
 export const studentSchema = z.object({
-  name: z.string().min(1, "Nome completo é obrigatório"),
+  name: z.string().min(1, "Nome é obrigatório"),
   biNumber: z.string().min(1, "Número do BI é obrigatório"),
   room: z.string().min(1, "Sala é obrigatória"),
-  classGroup: z.string().min(1, "Turma é obrigatória"),
-  course: z.string().min(1, "Curso é obrigatório"),
-  birthDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: "Data de nascimento inválida",
-  }),
+  plainToClassFromExist: z.string().min(1, "Turma é obrigatória"),
+  dateOfBirth: z.string().min(1, "Data de nascimento é obrigatória"),
+  idClass: z.number().min(1, "Classe é obrigatória"),
 });
-// Zod schema for teacher validation
+
 // Zod schema for form validation (excluding photo and path)
 export const teacherSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),

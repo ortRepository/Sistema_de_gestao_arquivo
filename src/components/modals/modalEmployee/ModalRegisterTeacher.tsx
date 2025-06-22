@@ -242,8 +242,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
                 type: "success",
               });
               setTimeout(() => {
-                // onSave(newTeacher);
-                handleClose();
+                teacherData ? onClose : handleClose;
               }, 2000);
             } else {
               setStatusMessage({
@@ -276,7 +275,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
     <DynamicModal
       title={teacherData ? "Editar Professor" : "Cadastrar Professor"}
       isOpen={isOpen}
-      onClose={handleClose}
+      onClose={teacherData ? onClose : handleClose}
     >
       {statusMessage && (
         <div
@@ -390,9 +389,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
                 className="hidden"
               />
             </label>
-            {fieldErrors.photo && (
-              <p className="text-red-500 text-xs mt-2">{fieldErrors.photo}</p>
-            )}
+
             {previewUrl && (
               <div className="mt-4 relative group">
                 <p className="text-sm text-gray-500 mb-2">Pré-visualização:</p>
@@ -442,7 +439,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
         <ComponentButton
           className="w-full md:w-auto"
           variant="secondary"
-          onClick={handleClose}
+          onClick={teacherData ? onClose : handleClose}
         >
           Cancelar
         </ComponentButton>

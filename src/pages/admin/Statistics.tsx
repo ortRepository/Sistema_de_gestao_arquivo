@@ -1,43 +1,22 @@
 import { useState, useEffect } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import SearchFilterBar from "@/components/common/SearchBar";
-import { ClassData, CourseData, Teacher } from "@/types/interfaces";
+import DeletePublicationModal from "@/components/common/DeletePublicationModal";
 
-const fetchData = async () => {
-  // Mock data - replace with actual API calls
-  const teachers: Teacher[] = [
-    {
-      id: 1,
-      name: "João Silva",
-      email: "joao@school.com",
-      gender: "Masculino",
-      phoneNumber: "123456789",
-      createdIn: "2025-06-01",
-      licenseExpirationDate: "2026-01-01",
-      subjects: [{ id: 1, name: "Matemática", course: "Ciências Exatas" }],
-      role: "Professor",
-      curso: "Ciências Exatas",
-      photo: "",
-    },
-  ];
+import {
+  useListTeachers,
+  useListClasses,
+  useListCourses,
+  useListSubjects,
+  useListStudents,
+  useListRooms,
+  useDeleteTeacher,
+  useDeleteRoom, // Added
+} from "@/hooks/DynamicApiHooks";
+import { Teacher, Student, Subject, Room } from "@/types/interfaces";
+import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
 
-  const classes: ClassData[] = [
-    { id: 1, turma: "Turma A", diretorDeTurma: "João Silva", sala: 101 },
-  ];
-
-  const courses: CourseData[] = [
-    {
-      id: 1,
-      nome: "Ciências Exatas",
-      coordenadorDoCurso: "Ana Costa",
-      disciplinas: ["Matemática", "Física"],
-    },
-  ];
-
-  return { teachers, classes, courses };
-};
-
-// Utility function to truncate text
+// Truncate and filter utility functions remain unchanged
 const truncateText = (
   text: string,
   maxLength: number,
@@ -51,7 +30,6 @@ const truncateText = (
   return `${text.slice(0, maxLength)}...`;
 };
 
-// Utility function to filter data by month and year
 const filterByMonthYear = <T extends { createdIn: string }>(
   data: T[],
   month: number,
@@ -64,96 +42,219 @@ const filterByMonthYear = <T extends { createdIn: string }>(
 };
 
 export default function Statistics() {
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
-  const [classes, setClasses] = useState<ClassData[]>([]);
-  const [courses, setCourses] = useState<CourseData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
-  // Search and filter states for Teachers table
   const [teacherSearchTerm, setTeacherSearchTerm] = useState("");
   const [teacherFilterType, setTeacherFilterType] = useState("");
   const [isTeacherFilterOpen, setIsTeacherFilterOpen] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  // Filter options for Teachers
+  const [filteredRooms, setFilteredRooms] = useState<Room[]>([]); // Added for rooms
+  const [roomSearchTerm, setRoomSearchTerm] = useState(""); // Added for rooms
+  const [isRoomFilterOpen, setIsRoomFilterOpen] = useState(false); // Added for rooms
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteType, setDeleteType] = useState<"teacher" | "room" | null>(null); // Added to differentiate
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const {
+    data: teachers,
+    isLoading: teachersLoading,
+    error: teachersError,
+    refetch: refetchTeachers, // Added for retry
+  } = useListTeachers();
+  const {
+    data: classes,
+    isLoading: classesLoading,
+    error: classesError,
+  } = useListClasses();
+  const {
+    data: courses,
+    isLoading: coursesLoading,
+    error: coursesError,
+  } = useListCourses();
+  const {
+    data: subjects,
+    isLoading: subjectsLoading,
+    error: subjectsError,
+  } = useListSubjects();
+  const {
+    data: students,
+    isLoading: studentsLoading,
+    error: studentsError,
+  } = useListStudents();
+  const {
+    data: rooms,
+    isLoading: roomsLoading,
+    error: roomsError,
+    refetch: refetchRooms, // Added for retry
+  } = useListRooms();
+  const { mutate: deleteTeacher } = useDeleteTeacher();
+  const { mutate: deleteRoom } = useDeleteRoom(); // Added
+
+  const isLoading =
+    teachersLoading ||
+    classesLoading ||
+    coursesLoading ||
+    subjectsLoading ||
+    studentsLoading ||
+    roomsLoading;
+
   const teacherFilterOptions = [
     { value: "", label: "Todos" },
     { value: "Professor", label: "Professor" },
     { value: "Coordenador", label: "Coordenador" },
   ];
 
+  // Handle all errors and teacher filtering
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchData();
-        setTeachers(data.teachers);
-        setClasses(data.classes);
-        setCourses(data.courses);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error("Failed to load data"));
-      } finally {
-        setIsLoading(false);
+    const errors = [
+      teachersError,
+      classesError,
+      coursesError,
+      subjectsError,
+      studentsError,
+      roomsError,
+    ].filter(Boolean);
+    if (errors.length) {
+      setError(errors[0]?.message || "Erro ao carregar dados");
+    } else {
+      // Teacher filtering
+      if (teachers) {
+        let updatedTeachers = filterByMonthYear(
+          teachers,
+          selectedMonth,
+          selectedYear
+        );
+        if (teacherSearchTerm) {
+          updatedTeachers = updatedTeachers.filter(
+            (teacher) =>
+              teacher.name
+                .toLowerCase()
+                .includes(teacherSearchTerm.toLowerCase()) ||
+              teacher.email
+                .toLowerCase()
+                .includes(teacherSearchTerm.toLowerCase())
+          );
+        }
+        if (teacherFilterType) {
+          updatedTeachers = updatedTeachers.filter(
+            (teacher) => teacher.function === teacherFilterType
+          );
+        }
+        setFilteredTeachers(updatedTeachers);
       }
-    };
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    // Apply month/year filter and search/filter for Teachers
-    let updatedTeachers = filterByMonthYear(
-      teachers,
-      selectedMonth,
-      selectedYear
-    );
-    if (teacherSearchTerm) {
-      updatedTeachers = updatedTeachers.filter(
-        (teacher) =>
-          teacher.name
-            .toLowerCase()
-            .includes(teacherSearchTerm.toLowerCase()) ||
-          teacher.email.toLowerCase().includes(teacherSearchTerm.toLowerCase())
-      );
+      // Room filtering
+      if (rooms) {
+        let updatedRooms = rooms; // No month/year filter for rooms (adjust if needed)
+        if (roomSearchTerm) {
+          updatedRooms = updatedRooms.filter((room) =>
+            room.name.toLowerCase().includes(roomSearchTerm.toLowerCase())
+          );
+        }
+        setFilteredRooms(updatedRooms);
+      }
     }
-    if (teacherFilterType) {
-      updatedTeachers = updatedTeachers.filter(
-        (teacher) => teacher.role === teacherFilterType
-      );
-    }
-    setFilteredTeachers(updatedTeachers);
   }, [
     teachers,
+    rooms,
+    teachersError,
+    classesError,
+    coursesError,
+    subjectsError,
+    studentsError,
+    roomsError,
     selectedMonth,
     selectedYear,
     teacherSearchTerm,
     teacherFilterType,
+    roomSearchTerm,
   ]);
 
-  // Calculate statistics
-  const studentsPerClass = classes.map((cls) => ({
+  const studentsPerClass = (classes || []).map((cls) => ({
     ...cls,
-    studentCount: 0, // Set to 0 since student data is removed
+    studentCount:
+      students?.filter((s: Student) => s.idClass === cls.idClass).length || 0,
   }));
 
-  const subjectsPerCourse = courses.map((course) => ({
+  const subjectsPerCourse = (courses || []).map((course) => ({
     ...course,
-    subjectCount: course.disciplinas.length,
+    subjectCount:
+      subjects?.filter((s: Subject) => s.idCourse === course.idCourse).length ||
+      0,
   }));
 
-  const openEditTeacher = (teacher: Teacher) => {
-    console.log("Edit teacher:", teacher);
+  const openDelete = (id: number, type: "teacher" | "room") => {
+    setConfirmId(id);
+    setDeleteType(type);
+    setDeleteModalOpen(true);
   };
 
-  const openDeleteTeacher = (id: number) => {
-    console.log("Delete teacher:", id);
+  const handleDelete = () => {
+    if (confirmId === null || deleteType === null) return;
+    if (deleteType === "teacher") {
+      deleteTeacher(
+        { idTeacher: confirmId },
+        {
+          onSuccess: () => {
+            setFilteredTeachers((prev) =>
+              prev.filter((t) => t.idTeacher !== confirmId)
+            );
+            setDeleteModalOpen(false);
+            setConfirmId(null);
+            setDeleteType(null);
+            setError(null);
+          },
+          onError: (err: any) => {
+            setError(err.message || "Erro ao excluir professor");
+            setDeleteModalOpen(false);
+          },
+        }
+      );
+    } else if (deleteType === "room") {
+      deleteRoom(
+        { idRoom: confirmId },
+        {
+          onSuccess: () => {
+            setFilteredRooms((prev) =>
+              prev.filter((r) => r.idRoom !== confirmId)
+            );
+            setDeleteModalOpen(false);
+            setConfirmId(null);
+            setDeleteType(null);
+            setError(null);
+          },
+          onError: (err: any) => {
+            setError(err.message || "Erro ao excluir sala");
+            setDeleteModalOpen(false);
+          },
+        }
+      );
+    }
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setConfirmId(null);
+    setDeleteType(null);
+    setError(null);
+  };
+
+  const refetchData = () => {
+    refetchTeachers();
+    refetchRooms();
+    // Add other refetch functions if needed
   };
 
   return (
-    <div className="flex flex-col min-h-screen p-4 gap-6">
-      {/* Month/Year Filter */}
+    <div className="flex flex-col min-h-screen p-4 gap-6 dark:bg-gray-800">
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
+
       <div className="flex gap-4 mb-4">
         <select
           value={selectedMonth}
@@ -183,7 +284,6 @@ export default function Statistics() {
         </select>
       </div>
 
-      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow flex flex-col items-center">
           <h3 className="text-md font-semibold">Estudantes por Turma</h3>
@@ -202,7 +302,7 @@ export default function Statistics() {
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow flex flex-col items-center">
           <h3 className="text-md font-semibold">Quantidade de Cursos</h3>
-          <p className="text-2xl font-bold">{courses.length}</p>
+          <p className="text-2xl font-bold">{courses?.length || 0}</p>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow flex flex-col items-center">
           <h3 className="text-md font-semibold">Quantidade de Professores</h3>
@@ -222,77 +322,141 @@ export default function Statistics() {
         toggleFilterDropdown={() => setIsTeacherFilterOpen((o) => !o)}
         closeFilterDropdown={() => setIsTeacherFilterOpen(false)}
       />
-
       <div className="bg-white dark:bg-gray-900 px-3 md:px-0 rounded-lg shadow overflow-auto w-60 md:w-99 min-w-full md:h-[55vh] h-auto">
-        <table className="w-full text-left text-xs md:text-sm border-collapse">
-          <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
-            <tr>
-              <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
-              <th className="py-3 px-2 md:px-4 whitespace-nowrap">Nome</th>
-              <th className="py-3 px-2 md:px-4 whitespace-nowrap">Email</th>
-              <th className="py-3 px-2 md:px-4 whitespace-nowrap">
-                Disciplinas
-              </th>
-              <th className="py-3 px-2 md:px-4 whitespace-nowrap">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
+        <DataStatusHandler
+          isLoading={isLoading}
+          error={error}
+          onRetry={refetchData}
+        >
+          <table className="w-full text-left text-xs md:text-sm border-collapse">
+            <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
               <tr>
-                <td colSpan={5} className="py-6 px-4 text-center">
-                  Carregando...
-                </td>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Nome</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Email</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Ações</th>
               </tr>
-            ) : error ? (
-              <tr>
-                <td colSpan={5} className="py-6 px-4 text-center text-red-500">
-                  Erro: {error.message}
-                </td>
-              </tr>
-            ) : filteredTeachers.length > 0 ? (
-              filteredTeachers.map((teacher) => (
-                <tr
-                  key={teacher.id}
-                  className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
-                >
-                  <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                    {teacher.id}
-                  </td>
-                  <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                    {truncateText(teacher.name, 25)}
-                  </td>
-                  <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                    {truncateText(teacher.email, 25)}
-                  </td>
-                  <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                    {teacher.subjects.map((s) => s.name).join(", ")}
-                  </td>
-                  <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap flex gap-2">
-                    <button
-                      onClick={() => openEditTeacher(teacher)}
-                      className="p-2 cursor-pointer bg-green-50 hover:bg-green-100 rounded"
-                    >
-                      <Pencil size={16} className="text-green-600" />
-                    </button>
-                    <button
-                      onClick={() => openDeleteTeacher(teacher.id)}
-                      className="p-2 cursor-pointer bg-red-50 hover:bg-red-100 rounded"
-                    >
-                      <Trash2 size={16} className="text-red-600" />
-                    </button>
+            </thead>
+            <tbody>
+              {filteredTeachers.length > 0 ? (
+                filteredTeachers.map((teacher) => (
+                  <tr
+                    key={teacher.idTeacher}
+                    className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
+                  >
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {teacher.idTeacher}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {truncateText(teacher.name, 25)}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {truncateText(teacher.email, 25)}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap flex gap-2">
+                      <button
+                        onClick={() => openDelete(teacher.idTeacher, "teacher")}
+                        className="p-2 cursor-pointer bg-red-50 hover:bg-red-100 rounded"
+                      >
+                        <Trash2 size={16} className="text-red-600" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="py-6 px-4 text-center text-gray-500"
+                  >
+                    Nenhum professor encontrado.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="py-6 px-4 text-center text-gray-500">
-                  Nenhum professor encontrado.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </DataStatusHandler>
       </div>
+
+      {/* Rooms Table */}
+      <SearchFilterBar
+        title="Salas"
+        searchTerm={roomSearchTerm}
+        setSearchTerm={setRoomSearchTerm}
+        filterType=""
+        setFilterType={() => {}} // No filter for rooms (adjust if needed)
+        filterOptions={[]}
+        isFilterOpen={isRoomFilterOpen}
+        toggleFilterDropdown={() => setIsRoomFilterOpen((o) => !o)}
+        closeFilterDropdown={() => setIsRoomFilterOpen(false)}
+      />
+      <div className="bg-white dark:bg-gray-900 px-3 md:px-0 rounded-lg shadow overflow-auto w-60 md:w-99 min-w-full md:h-[55vh] h-auto">
+        <DataStatusHandler
+          isLoading={isLoading}
+          error={error}
+          onRetry={refetchData}
+        >
+          <table className="w-full text-left text-xs md:text-sm border-collapse">
+            <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
+              <tr>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Nome</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Status</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRooms.length > 0 ? (
+                filteredRooms.map((room) => (
+                  <tr
+                    key={room.idRoom}
+                    className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
+                  >
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {room.idRoom}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {truncateText(room.name, 25, "end")}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {room.status ? "Ativo" : "Inativo"}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap flex gap-2">
+                      <button
+                        onClick={() => openDelete(room.idRoom, "room")}
+                        className="p-2 cursor-pointer bg-red-50 hover:bg-red-100 rounded"
+                      >
+                        <Trash2 size={16} className="text-red-600" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="py-6 px-4 text-center text-gray-500"
+                  >
+                    Nenhuma sala encontrada.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </DataStatusHandler>
+      </div>
+
+      <DeletePublicationModal
+        isOpen={deleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={handleDelete}
+        title={deleteType === "teacher" ? "Excluir Professor" : "Excluir Sala"}
+        message={`Tem certeza que deseja excluir este ${
+          deleteType === "teacher" ? "professor" : "sala"
+        }?`}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+      />
     </div>
   );
 }

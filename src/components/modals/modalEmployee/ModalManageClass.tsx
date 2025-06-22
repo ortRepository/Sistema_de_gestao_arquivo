@@ -5,9 +5,12 @@ import ComponentButton from "@/components/common/button";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 import { SearchableSelect } from "@/components/common/SearchableSelect";
 import { classSchema } from "@/types/type";
-import { useAddClass, useListRooms, useUpdateClass } from "@/hooks/DynamicApiHooks";
+import {
+  useAddClass,
+  useListRooms,
+  useUpdateClass,
+} from "@/hooks/DynamicApiHooks";
 import { Class, ModalManageClassProps } from "@/types/interfaces";
-
 
 const ModalManageClass: React.FC<ModalManageClassProps> = ({
   isOpen,
@@ -27,7 +30,7 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
     idRoom?: string;
   }>({});
 
-  const { data: rooms, isLoading: isRoomsLoading } = useListRooms();
+  const { data: rooms } = useListRooms();
   const { mutateAsync: addClass } = useAddClass();
   const { mutateAsync: updateClass } = useUpdateClass();
   const [isLoading, setIsLoading] = useState(false);
@@ -104,7 +107,9 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
 
     const onSuccess = () => {
       setStatusMessage({
-        text: classData ? "Turma atualizada com sucesso!" : "Turma cadastrada com sucesso!",
+        text: classData
+          ? "Turma atualizada com sucesso!"
+          : "Turma cadastrada com sucesso!",
         type: "success",
       });
       setIsLoading(false);
@@ -114,7 +119,8 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
         createdIn: classData ? classData.createdIn : new Date().toISOString(),
         updatedIn: new Date().toISOString(),
       });
-      handleClose();
+      setTimeout(() => classData ? onClose : handleClose, 3000)
+   
     };
 
     const onError = (error: any) => {
@@ -146,7 +152,7 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
     <DynamicModal
       title={classData ? "Editar Turma" : "Cadastrar Turma"}
       isOpen={isOpen}
-      onClose={handleClose}
+      onClose={classData ? onClose : handleClose}
     >
       {statusMessage && (
         <div
@@ -190,25 +196,20 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
           options={statusOptions}
           error={fieldErrors.status}
         />
-        {isRoomsLoading ? (
-          <p className="text-gray-500">Carregando salas...</p>
-        ) : roomOptions.length === 0 ? (
-          <p className="text-gray-500">Nenhuma sala disponível</p>
-        ) : (
-          <SearchableSelect
-            label="Sala"
-            value={formData.idRoom?.toString() || ""}
-            onChange={(value) => handleSelectChange("idRoom", value)}
-            options={roomOptions}
-            error={fieldErrors.idRoom}
-          />
-        )}
+
+        <SearchableSelect
+          label="Sala"
+          value={formData.idRoom?.toString() || ""}
+          onChange={(value) => handleSelectChange("idRoom", value)}
+          options={roomOptions}
+          error={fieldErrors.idRoom}
+        />
       </div>
       <div className="flex flex-wrap-reverse justify-end mt-4 gap-2">
         <ComponentButton
           className="w-full md:w-auto"
           variant="secondary"
-          onClick={handleClose}
+          onClick={classData ? onClose : handleClose}
         >
           Cancelar
         </ComponentButton>
