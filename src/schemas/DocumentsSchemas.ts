@@ -67,7 +67,7 @@ class DocumentsSchemas {
     idStudent: z.string({
       invalid_type_error: "The 'idStudent' field must be a number."
     }).optional(),
-    idCourse: z.string({
+    idCourse: z.number({
       invalid_type_error: "The 'idCourse' field must be a number."
     }).optional(),
     idTeacher: z.string({
