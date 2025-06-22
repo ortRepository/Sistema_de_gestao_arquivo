@@ -6,29 +6,20 @@ import ComponetButton from "@/components/common/button";
 import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
 import { truncateText } from "@/lib/utils";
 import ModalManageClass from "@/components/modals/modalEmployee/ModalManageClass";
-import { ClassData } from "@/types/interfaces";
+import { Class } from "@/types/interfaces";
 
 
 
-const initialClasses: ClassData[] = [
-  { id: 1, turma: "Turma A", diretorDeTurma: "Prof. Ana Silva", sala: 101 },
-  { id: 2, turma: "Turma B", diretorDeTurma: "Prof. João Pedro", sala: 102 },
-  {
-    id: 3,
-    turma: "Turma C",
-    diretorDeTurma: "Prof. Maria Oliveira",
-    sala: 103,
-  },
-];
+
 
 export default function PageManageClass() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filterType, setFilterType] = useState<string>("");
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [selectedClass, setSelectedClass] = useState<ClassData | null>(null);
+  const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [confirmClassId, setConfirmClassId] = useState<number | null>(null);
-  const [classes, setClasses] = useState<ClassData[]>(initialClasses);
+  const [classes, setClasses] = useState<Class[]>(initialClasses);
 
   const filterOptions = [
     { value: "", label: "Todos" },

@@ -10,7 +10,7 @@ import {
 import { useAuthenticateUser } from "../hooks/DynamicApiHooks";
 
 interface User {
-  role: string;
+  userRole: number;
   accessToken: string;
 }
 
@@ -22,7 +22,8 @@ interface AuthResponse {
   code: number;
   message: string;
   accessToken: string;
-  userRole: string;
+  idUser: number;
+  userRole: number;
 }
 
 export interface RegisterData {
@@ -84,12 +85,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<User> => {
     try {
-      // const data: AuthResponse = await authenticate({ email, password });
+      const data: AuthResponse = await authenticate({ email, password });
 
-      // setCache("token", data.accessToken);
+      setCache("token", data.accessToken);
       const userData: User = {
-        role: "type",
-        accessToken: "d",
+        userRole:data.userRole,
+        accessToken: data.accessToken,
       };
       setIsAuthenticated(true);
       setUser(userData);

@@ -1,94 +1,30 @@
 import { useState, useMemo } from "react";
 import SearchFilterBar from "@/components/common/SearchBar";
-import { Pencil, Trash2, Plus, User } from "lucide-react"; // Removed Upload since it's not used yet
+import { Pencil, Trash2, Plus, User } from "lucide-react";
 import DeletePublicationModal from "@/components/common/DeletePublicationModal";
 import ComponetButton from "@/components/common/button";
 import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
 import ModalStudent from "@/components/modals/modalEmployee/ModalStudent";
+import {
+  useDeleteStudent,
+  useListStudents,
+  useListClasses,
+  useListRooms,
+} from "@/hooks/DynamicApiHooks";
 import { Student } from "@/types/interfaces";
-
-const staticStudents: Student[] = [
-  {
-    id: 1,
-    name: "João Pedro",
-    biNumber: "123456",
-    room: "3",
-    classGroup: "C",
-    course: "Informática",
-    birthDate: "12/06/2003",
-    photo: "",
-  },
-  {
-    id: 2,
-    name: "João Pedro",
-    biNumber: "123457",
-    room: "3",
-    classGroup: "C",
-    course: "Informática",
-    birthDate: "12/06/2003",
-    photo: "",
-  },
-  {
-    id: 3,
-    name: "João Pedro",
-    biNumber: "123458",
-    room: "3",
-    classGroup: "C",
-    course: "Informática",
-    birthDate: "12/06/2003",
-    photo: "",
-  },
-  {
-    id: 4,
-    name: "João Pedro",
-    biNumber: "123459",
-    room: "3",
-    classGroup: "C",
-    course: "Informática",
-    birthDate: "12/06/2003",
-    photo: "",
-  },
-  {
-    id: 5,
-    name: "João Pedro",
-    biNumber: "123460",
-    room: "3",
-    classGroup: "C",
-    course: "Informática",
-    birthDate: "12/06/2003",
-    photo: "",
-  },
-  {
-    id: 6,
-    name: "João Pedro",
-    biNumber: "123461",
-    room: "3",
-    classGroup: "C",
-    course: "Informática",
-    birthDate: "12/06/2003",
-    photo: "",
-  },
-  {
-    id: 7,
-    name: "João Pedro",
-    biNumber: "123462",
-    room: "3",
-    classGroup: "C",
-    course: "Informática",
-    birthDate: "12/06/2003",
-    photo: "",
-  },
-  {
-    id: 8,
-    name: "João Pedro",
-    biNumber: "123463",
-    room: "3",
-    classGroup: "C",
-    course: "Informática",
-    birthDate: "12/06/2003",
-    photo: "",
-  },
-];
+interface DisplayStudent {
+  id: number;
+  name: string;
+  biNumber: string;
+  room: string;
+  classGroup: string;
+  course: string;
+  birthDate: string;
+  photo: string;
+  createdIn: string;
+  updatedIn: string; // Comma added
+  status: boolean;
+}
 
 export default function PageRegisterStudent() {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -97,6 +33,43 @@ export default function PageRegisterStudent() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [confirmStudentId, setConfirmStudentId] = useState<number | null>(null);
+
+  // Fetch data
+  const { data: apiStudents, isLoading, error, refetch } = useListStudents();
+  const { data: classes } = useListClasses();
+  const { data: rooms } = useListRooms();
+
+  // Delete student hook
+  const { mutate: deleteStudent } = useDeleteStudent();
+
+  // Course mapping (placeholder, replace with actual course data)
+  const courseMap: { [key: number]: string } = {
+    1: "Informática",
+    2: "Gestão",
+    3: "Eletrónica",
+  };
+
+  // Map API students to display format
+  const students: DisplayStudent[] = useMemo(() => {
+    if (!apiStudents) return [];
+    return apiStudents.map((student: Student) => {
+      const cls = classes?.find((c) => c.idClass === student.idClass);
+      const room = rooms?.find((r) => r.name === student.room);
+      return {
+        id: student.idStudent,
+        name: student.name,
+        biNumber: student.biNumber,
+        room: student.room,
+        classGroup: student.plainToClassFromExist || cls?.name || "N/A",
+        course: courseMap[room?.idCourse || 0] || "N/A",
+        birthDate: student.dateOfBirth,
+        photo: student.photo,
+        createdIn: student.createdIn,
+        updatedIn: student.updatedIn,
+        status: student.status,
+      };
+    });
+  }, [apiStudents, classes, rooms]);
 
   const filterOptions = [
     { value: "", label: "Todos" },
@@ -111,7 +84,7 @@ export default function PageRegisterStudent() {
 
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return staticStudents.filter((student) => {
+    return students.filter((student) => {
       switch (filterType) {
         case "id":
           return student.id.toString().includes(term);
@@ -139,15 +112,29 @@ export default function PageRegisterStudent() {
           );
       }
     });
-  }, [staticStudents, searchTerm, filterType]);
+  }, [students, searchTerm, filterType]);
 
   const openCreate = () => {
     setSelectedStudent(null);
     setIsModalOpen(true);
   };
 
-  const openEdit = (student: Student) => {
-    setSelectedStudent(student);
+  const openEdit = (student: DisplayStudent) => {
+    const apiStudent: Student = {
+      idStudent: student.id,
+      name: student.name,
+      biNumber: student.biNumber,
+      room: student.room,
+      plainToClassFromExist: student.classGroup,
+      dateOfBirth: student.birthDate,
+      photo: student.photo,
+      createdIn: "", // Placeholder, typically from API
+      updatedIn: "", // Placeholder, typically from API
+      status: student.status, // Assume active unless API provides
+      idClass:
+        classes?.find((c) => c.name === student.classGroup)?.idClass || 0,
+    };
+    setSelectedStudent(apiStudent);
     setIsModalOpen(true);
   };
 
@@ -157,13 +144,31 @@ export default function PageRegisterStudent() {
 
   const handleDelete = () => {
     if (confirmStudentId !== null) {
-      setConfirmStudentId(null); // Simulate deletion from static data
+      deleteStudent({ idStudent: confirmStudentId });
+      closeConfirm();
     }
   };
 
   const handleSave = (student: Student) => {
-    // Placeholder for save logic
-    console.log("Student saved:", student);
+    const displayStudent: DisplayStudent = {
+      id: student.idStudent,
+      name: student.name,
+      biNumber: student.biNumber,
+      room: student.room,
+      classGroup:
+        student.plainToClassFromExist ||
+        classes?.find((c) => c.idClass === student.idClass)?.name ||
+        "N/A",
+      course:
+        courseMap[rooms?.find((r) => r.name === student.room)?.idCourse || 0] ||
+        "N/A",
+      birthDate: student.dateOfBirth,
+      photo: student.photo,
+      createdIn: student.createdIn,
+      updatedIn: student.updatedIn,
+      status: student.status,
+    };
+    refetch();
   };
 
   return (
@@ -190,7 +195,11 @@ export default function PageRegisterStudent() {
         </ComponetButton>
       </div>
       <div className="bg-white dark:bg-gray-900 px-3 md:px-0 rounded-lg shadow overflow-auto w-60 md:w-99 min-w-full md:h-[55vh] h-auto">
-        <DataStatusHandler isLoading={false} error={null} onRetry={() => {}}>
+        <DataStatusHandler
+          isLoading={isLoading}
+          error={error}
+          onRetry={refetch}
+        >
           <table className="w-full text-left text-xs md:text-sm border-collapse">
             <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
               <tr>
@@ -213,7 +222,7 @@ export default function PageRegisterStudent() {
             </thead>
             <tbody>
               {filtered.length > 0 ? (
-                filtered.map((student: Student) => (
+                filtered.map((student: DisplayStudent) => (
                   <tr
                     key={student.id}
                     className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
@@ -286,7 +295,7 @@ export default function PageRegisterStudent() {
       <ModalStudent
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        student={selectedStudent} // Changed from direction to student
+        student={selectedStudent}
         onSave={handleSave}
       />
 

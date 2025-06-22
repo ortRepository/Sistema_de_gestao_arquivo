@@ -1,10 +1,29 @@
 import React, { useEffect, useState } from "react";
+import { z } from "zod";
 import DynamicModal from "@/components/common/DynamicModal";
 import ComponentInput from "@/components/common/FormInput";
 import ComponetButton from "@/components/common/button";
 import { AlertTriangle, CheckCircle, Camera } from "lucide-react";
 import { ModalStudentProps, Student } from "@/types/interfaces";
 import { SearchableSelect } from "@/components/common/SearchableSelect";
+import {
+  useAddStudent,
+  useUpdateStudent,
+  useListClasses,
+  useListRooms,
+} from "@/hooks/DynamicApiHooks";
+
+// Zod schema for form validation
+const studentSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  biNumber: z.string().min(1, "Número do BI é obrigatório"),
+  room: z.string().min(1, "Sala é obrigatória"),
+  plainToClassFromExist: z.string().min(1, "Turma é obrigatória"),
+  dateOfBirth: z.string().min(1, "Data de nascimento é obrigatória"),
+  idClass: z.number().min(1, "Classe é obrigatória"),
+});
+
+type StudentForm = z.infer<typeof studentSchema>;
 
 const ModalStudent: React.FC<ModalStudentProps> = ({
   isOpen,
@@ -13,96 +32,113 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
   onSave,
 }) => {
   const [formData, setFormData] = useState<Student>({
-    id: 0,
+    idStudent: 0,
     name: "",
     biNumber: "",
-    room: "1",
-    classGroup: "",
-    course: "",
-    birthDate: "",
+    room: "",
+    plainToClassFromExist: "",
+    dateOfBirth: "",
     photo: "",
+    createdIn: "",
+    updatedIn: "",
+    status: true,
+    idClass: 0,
   });
 
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
     biNumber?: string;
     room?: string;
-    classGroup?: string;
-    course?: string;
-    birthDate?: string;
+    plainToClassFromExist?: string;
+    dateOfBirth?: string;
+    idClass?: string;
+    photo?: string;
   }>({});
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
   const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
-
-  // Options for select fields
-  const roomOptions = [{ value: "1", label: "Sala 1" }]; // Only option is "1" as string
-  const classGroupOptions = [
-    { value: "A", label: "Turma A" },
-    { value: "B", label: "Turma B" },
-    { value: "C", label: "Turma C" },
-    { value: "D", label: "Turma D" },
-  ];
-  const courseOptions = [
-    { value: "Informática", label: "Informática" },
-    { value: "Gestão", label: "Gestão" },
-    { value: "Eletrónica", label: "Eletrónica" },
-  ];
-
-  useEffect(() => {
-    if (student) {
-      setFormData({ ...student, room: student.room || "1" }); // Ensure room is "1" as string
-      setPreviewPhoto(student.photo);
-    } else {
-      setFormData({
-        id: 0,
-        name: "",
-        biNumber: "",
-        room: "1", // Default to "1" as string
-        classGroup: "",
-        course: "",
-        birthDate: "",
-        photo: "",
-      });
-      setPreviewPhoto(null);
-    }
-    setFieldErrors({});
-  }, [student]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => {
-      const updated = { ...prev, [name]: value };
-      return updated;
-    });
-    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
-  };
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setIsLoadingPhoto(true);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setFormData((prev) => ({ ...prev, photo: base64String }));
-        setPreviewPhoto(base64String);
-        setIsLoadingPhoto(false);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{
     text: string;
     type: "success" | "error";
   } | null>(null);
+
+  // Fetch rooms and classes
+  const {
+    data: rooms,
+    isLoading: isLoadingRooms,
+    error: roomsError,
+  } = useListRooms();
+  const {
+    data: classes,
+    isLoading: isLoadingClasses,
+    error: classesError,
+  } = useListClasses();
+
+  // API hooks for add/update
+  const { mutateAsync: addStudent } = useAddStudent();
+  const { mutateAsync: updateStudent } = useUpdateStudent();
+
+  // Course mapping (placeholder, replace with actual course data)
+  const courseMap: { [key: number]: string } = {
+    1: "Informática",
+    2: "Gestão",
+    3: "Eletrónica",
+  };
+
+  // Room options
+  const roomOptions =
+    rooms
+      ?.filter((room) => room.status)
+      .map((room) => ({
+        value: room.name,
+        label: room.name,
+      })) || [];
+
+  // Class options
+  const classOptions =
+    classes
+      ?.filter((cls) => cls.status)
+      .map((cls) => {
+        const room = rooms?.find((r) => r.idRoom === cls.idRoom);
+        const course = courseMap[room?.idCourse || 0] || "Desconhecido";
+        return {
+          value: cls.idClass.toString(),
+          label: `${cls.name} - ${course}`,
+          className: cls.name,
+        };
+      }) || [];
+
+  useEffect(() => {
+    if (student) {
+      setFormData({
+        ...student,
+        room: student.room || roomOptions[0]?.value || "",
+        plainToClassFromExist: student.plainToClassFromExist || "",
+        idClass: student.idClass || 0,
+      });
+      setPreviewPhoto(student.photo || null);
+      setSelectedFile(null);
+    } else {
+      setFormData({
+        idStudent: 0,
+        name: "",
+        biNumber: "",
+        room: roomOptions[0]?.value || "",
+        plainToClassFromExist: "",
+        dateOfBirth: "",
+        photo: "",
+        createdIn: "",
+        updatedIn: "",
+        status: true,
+        idClass: 0,
+      });
+      setPreviewPhoto(null);
+      setSelectedFile(null);
+    }
+    setFieldErrors({});
+  }, [student, roomOptions]);
 
   useEffect(() => {
     if (statusMessage) {
@@ -111,75 +147,197 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
     }
   }, [statusMessage]);
 
+  useEffect(() => {
+    return () => {
+      if (previewPhoto && !student?.photo) {
+        URL.revokeObjectURL(previewPhoto);
+      }
+    };
+  }, [previewPhoto, student]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    if (name === "idClass") {
+      const selectedClass = classOptions.find((opt) => opt.value === value);
+      setFormData((prev) => ({
+        ...prev,
+        idClass: parseInt(value) || 0,
+        plainToClassFromExist: selectedClass?.className || "",
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          photo: "Formato inválido. Use PNG, JPG ou JPEG.",
+        }));
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          photo: "Imagem muito grande (máximo 5MB).",
+        }));
+        return;
+      }
+      setSelectedFile(file);
+      if (previewPhoto && !student?.photo) {
+        URL.revokeObjectURL(previewPhoto);
+      }
+      const url = URL.createObjectURL(file);
+      setPreviewPhoto(url);
+      setFieldErrors((prev) => ({ ...prev, photo: undefined }));
+      setIsLoadingPhoto(true);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, photo: reader.result as string }));
+        setIsLoadingPhoto(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleClose = () => {
     setFormData({
-      id: 0,
+      idStudent: 0,
       name: "",
       biNumber: "",
-      room: "1", // Reset to "1" as string
-      classGroup: "",
-      course: "",
-      birthDate: "",
+      room: roomOptions[0]?.value || "",
+      plainToClassFromExist: "",
+      dateOfBirth: "",
       photo: "",
+      createdIn: "",
+      updatedIn: "",
+      status: true,
+      idClass: 0,
     });
     setFieldErrors({});
+    setSelectedFile(null);
+    if (previewPhoto && !student?.photo) {
+      URL.revokeObjectURL(previewPhoto);
+    }
     setPreviewPhoto(null);
     setStatusMessage(null);
     setIsLoading(false);
     onClose();
   };
 
-  const handleSubmit = () => {
-    const requiredFields = [
-      "name",
-      "biNumber",
-      "room",
-      "classGroup",
-      "course",
-      "birthDate",
-    ];
-    const errors: typeof fieldErrors = {};
-    requiredFields.forEach((field) => {
-      if (!formData[field as keyof Student]) {
-        errors[field as keyof typeof errors] = `${field
-          .replace(/([A-Z])/g, " $1")
-          .trim()} é obrigatório`;
-      }
-    });
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    const validationData = {
+      name: formData.name,
+      biNumber: formData.biNumber,
+      room: formData.room,
+      plainToClassFromExist: formData.plainToClassFromExist,
+      dateOfBirth: formData.dateOfBirth,
+      idClass: formData.idClass,
+    };
 
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
+    const result = studentSchema.safeParse(validationData);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      setFieldErrors({
+        name: errors.name?.[0],
+        biNumber: errors.biNumber?.[0],
+        room: errors.room?.[0],
+        plainToClassFromExist: errors.plainToClassFromExist?.[0],
+        dateOfBirth: errors.dateOfBirth?.[0],
+        idClass: errors.idClass?.[0],
+      });
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
     try {
-      const newStudent: Student = {
-        id: student ? student.id : Date.now(),
-        name: formData.name,
-        biNumber: formData.biNumber,
-        room: formData.room, // Kept as string "1" to match interface
-        classGroup: formData.classGroup,
-        course: formData.course,
-        birthDate: formData.birthDate,
-        photo: formData.photo,
+      let photo = formData.photo || "";
+      if (selectedFile) {
+        photo = await fileToBase64(selectedFile);
+      }
+
+      const payload = {
+        name: result.data.name,
+        biNumber: result.data.biNumber,
+        room: result.data.room,
+        dateOfBirth: result.data.dateOfBirth,
+        photo,
+        status: formData.status,
+        idClass: result.data.idClass,
       };
-      // Ensure room is string for interface
-      const finalStudent: Student = {
-        ...newStudent,
-        room: newStudent.room === "1" ? "1" : newStudent.room,
-      };
-      setStatusMessage({
-        text: student
-          ? "Aluno atualizado com sucesso!"
-          : "Aluno cadastrado com sucesso!",
-        type: "success",
-      });
-      setTimeout(() => {
-        onSave(finalStudent);
-        setIsLoading(false);
-        handleClose();
-      }, 2000);
+
+      if (student) {
+        await updateStudent(payload, {
+          onSuccess: () => {
+            const updatedStudent: Student = {
+              ...formData,
+              ...payload,
+              updatedIn: new Date().toISOString(),
+            };
+            setStatusMessage({
+              text: "Aluno atualizado com sucesso!",
+              type: "success",
+            });
+            setTimeout(() => {
+              onSave(updatedStudent);
+              handleClose();
+            }, 2000);
+          },
+          onError: (error: any) => {
+            setStatusMessage({
+              text: error.message || "Erro ao atualizar. Tente novamente!",
+              type: "error",
+            });
+            setIsLoading(false);
+          },
+        });
+      } else {
+        await addStudent(payload, {
+          onSuccess: (_data: { code: number; message: string }) => {
+            const newStudent: Student = {
+              ...formData,
+              ...payload,
+              idStudent: Date.now(), // Temporary ID, replace with data.idStudent if available
+              createdIn: new Date().toISOString(),
+              updatedIn: new Date().toISOString(),
+            };
+            setStatusMessage({
+              text: "Aluno cadastrado com sucesso!",
+              type: "success",
+            });
+            setTimeout(() => {
+              onSave(newStudent);
+              handleClose();
+            }, 2000);
+          },
+          onError: (error: any) => {
+            setStatusMessage({
+              text: error.message || "Erro ao cadastrar. Tente novamente!",
+              type: "error",
+            });
+            setIsLoading(false);
+          },
+        });
+      }
     } catch (error) {
       setStatusMessage({
         text: "Erro ao salvar. Tente novamente!",
@@ -193,7 +351,7 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
     <DynamicModal
       title={student ? "Editar Aluno" : "Cadastrar Aluno"}
       isOpen={isOpen}
-      onClose={student ? onClose : handleClose}
+      onClose={handleClose}
     >
       {statusMessage && (
         <div
@@ -219,6 +377,14 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
           </p>
         </div>
       )}
+      {(isLoadingRooms || isLoadingClasses) && (
+        <div className="text-center text-gray-500">Carregando opções...</div>
+      )}
+      {(roomsError || classesError) && (
+        <div className="text-center text-red-500">
+          Erro ao carregar dados. Tente novamente.
+        </div>
+      )}
       <div className="space-y-4 overflow-y-auto max-h-[50vh] px-2">
         <div className="flex flex-col items-center space-y-4">
           <label className="block text-gray-700 dark:text-gray-300 font-medium">
@@ -227,7 +393,7 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
           <div className="relative">
             <input
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/jpg"
               onChange={handlePhotoChange}
               className="hidden"
               id="photoUpload"
@@ -245,14 +411,54 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
               </div>
             )}
           </div>
+          {fieldErrors.photo && (
+            <p className="text-red-500 text-xs mt-2">{fieldErrors.photo}</p>
+          )}
           {previewPhoto && (
-            <div className="mt-4 w-40 h-40 border-2 border-gray-300 rounded-lg overflow-hidden shadow-md">
-              <img
-                src={previewPhoto}
-                alt="Preview do Aluno"
-                className="w-full h-full object-cover"
-              />
+            <div className="mt-4 relative group">
+              <p className="text-sm text-gray-500 mb-2">Pré-visualização:</p>
+              <div className="relative overflow-hidden rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <img
+                  src={previewPhoto}
+                  alt="Preview do Aluno"
+                  className="w-full h-40 object-cover rounded-lg"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    if (previewPhoto && !student?.photo) {
+                      URL.revokeObjectURL(previewPhoto);
+                    }
+                    setPreviewPhoto(student?.photo || null);
+                    setFormData((prev) => ({
+                      ...prev,
+                      photo: student?.photo || "",
+                    }));
+                  }}
+                  className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-600 rounded-full shadow-sm transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
+          )}
+          {!previewPhoto && (
+            <p className="text-center text-gray-400 text-sm mt-3 italic">
+              Nenhuma imagem selecionada
+            </p>
           )}
         </div>
         <ComponentInput
@@ -284,25 +490,18 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
         />
         <SearchableSelect
           label="Turma"
-          value={formData.classGroup}
-          onChange={(value) => handleSelectChange("classGroup", value)}
-          options={classGroupOptions}
-          error={fieldErrors.classGroup}
-        />
-        <SearchableSelect
-          label="Curso"
-          value={formData.course}
-          onChange={(value) => handleSelectChange("course", value)}
-          options={courseOptions}
-          error={fieldErrors.course}
+          value={formData.idClass.toString()}
+          onChange={(value) => handleSelectChange("idClass", value)}
+          options={classOptions}
+          error={fieldErrors.idClass}
         />
         <ComponentInput
           label="Data de Nascimento"
-          name="birthDate"
+          name="dateOfBirth"
           type="date"
           placeholder="Digite a data de nascimento"
-          value={formData.birthDate}
-          error={fieldErrors.birthDate || ""}
+          value={formData.dateOfBirth}
+          error={fieldErrors.dateOfBirth || ""}
           onChange={handleChange}
           required
         />
@@ -311,7 +510,7 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
         <ComponetButton
           className="w-full md:w-auto"
           variant="secondary"
-          onClick={student ? onClose : handleClose}
+          onClick={handleClose}
         >
           Cancelar
         </ComponetButton>

@@ -133,22 +133,16 @@ export const studentSchema = z.object({
   }),
 });
 // Zod schema for teacher validation
+// Zod schema for form validation (excluding photo and path)
 export const teacherSchema = z.object({
-  name: z.string().trim().min(1, "Nome é obrigatório"),
+  name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("Email inválido").min(1, "Email é obrigatório"),
-  gender: z.enum(["Masculino", "Feminino", "Outro"], {
-    errorMap: () => ({ message: "Gênero é obrigatório" }),
+  telephone: z.string().min(1, "Telefone é obrigatório"),
+  role: z.enum(["Professor", "Coordenador"]),
+  function: z.string().min(1, "Função é obrigatória"),
+  status: z.enum(["Ativo", "Inativo"], {
+    errorMap: (issue, ctx) => ({ message: "Status é obrigatório" }),
   }),
-  phoneNumber: z
-    .string()
-    .trim()
-    .min(1, "Número de telefone é obrigatório")
-    .regex(/^\+?\d{9,15}$/, "Número de telefone inválido"),
-  subjects: z.array(z.number()).min(1, "Selecione pelo menos uma disciplina"),
-  role: z.enum(["Professor", "Coordenador"], {
-    errorMap: () => ({ message: "Função é obrigatória" }),
-  }),
-  curso: z.string().trim().min(1, "Curso é obrigatório"),
 });
 // Zod schema for form validation
 export const classSchema = z.object({

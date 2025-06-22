@@ -1,79 +1,103 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { z } from "zod";
 import DynamicModal from "@/components/common/DynamicModal";
 import ComponentInput from "@/components/common/FormInput";
-import ComponetButton from "@/components/common/button";
+import ComponentButton from "@/components/common/button";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 import { SearchableSelect } from "@/components/common/SearchableSelect";
-import { Teacher, ModalRegisterTeacherProps } from "@/types/interfaces";
+import { useAddTeacher } from "@/hooks/DynamicApiHooks";
+import { Teacher } from "@/types/interfaces";
 import { teacherSchema } from "@/types/type";
 
 type TeacherForm = z.infer<typeof teacherSchema>;
-
-const genderOptions = [
-  { value: "Masculino", label: "Masculino" },
-  { value: "Feminino", label: "Feminino" },
-  { value: "Outro", label: "Outro" },
-];
 
 const roleOptions = [
   { value: "Professor", label: "Professor" },
   { value: "Coordenador", label: "Coordenador" },
 ];
 
+const statusOptions = [
+  { value: "Ativo", label: "Ativo" },
+  { value: "Inativo", label: "Inativo" },
+];
+
+interface ModalRegisterTeacherProps {
+  isOpen: boolean;
+  onClose: () => void;
+  teacherData: Teacher | null;
+  onSave: (teacher: Teacher) => void;
+}
+
 const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
   isOpen,
   onClose,
   teacherData,
   onSave,
-  subjects,
 }) => {
   const [formData, setFormData] = useState<TeacherForm>({
     name: "",
     email: "",
-    gender: "Masculino",
-    phoneNumber: "",
-    subjects: [],
+    telephone: "",
     role: "Professor",
-    curso: "",
+    function: "",
+    status: "Ativo",
   });
 
   const defaultForm: TeacherForm = {
     name: "",
     email: "",
-    gender: "Masculino",
-    phoneNumber: "",
-    subjects: [],
+    telephone: "",
     role: "Professor",
-    curso: "",
+    function: "",
+    status: "Ativo",
   };
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    teacherData?.photo || null
+  );
 
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
     email?: string;
-    gender?: string;
-    phoneNumber?: string;
-    subjects?: string;
+    telephone?: string;
     role?: string;
-    curso?: string;
+    function?: string;
+    photo?: string;
+    status?: string;
   }>({});
+
+  const { mutateAsync: addTeacher } = useAddTeacher();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (teacherData) {
       setFormData({
-        name: teacherData.name,
-        email: teacherData.email,
-        gender: teacherData.gender,
-        phoneNumber: teacherData.phoneNumber,
-        subjects: teacherData.subjects.map((s) => s.id),
-        role: teacherData.role,
-        curso: teacherData.curso,
+        name: teacherData.name || "",
+        email: teacherData.email || "",
+        telephone: teacherData.telephone || "",
+        role:
+          teacherData.function === "Coordenador" ? "Coordenador" : "Professor",
+        function: teacherData.function,
+        status: teacherData.status ? "Ativo" : "Inativo",
       });
+      setPreviewUrl(teacherData.photo || null);
+      setSelectedFile(null);
     } else {
       setFormData(defaultForm);
+      setPreviewUrl(null);
+      setSelectedFile(null);
     }
     setFieldErrors({});
   }, [teacherData]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl && !teacherData?.photo) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl, teacherData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -81,45 +105,45 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
     setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const handleSelectChange = (name: string, value: string | string[]) => {
-    if (name === "subjects") {
-      const values = Array.isArray(value) ? value : [value];
-      setFormData((prev) => ({ ...prev, subjects: values.map(Number) }));
-      setFieldErrors((prev) => ({ ...prev, subjects: undefined }));
-    } else if (name === "gender") {
-      const selectedGender = Array.isArray(value) ? value[0] : value;
-      if (["Masculino", "Feminino", "Outro"].includes(selectedGender)) {
-        setFormData((prev) => ({
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
+        setFieldErrors((prev) => ({
           ...prev,
-          gender: selectedGender as "Masculino" | "Feminino" | "Outro",
+          photo: "Formato inválido. Use PNG, JPG ou JPEG.",
         }));
-        setFieldErrors((prev) => ({ ...prev, gender: undefined }));
+        return;
       }
-    } else if (name === "role") {
-      const selectedRole = Array.isArray(value) ? value[0] : value;
-      if (["Professor", "Coordenador"].includes(selectedRole)) {
-        setFormData((prev) => ({
+      if (file.size > 5 * 1024 * 1024) {
+        setFieldErrors((prev) => ({
           ...prev,
-          role: selectedRole as "Professor" | "Coordenador",
+          photo: "Imagem muito grande (máximo 5MB).",
         }));
-        setFieldErrors((prev) => ({ ...prev, role: undefined }));
+        return;
       }
-    } else if (name === "curso") {
-      const selectedCurso = Array.isArray(value) ? value[0] : value;
-      setFormData((prev) => ({
-        ...prev,
-        curso: selectedCurso,
-        subjects: [], // Clear subjects when curso changes
-      }));
-      setFieldErrors((prev) => ({
-        ...prev,
-        curso: undefined,
-        subjects: undefined,
-      }));
+      setSelectedFile(file);
+      if (previewUrl && !teacherData?.photo) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      setFieldErrors((prev) => ({ ...prev, photo: undefined }));
     }
   };
 
-  const [isLoading, setIsLoading] = useState(false);
+  const handleSelectChange = (name: string, value: string) => {
+    if (name === "role") {
+      const selectedRole = value as "Professor" | "Coordenador";
+      setFormData((prev) => ({ ...prev, role: selectedRole }));
+      setFieldErrors((prev) => ({ ...prev, role: undefined }));
+    } else if (name === "status") {
+      const selectedStatus = value as "Ativo" | "Inativo";
+      setFormData((prev) => ({ ...prev, status: selectedStatus }));
+      setFieldErrors((prev) => ({ ...prev, status: undefined }));
+    }
+  };
+
   const [statusMessage, setStatusMessage] = useState<{
     text: string;
     type: "success" | "error";
@@ -136,83 +160,117 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
     setFormData(defaultForm);
     setFieldErrors({});
     setStatusMessage(null);
-    setIsLoading(false);
+    setSelectedFile(null);
+    if (previewUrl && !teacherData?.photo) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(null);
     onClose();
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleSubmit = async () => {
+    setIsLoading(true);
     const result = teacherSchema.safeParse(formData);
     if (!result.success) {
       const errors = result.error.flatten().fieldErrors;
       setFieldErrors({
         name: errors.name?.[0],
         email: errors.email?.[0],
-        gender: errors.gender?.[0],
-        phoneNumber: errors.phoneNumber?.[0],
-        subjects: errors.subjects?.[0],
+        telephone: errors.telephone?.[0],
         role: errors.role?.[0],
-        curso: errors.curso?.[0],
+        function: errors.function?.[0],
+        status: errors.status?.[0],
       });
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
     try {
-      const newTeacher: Teacher = {
-        id: teacherData ? teacherData.id : Date.now(),
+      let photo = teacherData?.photo || "";
+      if (selectedFile) {
+        photo = await fileToBase64(selectedFile);
+      }
+
+      const payload = {
         name: result.data.name,
         email: result.data.email,
-        gender: result.data.gender,
-        phoneNumber: result.data.phoneNumber,
-        createdIn: teacherData
-          ? teacherData.createdIn
-          : new Date().toISOString(),
-        subjects: result.data.subjects.map(
-          (id) => subjects.find((s) => s.id === id)!
-        ),
-        role: result.data.role,
-        curso: result.data.curso,
-        licenseExpirationDate: "",
-        photo: ""
+        telephone: result.data.telephone,
+        role: result.data.role === "Professor" ? 1 : 2,
+        function: result.data.function,
+        photo,
+        path: "",
+        status: result.data.status === "Ativo",
       };
-      setStatusMessage({
-        text: teacherData
-          ? "Professor atualizado com sucesso!"
-          : "Professor cadastrado com sucesso!",
-        type: "success",
-      });
-      setTimeout(() => {
-        onSave(newTeacher);
+
+      if (teacherData) {
+        const updatedTeacher: Teacher = {
+          idTeacher: teacherData.idTeacher,
+          function: result.data.function,
+          photo,
+          path: teacherData.path || "",
+          idUser: teacherData.idUser || 0,
+          createdIn: teacherData.createdIn,
+          name: result.data.name,
+          email: result.data.email,
+          telephone: result.data.telephone,
+          status: result.data.status === "Ativo",
+        };
+        setStatusMessage({
+          text: "Professor atualizado com sucesso!",
+          type: "success",
+        });
         setIsLoading(false);
-        handleClose();
-      }, 2000);
+        setTimeout(() => {
+          onSave(updatedTeacher);
+          handleClose();
+        }, 2000);
+      } else {
+        await addTeacher(payload, {
+          onSuccess: (response: { code: number; message: string }) => {
+            if (response.code === 200) {
+              setStatusMessage({
+                text: "Professor cadastrado com sucesso!",
+                type: "success",
+              });
+              setTimeout(() => {
+                // onSave(newTeacher);
+                handleClose();
+              }, 2000);
+            } else {
+              setStatusMessage({
+                text: response.message || "Erro ao cadastrar. Tente novamente!",
+                type: "error",
+              });
+            }
+          },
+          onError: (error: any) => {
+            setStatusMessage({
+              text:
+                error?.response?.data?.message ||
+                "Erro ao cadastrar. Tente novamente!",
+              type: "error",
+            });
+          },
+        });
+      }
     } catch (error) {
       setStatusMessage({
         text: "Erro ao salvar. Tente novamente!",
         type: "error",
       });
+    } finally {
       setIsLoading(false);
     }
   };
-
-  // Generate unique course options from subjects
-  const courseOptions = useMemo(() => {
-    const uniqueCourses = Array.from(new Set(subjects.map((s) => s.course)));
-    return uniqueCourses.map((course) => ({
-      value: course,
-      label: course,
-    }));
-  }, [subjects]);
-
-  // Filter subject options based on selected curso
-  const subjectOptions = useMemo(() => {
-    return subjects
-      .filter((s) => !formData.curso || s.course === formData.curso)
-      .map((s) => ({
-        value: s.id.toString(),
-        label: s.name,
-      }));
-  }, [subjects, formData.curso]);
 
   return (
     <DynamicModal
@@ -265,12 +323,15 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
           onChange={handleChange}
           required
         />
-        <SearchableSelect
-          label="Gênero"
-          value={formData.gender}
-          onChange={(value) => handleSelectChange("gender", value)}
-          options={genderOptions}
-          error={fieldErrors.gender}
+        <ComponentInput
+          label="Telefone"
+          name="telephone"
+          type="tel"
+          placeholder="Digite o número de telefone (ex: +244912345678)"
+          value={formData.telephone}
+          error={fieldErrors.telephone || ""}
+          onChange={handleChange}
+          required
         />
         <SearchableSelect
           label="Função"
@@ -280,46 +341,119 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
           error={fieldErrors.role}
         />
         <ComponentInput
-          label="Telefone"
-          name="phoneNumber"
-          type="tel"
-          placeholder="Digite o número de telefone (ex: +244912345678)"
-          value={formData.phoneNumber}
-          error={fieldErrors.phoneNumber || ""}
+          label="Descrição da Função"
+          name="function"
+          type="text"
+          placeholder="Digite a descrição da função"
+          value={formData.function}
+          error={fieldErrors.function || ""}
           onChange={handleChange}
           required
         />
         <SearchableSelect
-          label="Curso"
-          value={formData.curso}
-          onChange={(value) => handleSelectChange("curso", value)}
-          options={courseOptions}
-          error={fieldErrors.curso}
+          label="Status"
+          value={formData.status}
+          onChange={(value) => handleSelectChange("status", value)}
+          options={statusOptions}
+          error={fieldErrors.status}
         />
-        <SearchableSelect
-          label="Disciplinas"
-          value={formData.subjects.map(String).join(",")}
-          onChange={(value) => handleSelectChange("subjects", value)}
-          options={subjectOptions}
-          error={fieldErrors.subjects}
-        />
+        <div className="mb-6">
+          <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-4 transition-all hover:border-[#FF9E01]">
+            <label className="flex flex-col items-center justify-center cursor-pointer">
+              <div className="flex flex-col items-center gap-2">
+                <svg
+                  className="w-8 h-8 text-[#FF9E01]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-gray-600">
+                    Clique para enviar uma foto
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Formatos suportados: PNG, JPG, JPEG (máx. 5MB)
+                  </p>
+                </div>
+              </div>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/jpg"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+            {fieldErrors.photo && (
+              <p className="text-red-500 text-xs mt-2">{fieldErrors.photo}</p>
+            )}
+            {previewUrl && (
+              <div className="mt-4 relative group">
+                <p className="text-sm text-gray-500 mb-2">Pré-visualização:</p>
+                <div className="relative overflow-hidden rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-full h-56 object-cover rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      if (previewUrl && !teacherData?.photo) {
+                        URL.revokeObjectURL(previewUrl);
+                      }
+                      setPreviewUrl(teacherData?.photo || null);
+                    }}
+                    className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-600 rounded-full shadow-sm transition-colors"
+                  >
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+            {!previewUrl && (
+              <p className="text-center text-gray-400 text-sm mt-3 italic">
+                Nenhuma imagem selecionada
+              </p>
+            )}
+          </div>
+        </div>
       </div>
       <div className="flex flex-wrap-reverse justify-end mt-4 gap-2">
-        <ComponetButton
+        <ComponentButton
           className="w-full md:w-auto"
           variant="secondary"
           onClick={handleClose}
         >
           Cancelar
-        </ComponetButton>
-        <ComponetButton
+        </ComponentButton>
+        <ComponentButton
           variant="primary"
           onClick={handleSubmit}
           className="w-full md:w-auto"
           loading={isLoading}
         >
           {teacherData ? "Atualizar" : "Cadastrar"}
-        </ComponetButton>
+        </ComponentButton>
       </div>
     </DynamicModal>
   );

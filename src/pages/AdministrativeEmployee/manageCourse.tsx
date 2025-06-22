@@ -8,30 +8,10 @@ import { truncateText } from "@/lib/utils";
 
 import ModalManageDisciplinas from "@/components/modals/modalEmployee/ModalManageDisciplinas";
 import ModalManageCourse from "@/components/modals/modalEmployee/ModalManageCourse";
-import { CourseData } from "@/types/interfaces";
+import { Course } from "@/types/interfaces";
 
 
 
-const initialCourses: CourseData[] = [
-  {
-    id: 1,
-    nome: "Informática",
-    coordenadorDoCurso: "Prof. Ana Silva",
-    disciplinas: ["Programação", "Redes", "Bancos de Dados"],
-  },
-  {
-    id: 2,
-    nome: "Gestão",
-    coordenadorDoCurso: "Prof. João Pedro",
-    disciplinas: ["Contabilidade", "Marketing", "Gestão de Projetos"],
-  },
-  {
-    id: 3,
-    nome: "Engenharia",
-    coordenadorDoCurso: "Prof. Maria Oliveira",
-    disciplinas: ["Cálculo", "Física", "Desenho Técnico"],
-  },
-];
 
 export default function PageManageCourse() {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -40,9 +20,9 @@ export default function PageManageCourse() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isDisciplinasModalOpen, setIsDisciplinasModalOpen] =
     useState<boolean>(false);
-  const [selectedCourse, setSelectedCourse] = useState<CourseData | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [confirmCourseId, setConfirmCourseId] = useState<number | null>(null);
-  const [courses, setCourses] = useState<CourseData[]>(initialCourses);
+  const [courses, setCourses] = useState<Course[]>(initialCourses);
 
   const filterOptions = [
     { value: "", label: "Todos" },

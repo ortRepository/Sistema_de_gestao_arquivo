@@ -9,7 +9,7 @@ import { truncateText } from "@/lib/utils";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { getCache } from "@/lib/Cache";
 
-import { useReceiveCode, useRecoverPassworde } from "@/hooks/DynamicApiHooks";
+import { useReceiveCode, useRecoverPassword } from "@/hooks/DynamicApiHooks";
 import Modal from "@/components/ui/ModalResponse";
 import image from "../../assets/image/Subtração 10.png";
 export function ConfirmationCodeScreen() {
@@ -23,7 +23,7 @@ export function ConfirmationCodeScreen() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { mutateAsync: receiveCode } = useReceiveCode();
-  const { mutateAsync: recoverpassworde } = useRecoverPassworde();
+  const { mutateAsync: recoverpassworde } = useRecoverPassword();
 
   useEffect(() => {
     const handleEmail = async () => {
@@ -177,7 +177,7 @@ export function ConfirmationCodeScreen() {
       <div className="w-full lg:w-1/2 flex items-center relative justify-center px-4 md:px-8">
         <div className="px-4 md:px-8 w-full">
           <div className="flex justify-center my-8">
-         <img src={logo} alt="Logo" className="w-auto h-20" />{" "}
+            <img src={logo} alt="Logo" className="w-auto h-20" />{" "}
           </div>
           <h2 className="text-2xl mb-2">Código de Confirmação</h2>
           <p className="mb-6">

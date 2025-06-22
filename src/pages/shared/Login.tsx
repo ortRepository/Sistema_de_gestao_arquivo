@@ -39,15 +39,16 @@ export default function LoginScreen() {
         let route = "";
         //user
         console.log(password);
-        if (password) {
-          switch (Number(password)) {
-            case 123:
+        if (userData.accessToken) {
+          // Redirecionamento conforme o tipo do usuário
+          switch (userData.userRole) {
+            case 0:
               route = "/admin/statistics";
               break;
-            case 1234:
+            case 1:
               route = "/teacher/documents";
               break;
-            case 12345:
+            case 2:
               route = "/admin-employee/document-management";
               break;
 
