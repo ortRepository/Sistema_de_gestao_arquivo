@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from 'react';
 import {
   User,
   Mail,
@@ -6,26 +6,25 @@ import {
   Camera,
   AlertTriangle,
   CheckCircle,
-} from "lucide-react";
-import ComponetButton from "./button";
+} from 'lucide-react';
+import ComponetButton from './button';
 import {
   useChangeEmail,
   useReceiveCode,
   useUpdateUser,
   useUploadPhoto,
-} from "@/hooks/DynamicApiHooks";
-import { confirmationCodeSchema } from "@/types/type";
-import LocationSelect from "./LocationSelectComponent";
-import { Entities } from "@/types/interfaces";
+} from '@/hooks/DynamicApiHooks';
+import { confirmationCodeSchema } from '@/types/type';
+import { FormUser } from '@/types/interfaces';
+
 interface EntitiesSectionProps {
-  userData: Entities | undefined;
+  userData: FormUser | undefined;
 }
 
 export default function ProfileSection({ userData }: EntitiesSectionProps) {
-  // Estado para atualização dos dados básicos (nome, telefone, localização)
+  // Estado para atualização dos dados básicos (nome)
   const [updateData, setUpdateData] = useState({
-    name: userData?.name || "",
-    location: userData?.location ? userData?.location : "",
+    name: userData?.name || '',
   });
 
   // Hooks
@@ -41,18 +40,18 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
     code: false,
   });
   const [emailEdit, setEmailEdit] = useState({
-    newEmail: "",
-    code: "",
-    password: "",
+    newEmail: '',
+    code: '',
+    password: '',
     step: 1, // 1 = edição, 2 = verificação do código
   });
-  const [codeError, setCodeError] = useState("");
+  const [codeError, setCodeError] = useState('');
   const [resendCountdown, setResendCountdown] = useState(0);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [statusMessage, setStatusMessage] = useState<{
     text: string;
-    type: "success" | "error";
+    type: 'success' | 'error';
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const emailIsSame = emailEdit.newEmail === userData?.email;
@@ -81,31 +80,29 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
   // Função para envio do código de verificação para o novo e-mail
   const sendVerificationCode = async () => {
     if (!emailEdit.newEmail || !emailEdit.password) {
-      setCodeError("Preencha o novo e-mail e a senha para continuar.");
+      setCodeError('Preencha o novo e-mail e a senha para continuar.');
       return;
     }
     if (emailIsSame) {
-      setCodeError(
-        "Você não pode usar o mesmo e-mail. Informe um novo e-mail."
-      );
+      setCodeError('Você não pode usar o mesmo e-mail. Informe um novo e-mail.');
       return;
     }
     if (resendCountdown > 0) return;
     setLoading((prev) => ({ ...prev, email: true }));
     try {
       const response = await receiveCode({ email: emailEdit.newEmail });
-      if (response.message === "Verification email sent successfully") {
+      if (response.message === 'Verification email sent successfully') {
         setEmailEdit((prev) => ({ ...prev, step: 2 }));
         setResendCountdown(60);
-        setCodeError("");
-      } else if (response.message.includes("already in use")) {
-        setCodeError("Esse e-mail já está em uso.");
+        setCodeError('');
+      } else if (response.message.includes('already in use')) {
+        setCodeError('Esse e-mail já está em uso.');
       } else {
-        setCodeError(response.message || "Erro inesperado.");
+        setCodeError(response.message || 'Erro inesperado.');
       }
     } catch (error) {
-      setCodeError("Erro ao enviar o código.");
-      console.error("Erro ao enviar o código:", error);
+      setCodeError('Erro ao enviar o código.');
+      console.error('Erro ao enviar o código:', error);
     } finally {
       setLoading((prev) => ({ ...prev, email: false }));
     }
@@ -116,8 +113,7 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
     setLoading((prev) => ({ ...prev, code: true }));
     const result = confirmationCodeSchema.safeParse({ code: emailEdit.code });
     if (!result.success) {
-      const message =
-        result.error.format().code?._errors[0] || "Código inválido";
+      const message = result.error.format().code?._errors[0] || 'Código inválido';
       setCodeError(message);
       setLoading((prev) => ({ ...prev, code: false }));
       return;
@@ -128,22 +124,22 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
         code: emailEdit.code,
         password: emailEdit.password,
       });
-      if (response.message === "Email updated successfully") {
-        setCodeError("");
-        setEmailEdit({ newEmail: "", code: "", password: "", step: 1 });
+      if (response.message === 'Email updated successfully') {
+        setCodeError('');
+        setEmailEdit({ newEmail: '', code: '', password: '', step: 1 });
         setStatusMessage({
-          text: "E-mail atualizado com sucesso!",
-          type: "success",
+          text: 'E-mail atualizado com sucesso!',
+          type: 'success',
         });
-      } else if (response.message.includes("incorrect code")) {
-        setCodeError("Código incorreto. Verifique e tente novamente.");
-      } else if (response.message.includes("already in use")) {
-        setCodeError("Esse e-mail já está em uso.");
+      } else if (response.message.includes('incorrect code')) {
+        setCodeError('Código incorreto. Verifique e tente novamente.');
+      } else if (response.message.includes('already in use')) {
+        setCodeError('Esse e-mail já está em uso.');
       } else {
-        setCodeError(response.message || "Erro ao alterar o e-mail.");
+        setCodeError(response.message || 'Erro ao alterar o e-mail.');
       }
     } catch (error: any) {
-      setCodeError(error.message || "Erro ao verificar o código");
+      setCodeError(error.message || 'Erro ao verificar o código');
     } finally {
       setLoading((prev) => ({ ...prev, code: false }));
     }
@@ -154,33 +150,32 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
     const MAX_SIZE = 6 * 1024 * 1024; // 6 MB em bytes
     if (file.size > MAX_SIZE) {
       setStatusMessage({
-        text: "Arquivo muito grande! O limite é 6 MB.",
-        type: "error",
+        text: 'Arquivo muito grande! O limite é 6 MB.',
+        type: 'error',
       });
       return;
     }
 
     setLoading((prev) => ({ ...prev, avatar: true }));
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append('file', file);
     try {
       const response = await uploadPhoto(formData);
-
-      if (response.message === "Photo updated successfully") {
+      if (response.message === 'Photo updated successfully') {
         setStatusMessage({
-          text: "Foto carregada com sucesso!",
-          type: "success",
+          text: 'Foto carregada com sucesso!',
+          type: 'success',
         });
       } else {
         setStatusMessage({
-          text: "Erro ao salvar alterações. Tente novamente!",
-          type: "error",
+          text: 'Erro ao salvar alterações. Tente novamente!',
+          type: 'error',
         });
       }
     } catch (error) {
       setStatusMessage({
-        text: "Erro Desconhecido. Tente novamente mais tarde.",
-        type: "error",
+        text: 'Erro Desconhecido. Tente novamente mais tarde.',
+        type: 'error',
       });
     }
 
@@ -196,16 +191,12 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
   // Função para salvar atualizações do perfil
   const handleSaveUpdate = async () => {
     setIsLoading(true);
-    const locationValue =
-      updateData.location?.trim() ||
-      userData?.location?.trim() ||
-      "não disponível";
 
-    if (!locationValue) {
+    if (!updateData.name.trim()) {
       setIsLoading(false);
       setStatusMessage({
-        text: "O campo 'Localização' é obrigatório.",
-        type: "error",
+        text: 'O campo "Nome" é obrigatório.',
+        type: 'error',
       });
       return;
     }
@@ -213,42 +204,37 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
     if (!userData?.idUser) {
       setIsLoading(false);
       setStatusMessage({
-        text: "ID do usuário não encontrado. Tente novamente mais tarde.",
-        type: "error",
+        text: 'ID do usuário não encontrado. Tente novamente mais tarde.',
+        type: 'error',
       });
       return;
     }
 
     try {
       const response = await updateUser({
-        idUser: String(userData?.idUser),
-        name: updateData.name
-          ? String(updateData.name)
-          : String(userData?.name || ""),
-        language: String(userData?.language || "pt"),
-        theme: 0,
-        location: locationValue,
-        subscriber: true,
+        name: updateData.name.trim(),
+        telephone: userData?.telephone || '', // Use existing telephone or empty string
+        status: userData?.status ?? true, // Use existing status or default to true
       });
 
-      if (response.message === "User updated successfully") {
+      if (response.message === 'User updated successfully') {
         setIsLoading(false);
         setStatusMessage({
-          text: "Actualizado com sucesso",
-          type: "success",
+          text: 'Actualizado com sucesso',
+          type: 'success',
         });
       } else {
         setIsLoading(false);
         setStatusMessage({
-          text: "Erro ao salvar alterações. Tente novamente!",
-          type: "error",
+          text: 'Erro ao salvar alterações. Tente novamente!',
+          type: 'error',
         });
       }
     } catch (error) {
       setIsLoading(false);
       setStatusMessage({
-        text: "Erro Desconhecido. Tente novamente mais tarde.",
-        type: "error",
+        text: 'Erro Desconhecido. Tente novamente mais tarde.',
+        type: 'error',
       });
     }
   };
@@ -259,24 +245,16 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
         <div
           className={`
             border-t-4 mb-4 p-4 rounded-lg shadow-md
-            ${
-              statusMessage.type === "success"
-                ? "border-green-500 bg-green-50"
-                : "border-red-500 bg-red-50"
-            }
+            ${statusMessage.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}
           `}
         >
           <p
             className={`
               text-sm flex items-center gap-2
-              ${
-                statusMessage.type === "success"
-                  ? "text-green-700"
-                  : "text-red-700"
-              }
+              ${statusMessage.type === 'success' ? 'text-green-700' : 'text-red-700'}
             `}
           >
-            {statusMessage.type === "success" ? (
+            {statusMessage.type === 'success' ? (
               <CheckCircle className="w-4 h-4" />
             ) : (
               <AlertTriangle className="w-4 h-4" />
@@ -316,9 +294,7 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
             ref={fileInputRef}
             hidden
             accept="image/*"
-            onChange={(e) =>
-              e.target.files?.[0] && handleImageUpload(e.target.files[0])
-            }
+            onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])}
           />
         </div>
         <div className="text-center md:text-left">
@@ -339,10 +315,8 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
               <User className="text-gray-400" />
               <input
                 type="text"
-                value={updateData.name || String(userData?.name)}
-                onChange={(e) =>
-                  setUpdateData({ ...updateData, name: e.target.value })
-                }
+                value={updateData.name}
+                onChange={(e) => setUpdateData({ ...updateData, name: e.target.value })}
                 className="flex-1 bg-transparent focus:outline-none"
               />
             </div>
@@ -356,11 +330,9 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
             <div className="flex flex-col md:w-auto w-full md:flex-row items-center gap-2 p-2 rounded border border-gray-200 focus-within:border-[#4D6BFE]">
               <Mail className="text-gray-400" />
               <input
-                placeholder={userData?.email || String(userData?.email)}
+                placeholder={userData?.email || ''}
                 type="email"
-                value={
-                  emailEdit.step === 2 ? userData?.email : emailEdit.newEmail
-                }
+                value={emailEdit.step === 2 ? userData?.email : emailEdit.newEmail}
                 onChange={(e) => {
                   if (emailEdit.step === 1) {
                     setEmailEdit({ ...emailEdit, newEmail: e.target.value });
@@ -370,31 +342,27 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
                 className="flex-1 dark:bg-gray-900 py-2 focus:outline-none disabled:opacity-50 md:w-auto w-full"
                 autoComplete="email"
               />
-              {emailEdit.step === 1 &&
-                emailEdit.newEmail !== userData?.email &&
-                emailEdit.newEmail && (
-                  <button
-                    onClick={sendVerificationCode}
-                    disabled={loading.email || resendCountdown > 0}
-                    className="ml-auto px-4 py-2 bg-[#4D6BFE] text-white rounded cursor-pointer hover:bg-[#FF8E00] disabled:opacity-50"
-                  >
-                    {loading.email ? (
-                      <Loader2 className="animate-spin" />
-                    ) : resendCountdown > 0 ? (
-                      `Reenviar em ${resendCountdown}s`
-                    ) : (
-                      "Alterar E-mail"
-                    )}
-                  </button>
-                )}
-            </div>
-            {emailEdit.step === 1 &&
-              emailEdit.newEmail === userData?.email &&
-              emailEdit.newEmail && (
-                <p className="text-sm text-red-500">
-                  Você não pode usar o mesmo e-mail. Informe um novo e-mail.
-                </p>
+              {emailEdit.step === 1 && emailEdit.newEmail !== userData?.email && emailEdit.newEmail && (
+                <button
+                  onClick={sendVerificationCode}
+                  disabled={loading.email || resendCountdown > 0}
+                  className="ml-auto px-4 py-2 bg-[#4D6BFE] text-white rounded cursor-pointer hover:bg-[#FF8E00] disabled:opacity-50"
+                >
+                  {loading.email ? (
+                    <Loader2 className="animate-spin" />
+                  ) : resendCountdown > 0 ? (
+                    `Reenviar em ${resendCountdown}s`
+                  ) : (
+                    'Alterar E-mail'
+                  )}
+                </button>
               )}
+            </div>
+            {emailEdit.step === 1 && emailIsSame && emailEdit.newEmail && (
+              <p className="text-sm text-red-500">
+                Você não pode usar o mesmo e-mail. Informe um novo e-mail.
+              </p>
+            )}
           </div>
 
           {/* Campo para Senha (apenas na etapa 1) */}
@@ -407,9 +375,7 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
                 <input
                   type="password"
                   value={emailEdit.password}
-                  onChange={(e) =>
-                    setEmailEdit({ ...emailEdit, password: e.target.value })
-                  }
+                  onChange={(e) => setEmailEdit({ ...emailEdit, password: e.target.value })}
                   autoComplete="current-password"
                   placeholder="Informe sua senha"
                   className="flex-1 dark:bg-gray-900 py-2 focus:outline-none md:w-auto w-full"
@@ -432,29 +398,23 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
                   type="text"
                   value={emailEdit.code}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "");
+                    const value = e.target.value.replace(/\D/g, '');
                     if (value.length <= 4) {
                       setEmailEdit({ ...emailEdit, code: value });
-                      if (codeError) setCodeError("");
+                      if (codeError) setCodeError('');
                     }
                   }}
                   placeholder="Código de verificação"
                   className={`flex-1 p-2 border-b-2 outline-none ${
-                    codeError
-                      ? "border-red-500"
-                      : "border-gray-200 focus:border-[#4D6BFE]"
+                    codeError ? 'border-red-500' : 'border-gray-200 focus:border-[#4D6BFE]'
                   }`}
                 />
                 <button
                   onClick={verifyCode}
                   disabled={loading.code || emailEdit.code.length !== 4}
-                  className="px-4 py-2 bg-[#4D6BFE] text-white rounded cursor-pointer hover:bg-[#FF8E00] disabled:opacity-50"
+                  className="px-4 py-2 bg-[#4D6BFE] text-white rounded cursor-pointer hover:bg-[#4d6afed5] disabled:opacity-50"
                 >
-                  {loading.code ? (
-                    <Loader2 className="animate-spin" />
-                  ) : (
-                    "Verificar Código"
-                  )}
+                  {loading.code ? <Loader2 className="animate-spin" /> : 'Verificar Código'}
                 </button>
               </div>
               {codeError && (
@@ -464,19 +424,12 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
                 </p>
               )}
               <p className="text-sm text-gray-500 dark:text-white">
-                Enviamos um código de verificação para{" "}
-                <strong className="text-[#FF8E00]">{emailEdit.newEmail}</strong>
+                Enviamos um código de verificação para{' '}
+                <strong className="text-[#4D6BFE]">{emailEdit.newEmail}</strong>
               </p>
               <button
-                onClick={() =>
-                  setEmailEdit({
-                    ...emailEdit,
-                    step: 1,
-                    code: "",
-                    password: "",
-                  })
-                }
-                className="text-sm text-blue-600 hover:underline mt-2 cursor-pointer"
+                onClick={() => setEmailEdit({ ...emailEdit, step: 1, code: '', password: '' })}
+                className="text-sm text-[#4D6BFE] hover:underline mt-2 cursor-pointer"
               >
                 Alterar novo e-mail
               </button>

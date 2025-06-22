@@ -21,7 +21,7 @@ export function DataStatusHandler({
     <div className={`relative min-h-[55vh] ${className}`}>
       {isLoading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center ">
-          <div className="flex flex-col items-center gap-3 text-[#E1B927]">
+          <div className="flex flex-col items-center gap-3 text-[#4D6BFE]">
             <Loader2 className="w-8 h-8 animate-spin" />
             <span className="font-medium">Carregando...</span>
           </div>

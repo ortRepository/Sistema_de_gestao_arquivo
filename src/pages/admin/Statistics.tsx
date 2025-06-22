@@ -249,12 +249,6 @@ export default function Statistics() {
 
   return (
     <div className="flex flex-col min-h-screen p-4 gap-6 dark:bg-gray-800">
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-          {error}
-        </div>
-      )}
-
       <div className="flex gap-4 mb-4">
         <select
           value={selectedMonth}

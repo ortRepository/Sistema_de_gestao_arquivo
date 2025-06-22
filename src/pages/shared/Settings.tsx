@@ -15,10 +15,10 @@ import { NotificationsSection } from "@/components/common/Notification";
 import ComponetButton from "@/components/common/button";
 import { useDeleteUser, useGetUser } from "@/hooks/DynamicApiHooks";
 import { useAuth } from "@/contexts/AuthContext";
-import { Entities } from "@/types/interfaces";
+import { FormUser } from "@/types/interfaces";
 
 interface DeleteAccountSectionProps {
-  userData: Entities | undefined;
+  userData: FormUser | undefined;
 }
 
 // Componente para a seção de exclusão de conta
@@ -47,7 +47,7 @@ function DeleteAccountSection({ userData }: DeleteAccountSectionProps) {
     setIsConfirmed(false);
     setIsLoading(true);
     deleteUser(
-      { idUser: String(userData.idUser) }, // Adjusted to match Entities interface
+      { idUser: userData.idUser },
       {
         onSuccess: () => {
           setStatusMessage({
@@ -154,7 +154,7 @@ function SystemGuideSection() {
 
       <div className="space-y-4 p-6 bg-gray-50 border border-gray-100 rounded-xl dark:bg-gray-800 dark:border-gray-700">
         <div className="flex gap-3">
-          <BookOpen className="w-6 h-6 text-[#4D6BFE] flex-shrink-0 mt-1 dark:text-[#F59E0B]" />
+          <BookOpen className="w-6 h-6 text-[#4D6BFE] flex-shrink-0 mt-1 dark:text-[#4D6BFE]" />
           <div className="space-y-3">
             <p className="font-semibold text-lg text-gray-800 dark:text-gray-200">
               Baixe o Guia do Sistema
@@ -170,7 +170,7 @@ function SystemGuideSection() {
             >
               <ComponetButton
                 variant="primary"
-                className="bg-[#4D6BFE] text-white hover:bg-[#F59E0B] transition-all duration-300 flex items-center gap-2 dark:bg-[#F59E0B] dark:hover:bg-[#4D6BFE]"
+                className="bg-[#4D6BFE] text-white hover:bg-[#4d6afed8] transition-all duration-300 flex items-center gap-2 "
               >
                 Baixar Guia (PDF)
               </ComponetButton>
@@ -213,7 +213,7 @@ export default function Settings() {
     { id: "appearance", icon: <Paintbrush size={24} />, label: "Aparência" },
     { id: "notifications", icon: <Bell size={24} />, label: "Notificações" },
     { id: "guide", icon: <BookOpen size={24} />, label: "Guia do Sistema" },
-    ...(userData?.role !== "ADMIN" && activeMenu !== "delete"
+    ...(userData?.role !== 0 && activeMenu !== "delete"
       ? [{ id: "delete", icon: <Trash2 size={24} />, label: "Excluir Conta" }]
       : []),
   ];

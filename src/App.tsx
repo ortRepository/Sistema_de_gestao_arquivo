@@ -24,7 +24,6 @@ import { ConfirmationCodeScreen } from "./pages/shared/ConfirmationCode";
 
 import { ThemeProvider } from "./contexts/ThemeProvider";
 
-import { LocationProvider } from "./contexts/LocationContext";
 import DynamicRouterAdmin from "./routes/DynamicRouterAdmin";
 import DynamicRouterAdmEmployee from "./routes/DynamicRouterAdmEmployee";
 import DynamicRouterTeacher from "./routes/DynamicRouterTeacher";
@@ -39,7 +38,7 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <ThemeProvider>
-            <LocationProvider>
+       
               <Routes>
                 {/* Rotas públicas */}
                 <Route element={<PublicRoute />}>
@@ -71,7 +70,7 @@ function App() {
                 </Route>
                 <Route path="*" element={<NotFoundScreen />} />
               </Routes>
-            </LocationProvider>
+
           </ThemeProvider>
         </BrowserRouter>
       </AuthProvider>

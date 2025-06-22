@@ -112,7 +112,7 @@ export const useGetAll = createApiHook<
     status: boolean;
     token: string;
   }[]
->(endpoints.users.getAll);
+>(endpoints.users.viewAll);
 
 // View user information (GET /api/users/view-a)
 export const useGetUser = createApiHook<{
@@ -128,7 +128,7 @@ export const useGetUser = createApiHook<{
   updatedIn: string;
   status: boolean;
   token: string;
-}>(endpoints.users.viewAll);
+}>(endpoints.users.getAll);
 
 // Upload user photo (PATCH /api/users/upload-photo)
 export const useUploadPhoto = createApiHook<
