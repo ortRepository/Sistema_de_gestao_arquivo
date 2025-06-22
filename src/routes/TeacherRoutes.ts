@@ -83,7 +83,6 @@ export async function teacherRoutes(app: FastifyTypedInstance) {
       schema: {
         description: "View all teachers",
         tags: ["Teachers"],
-        params: TeachersSchemas.viewAllTeachers,
         headers: TeachersSchemas.token,
         response: {
           200: TeachersSchemas.teachers,
@@ -94,7 +93,7 @@ export async function teacherRoutes(app: FastifyTypedInstance) {
       },
     },
     async (request, reply) => {
-      return reply.status(200).send(await controller.viewAll(request.params, request.headers));
+      return reply.status(200).send(await controller.viewAll( request.headers));
     }
   );
 }

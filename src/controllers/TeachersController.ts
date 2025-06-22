@@ -177,10 +177,10 @@ class TeachersController {
   }
 
   public async viewAll(
-    data: z.infer<typeof TeachersSchemas.viewAllTeachers>,
+   
     key: z.infer<typeof TeachersSchemas.token>
   ): Promise<z.infer<typeof TeachersSchemas.teachers>> {
-    const { idCourse } = data;
+
     const { token } = key;
 
     try {
@@ -190,13 +190,7 @@ class TeachersController {
       }
 
       const whereClause: any = {};
-      if (idCourse) {
-        const course = await prisma.courses.findUnique({ where: { idCourse } });
-        if (!course) {
-          throw new ItemNotFoundException('Course not found');
-        }
-        whereClause.idCourse = idCourse;
-      }
+     
 
       const teachers = await prisma.teachers.findMany({
         where: whereClause,

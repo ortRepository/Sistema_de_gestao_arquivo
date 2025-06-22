@@ -1,4 +1,4 @@
-import type { plainToClassFromExist } from "class-transformer/types";
+
 import { z } from "zod";
 
 class StudentsSchema {
@@ -17,7 +17,7 @@ class StudentsSchema {
       required_error: "The 'room' field is required.",
       invalid_type_error: "The 'room' field must be a string."
     }).nonempty("Room cannot be empty."),
-    plainToClassFromExist: z.string({
+    class: z.string({
       required_error: "The 'class' field is required.",
       invalid_type_error: "The 'class' field must be a string."
     }).nonempty("Class cannot be empty."),
@@ -59,10 +59,15 @@ class StudentsSchema {
       invalid_type_error: "The 'room' field must be a string."
     }).nonempty("Room cannot be empty."),
     
-    dateOfBirth: z.date({
-      required_error: "The 'dateOfBirth' field is required.",
-      invalid_type_error: "The 'dateOfBirth' field must be a date."
-    }),
+    dateOfBirth: z.preprocess((val) => {
+      if (typeof val === "string" || typeof val === "number") {
+        return new Date(val);
+      }
+      return val;
+    }, z.date({
+      required_error: "The 'bookingDate' field is required.",
+      invalid_type_error: "The 'bookingDate' field must be a date."
+    })),
     photo: z.string({
       required_error: "The 'photo' field is required.",
       invalid_type_error: "The 'photo' field must be a string."

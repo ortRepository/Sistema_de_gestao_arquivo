@@ -14,6 +14,7 @@ import { teacherRoutes } from "./TeacherRoutes";
 
 
 
+
 export async function routes(app:FastifyTypedInstance) {
 userRoutes(app)
 notificationsRoutes(app)

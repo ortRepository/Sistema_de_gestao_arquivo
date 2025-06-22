@@ -27,6 +27,14 @@ class TeachersSchemas {
       required_error: "The 'createdIn' field is required.",
       invalid_type_error: "The 'createdIn' field must be a date."
     }),
+    name: z.string({
+      required_error: "The 'name' field is required.",
+      invalid_type_error: "The 'name' field must be a string."
+    }).nonempty("Name cannot be empty.").max(255),
+    email: z.string({
+      required_error: "The 'email' field is required.",
+      invalid_type_error: "The 'email' field must be a string."
+    }).email("Invalid email format.").max(255),
   });
 
   // Schema for adding a teacher
