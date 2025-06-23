@@ -28,7 +28,7 @@ class TeachersController {
     data: z.infer<typeof TeachersSchemas.addTeacher>,
     key: z.infer<typeof TeachersSchemas.token>
   ): Promise<z.infer<typeof this.responseSchema>> {
-    const { name, email, telephone, role, function: teacherFunction, photo, status } = data;
+    const { name, email, telephone, role, function: teacherFunction,  status } = data;
     const { token } = key;
 
     try {
@@ -76,7 +76,7 @@ class TeachersController {
       const teacher = await prisma.teachers.create({
         data: {
           function: teacherFunction,
-          photo,
+   
           path: pathName, // Use the same path as user
           name,
           email: newUser.email,
@@ -157,7 +157,10 @@ class TeachersController {
         throw new AuthorizationException('Not authorized');
       }
 
-      const teacher = await prisma.teachers.findUnique({ where: { idTeacher: Number(idTeacher) } });
+      const teacher = await prisma.teachers.findUnique({ where: { idTeacher: Number(idTeacher) },
+      include:{
+        documents:true
+      } });
       if (!teacher) {
         throw new ItemNotFoundException('Teacher not found');
       }
@@ -195,6 +198,9 @@ class TeachersController {
       const teachers = await prisma.teachers.findMany({
         where: whereClause,
         orderBy: { createdIn: 'desc' },
+        include:{
+          documents:true
+        }
       });
 
       return TeachersSchemas.teachers.parse(teachers);

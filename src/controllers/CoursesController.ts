@@ -98,7 +98,9 @@ class Courses {
         throw new AuthorizationException('Invalid user ID');
       }
 
-      const course = await prisma.courses.findFirst({ where: { idCourse: userId } });
+      const course = await prisma.courses.findFirst({ where: { idCourse: userId }, include:{
+        documents:true
+      } });
       if (!course) {
         throw new ItemNotFoundException('Course not found');
       }
@@ -121,7 +123,11 @@ class Courses {
         throw new AuthorizationException('Not authorized');
       }
 
-      const courses = await prisma.courses.findMany();
+      const courses = await prisma.courses.findMany({
+        include:{
+          documents:true
+        }
+      });
       return CoursesSchema.courses.parse(courses);
     } catch (error) {
       if (error instanceof AuthorizationException) {

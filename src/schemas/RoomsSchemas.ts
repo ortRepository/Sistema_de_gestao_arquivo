@@ -1,4 +1,5 @@
 import { z } from "zod";
+import DocumentsSchemas from "./DocumentsSchemas";
 
 class RoomsSchema {
   // Base room schema
@@ -21,6 +22,7 @@ class RoomsSchema {
       invalid_type_error: "The 'createdIn' field must be a date."
     }),
     updatedIn: z.date().nullable().optional(),
+    documents:z.array(DocumentsSchemas.document)
   });
 
   // Operation-specific schemas

@@ -185,7 +185,10 @@ class StudentsController {
         throw new AuthorizationException('Not authorized');
       }
 
-      const student = await prisma.students.findUnique({ where: { idStudent } });
+      const student = await prisma.students.findUnique({ where: { idStudent } ,
+        include:{
+          documents:true
+        }});
       if (!student) {
         throw new ItemNotFoundException('Student not found');
       }
@@ -211,7 +214,11 @@ class StudentsController {
         throw new AuthorizationException('Not authorized');
       }
 
-      const students = await prisma.students.findMany();
+      const students = await prisma.students.findMany({
+        include:{
+          documents:true
+        }
+      });
       return StudentsSchema.students.parse(students);
     } catch (error) {
       console.error('[VIEW_ALL] Error occurred:', error);

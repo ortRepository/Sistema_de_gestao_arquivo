@@ -131,7 +131,9 @@ class Rooms {
         throw new AuthorizationException('Invalid user ID');
       }
 
-      const room = await prisma.rooms.findFirst({ where: { idRoom: userId } });
+      const room = await prisma.rooms.findFirst({ where: { idRoom: userId }, include:{
+        documents:true
+      } });
       if (!room) {
         throw new ItemNotFoundException('Room not found');
       }
@@ -154,7 +156,11 @@ class Rooms {
         throw new AuthorizationException('Not authorized');
       }
 
-      const rooms = await prisma.rooms.findMany();
+      const rooms = await prisma.rooms.findMany({
+        include:{
+          documents:true
+        }
+      });
       return RoomsSchema.rooms.parse(rooms);
     } catch (error) {
       if (error instanceof AuthorizationException) {

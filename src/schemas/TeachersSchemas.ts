@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import DocumentsSchemas from './DocumentsSchemas';
 
 class TeachersSchemas {
   // Schema for a single teacher
@@ -59,18 +60,11 @@ class TeachersSchemas {
       required_error: "The 'function' field is required.",
       invalid_type_error: "The 'function' field must be a string."
     }).nonempty("Function cannot be empty.").max(255),
-    photo: z.string({
-      required_error: "The 'photo' field is required.",
-      invalid_type_error: "The 'photo' field must be a string."
-    }).max(255).optional(),
-    path: z.string({
-      required_error: "The 'path' field is required.",
-      invalid_type_error: "The 'path' field must be a string."
-    }).max(255).optional(),
     status: z.boolean({
       required_error: "The 'status' field is required.",
       invalid_type_error: "The 'status' field must be a boolean."
     }),
+    documents:z.array(DocumentsSchemas.document)
   });
 
   // Schema for deleting a teacher

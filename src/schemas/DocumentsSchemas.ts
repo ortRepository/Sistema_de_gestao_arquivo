@@ -18,11 +18,11 @@ class DocumentsSchemas {
     path: z.string({
       required_error: "The 'path' field is required.",
       invalid_type_error: "The 'path' field must be a string."
-    }).max(255).optional(),
+    }).max(255).optional().nullable(),
     createdIn: z.date({
       required_error: "The 'createdIn' field is required.",
       invalid_type_error: "The 'createdIn' field must be a date."
-    }),
+    }).nullable(),
     updatedIn: z.date().nullable().optional(),
     status: z.boolean({
       required_error: "The 'status' field is required.",
@@ -30,22 +30,22 @@ class DocumentsSchemas {
     }),
     idClass: z.number({
       invalid_type_error: "The 'idClasse' field must be a number."
-    }).int().optional(),
+    }).int().optional().nullable(),
     idSubject: z.number({
       invalid_type_error: "The 'idSubject' field must be a number."
-    }).int().optional(),
+    }).int().optional().nullable(),
     idStudent: z.number({
       invalid_type_error: "The 'idStudent' field must be a number."
-    }).int().optional(),
+    }).int().optional().nullable(),
     idCourse: z.number({
       invalid_type_error: "The 'idCourse' field must be a number."
-    }).int().optional(),
+    }).int().optional().nullable(),
     idTeacher: z.number({
       invalid_type_error: "The 'idTeacher' field must be a number."
-    }).int().optional(),
+    }).int().optional().nullable(),
     idRoom: z.number({
       invalid_type_error: "The 'idRoom' field must be a number."
-    }).int().optional(),
+    }).int().optional().nullable(),
   });
 
   // Schema for adding a document
@@ -67,7 +67,7 @@ class DocumentsSchemas {
     idStudent: z.string({
       invalid_type_error: "The 'idStudent' field must be a number."
     }).optional(),
-    idCourse: z.number({
+    idCourse: z.string({
       invalid_type_error: "The 'idCourse' field must be a number."
     }).optional(),
     idTeacher: z.string({
@@ -98,9 +98,9 @@ class DocumentsSchemas {
   });
 
   static viewDocumentByClasse = z.object({
-    idClasse: z.string({
-      required_error: "The 'idClasse' field is required.",
-      invalid_type_error: "The 'idClasse' field must be a string."
+    idClass: z.string({
+      required_error: "The 'idClass' field is required.",
+      invalid_type_error: "The 'idClass' field must be a string."
     }).nonempty("Class ID cannot be empty.").regex(/^\d+$/, "Class ID must be a valid number."),
   });
 
@@ -146,6 +146,33 @@ class DocumentsSchemas {
       invalid_type_error: "The 'token' field must be a string."
     }).nonempty("Token cannot be empty."),
   });
+
+  static idQuerys = z.object({
+    idRoom: z.string({
+      required_error: "The 'idRoom' field is required.",
+      invalid_type_error: "The 'idRoom' field must be a string."
+    }).nonempty("Room ID cannot be empty.").regex(/^\d+$/, "Room ID must be a valid number.").optional(),
+    idTeacher: z.string({
+      required_error: "The 'idTeacher' field is required.",
+      invalid_type_error: "The 'idTeacher' field must be a string."
+    }).nonempty("Teacher ID cannot be empty.").regex(/^\d+$/, "Teacher ID must be a valid number.").optional(),
+    idCourse: z.string({
+      required_error: "The 'idCourse' field is required.",
+      invalid_type_error: "The 'idCourse' field must be a string."
+    }).nonempty("Course ID cannot be empty.").regex(/^\d+$/, "Course ID must be a valid number.").optional(),
+    idStudent: z.string({
+      required_error: "The 'idStudent' field is required.",
+      invalid_type_error: "The 'idStudent' field must be a string."
+    }).nonempty("Student ID cannot be empty.").regex(/^\d+$/, "Student ID must be a valid number.").optional(),
+    idClass: z.string({
+      required_error: "The 'idClasse' field is required.",
+      invalid_type_error: "The 'idClasse' field must be a string."
+    }).nonempty("Class ID cannot be empty.").regex(/^\d+$/, "Class ID must be a valid number.").optional(),
+    idSubject: z.string({
+      required_error: "The 'idSubject' field is required.",
+      invalid_type_error: "The 'idSubject' field must be a string."
+    }).nonempty("Subject ID cannot be empty.").regex(/^\d+$/, "idSubject ID must be a valid number.").optional(),
+  })
 
   // Response schema for success messages
   static successResponse = z.object({

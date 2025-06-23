@@ -1,5 +1,6 @@
 
 import { z } from "zod";
+import DocumentsSchemas from "./DocumentsSchemas";
 
 class StudentsSchema {
   // Base student schema
@@ -42,6 +43,7 @@ class StudentsSchema {
       required_error: "The 'idClass' field is required.",
       invalid_type_error: "The 'idClass' field must be a number."
     }).int(),
+    documents:z.array(DocumentsSchemas.document)
   });
 
   // Operation-specific schemas

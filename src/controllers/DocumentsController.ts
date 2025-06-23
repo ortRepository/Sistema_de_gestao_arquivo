@@ -28,34 +28,41 @@ class DocumentsController {
   private async getEntityInfo(
     entityType: 'class' | 'student' | 'course' | 'teacher' | 'room' | 'subject',
     id: number
-  ): Promise<{ entityName: string; path: string }> {
+  ): Promise<{ entityName: string; path: string ,pathEntity:string | null | undefined}> {
     let entity;
     let entityName;
+    let pathEntity;
 
     switch (entityType) {
       case 'class':
         entity = await prisma.classes.findUnique({ where: { idClass: id } });
         entityName = 'classes';
+        pathEntity = entity?.path
         break;
       case 'student':
         entity = await prisma.students.findUnique({ where: { idStudent: id } });
         entityName = 'students';
+        pathEntity = entity?.path
         break;
       case 'course':
         entity = await prisma.courses.findUnique({ where: { idCourse: id } });
         entityName = 'courses';
+        pathEntity = entity?.path
         break;
       case 'teacher':
         entity = await prisma.teachers.findUnique({ where: { idTeacher: id } });
         entityName = 'teachers';
+        pathEntity = entity?.path
         break;
       case 'room':
         entity = await prisma.rooms.findUnique({ where: { idRoom: id } });
         entityName = 'rooms';
+        pathEntity = entity?.path
         break;
       case 'subject':
         entity = await prisma.subjects.findUnique({ where: { idSubject: id } });
         entityName = 'subjects';
+        pathEntity = entity?.path
         break;
     }
 
@@ -63,7 +70,7 @@ class DocumentsController {
       throw new ItemNotFoundException(`${entityType} not found`);
     }
 
-    return { entityName, path: entity.path || '' };
+  return { entityName, path: entity.path || '' ,pathEntity:pathEntity};
   }
 
   private async processDocumentFile(
@@ -108,14 +115,17 @@ class DocumentsController {
     }
 
     if (!entityType || !entityId) {
-      return `documents/${document.path || ''}/${document.urlLink}`;
+      return `${entityType}/${document.path || ''}`;
     }
-
-    return `${entityType}s/${document.path || ''}/${document.urlLink}`;
+    const caminho = `${entityType}s/${document.path || ''}`
+    console.log("caminhos:",caminho)
+    return caminho;
   }
 
   private generateDocumentLink(document: any, req: FastifyRequest): string {
-    const filePath = this.getDocumentFilePath(document);
+     const filePath = this.getDocumentFilePath(document)
+     const gerado = filePath
+    console.log("gerado :",gerado)
     return this.fileService.generateLink(filePath, req, document.urlLink);
   }
 
@@ -172,7 +182,7 @@ class DocumentsController {
         data: {
           description,
           urlLink: fileName,
-          
+          path:entityInfo?.pathEntity,
           status:Boolean(status),
           idClass:Number(idClass),
           idStudent:Number(idStudent),
@@ -350,10 +360,10 @@ class DocumentsController {
   ): Promise<z.infer<typeof DocumentsSchemas.documents>> {
     const validatedData = DocumentsSchemas.viewDocumentByClasse.parse(data);
     const validatedKey = DocumentsSchemas.token.parse(key);
-    const { idClasse } = validatedData;
+    const { idClass } = validatedData;
     const { token } = validatedKey;
 
-    return this.viewByEntity('class', Number(idClasse), token, req);
+    return this.viewByEntity('class', Number(idClass), token, req);
   }
 
   public async viewByStudent(
@@ -440,7 +450,7 @@ class DocumentsController {
           document.urlLink = this.generateDocumentLink(document, req);
         }
       }
-
+      console.log(documents)
       return DocumentsSchemas.documents.parse(documents);
     } catch (error) {
       console.error('[VIEW_ALL] Error occurred:', error);

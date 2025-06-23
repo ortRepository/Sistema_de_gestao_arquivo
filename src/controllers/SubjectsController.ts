@@ -154,7 +154,10 @@ class SubjectsController {
         throw new AuthorizationException('Not authorized');
       }
 
-      const subject = await prisma.subjects.findUnique({ where: { idSubject } });
+      const subject = await prisma.subjects.findUnique({ where: { idSubject } ,
+        include:{
+          Documents:true
+        }});
       if (!subject) {
         throw new ItemNotFoundException('Subject not found');
       }
@@ -180,7 +183,11 @@ class SubjectsController {
         throw new AuthorizationException('Not authorized');
       }
 
-      const subjects = await prisma.subjects.findMany();
+      const subjects = await prisma.subjects.findMany({
+        include:{
+          Documents:true
+        }
+      });
       return SubjectsSchema.subjects.parse(subjects);
     } catch (error) {
       console.error('[VIEW_ALL] Error occurred:', error);

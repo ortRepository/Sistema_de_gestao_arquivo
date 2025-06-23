@@ -1,4 +1,5 @@
 import { z } from "zod";
+import DocumentsSchemas from "./DocumentsSchemas";
 
 class SubjectsSchema {
   // Base subject schema
@@ -21,6 +22,7 @@ class SubjectsSchema {
       invalid_type_error: "The 'createdIn' field must be a date."
     }),
     updatedIn: z.date().nullable().optional(),
+    Documents:z.array(DocumentsSchemas.document)
   });
 
   // Operation-specific schemas

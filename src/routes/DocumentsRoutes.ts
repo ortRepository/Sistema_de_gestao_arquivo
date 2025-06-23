@@ -7,13 +7,14 @@ import DataExtracMultipart from "../utils/fastify_multipart_data_extraction";
 import FileErrorException from "../errors/FileErrorException";
 
 // Schema for viewing all documents with optional filters
-const viewAllDocumentsQuery = DocumentsSchemas.document
+const viewAllDocumentsQuery = DocumentsSchemas.idQuerys
   .pick({
-    idClasse: true,
+    idClass: true,
     idStudent: true,
     idCourse: true,
     idTeacher: true,
     idRoom: true,
+    idSubject:true
   })
   .partial();
 
@@ -112,7 +113,6 @@ export async function documentsRoutes(app: FastifyTypedInstance) {
         description: "View all documents, optionally filtered by class, student, course, teacher, or room ID",
         tags: ["Documents"],
         headers: DocumentsSchemas.token,
-        querystring: viewAllDocumentsQuery,
         response: {
           200: DocumentsSchemas.documents,
           400: ResponsesSchemas.error_400_response,
