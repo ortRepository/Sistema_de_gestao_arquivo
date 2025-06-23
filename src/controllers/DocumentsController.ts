@@ -443,6 +443,14 @@ class DocumentsController {
 
       const documents = await prisma.documents.findMany({
         orderBy: { createdIn: 'desc' },
+        include:{
+          class:true,
+          course:true,
+          room:true,
+          student:true,
+          subject:true,
+          teacher:true
+        }
       });
 
       for (const document of documents) {

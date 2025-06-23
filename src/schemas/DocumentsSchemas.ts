@@ -1,4 +1,10 @@
 import { z } from 'zod';
+import ClassesSchema from './ClassesSchemas';
+import CoursesSchema from './CoursesSchemas';
+import RoomsSchema from './RoomsSchemas';
+import StudentsSchema from './StudentsSchemas';
+import SubjectsSchema from './SubjectsSchemas';
+import TeachersSchemas from './TeachersSchemas';
 
 class DocumentsSchemas {
   // Schema for a single document
@@ -46,6 +52,12 @@ class DocumentsSchemas {
     idRoom: z.number({
       invalid_type_error: "The 'idRoom' field must be a number."
     }).int().optional().nullable(),
+    class: ClassesSchema.class.nullable(),
+    course: CoursesSchema.course.nullable(),
+    room: RoomsSchema.room.nullable(),
+    student: StudentsSchema.student.nullable(),
+    subject: SubjectsSchema.subject.nullable(),
+    teacher: TeachersSchemas.teacher.nullable()
   });
 
   // Schema for adding a document

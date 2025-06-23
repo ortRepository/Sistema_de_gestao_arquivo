@@ -18,7 +18,7 @@ class CoursesSchema {
       invalid_type_error: "The 'createdIn' field must be a date."
     }),
     updatedIn: z.date().nullable().optional(),
-    documents:z.array(DocumentsSchemas.document)
+    // documents:z.array(DocumentsSchemas.document)
   });
 
   // Operation-specific schemas

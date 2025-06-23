@@ -62,7 +62,7 @@ class TeachersSchemas {
       required_error: "The 'status' field is required.",
       invalid_type_error: "The 'status' field must be a boolean."
     }),
-    documents: z.array(DocumentsSchemas.document),
+    // documents: z.array(DocumentsSchemas.document),
   });
 
   // Schema for editing a teacher
