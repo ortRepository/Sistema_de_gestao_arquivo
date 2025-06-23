@@ -30,6 +30,30 @@ export async function teacherRoutes(app: FastifyTypedInstance) {
     }
   );
 
+    // Add teacher
+    app.put(
+      "/teachers",
+      {
+        schema: {
+          description: "updated a new teacher",
+          tags: ["Teachers"],
+          body: TeachersSchemas.editTeacher,
+          headers: TeachersSchemas.token,
+          response: {
+            200: TeachersSchemas.successResponse,
+            400: ResponsesSchemas.error_400_response,
+            401: ResponsesSchemas.general_error_response,
+            404: ResponsesSchemas.general_error_response,
+            500: ResponsesSchemas.general_error_response,
+          },
+        },
+      },
+      async (request, reply) => {
+        return reply.status(200).send(await controller.edit(request.body, request.headers));
+      }
+    );
+  
+
   // Delete teacher
   app.delete(
     "/teachers",

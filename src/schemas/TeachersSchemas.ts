@@ -13,11 +13,9 @@ class TeachersSchemas {
       invalid_type_error: "The 'function' field must be a string."
     }).max(255),
     photo: z.string({
-      required_error: "The 'photo' field is required.",
       invalid_type_error: "The 'photo' field must be a string."
     }).max(255).optional(),
     path: z.string({
-      required_error: "The 'path' field is required.",
       invalid_type_error: "The 'path' field must be a string."
     }).max(255).optional(),
     idUser: z.number({
@@ -64,7 +62,33 @@ class TeachersSchemas {
       required_error: "The 'status' field is required.",
       invalid_type_error: "The 'status' field must be a boolean."
     }),
-    documents:z.array(DocumentsSchemas.document)
+    documents: z.array(DocumentsSchemas.document),
+  });
+
+  // Schema for editing a teacher
+  static editTeacher = z.object({
+    idTeacher: z.number({
+      required_error: "The 'idTeacher' field is required.",
+      invalid_type_error: "The 'idTeacher' field must be a number."
+    }).int().positive("ID Teacher must be a positive integer"),
+    name: z.string({
+      invalid_type_error: "The 'name' field must be a string."
+    }).nonempty("Name cannot be empty.").max(255).optional(),
+    email: z.string({
+      invalid_type_error: "The 'email' field must be a string."
+    }).email("Invalid email format.").max(255).optional(),
+    telephone: z.string({
+      invalid_type_error: "The 'telephone' field must be a string."
+    }).nonempty("Telephone cannot be empty.").max(45).optional(),
+    role: z.number({
+      invalid_type_error: "The 'role' field must be a number."
+    }).optional(),
+    function: z.string({
+      invalid_type_error: "The 'function' field must be a string."
+    }).nonempty("Function cannot be empty.").max(255).optional(),
+    status: z.boolean({
+      invalid_type_error: "The 'status' field must be a boolean."
+    }).optional(),
   });
 
   // Schema for deleting a teacher

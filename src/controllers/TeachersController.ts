@@ -28,7 +28,7 @@ class TeachersController {
     data: z.infer<typeof TeachersSchemas.addTeacher>,
     key: z.infer<typeof TeachersSchemas.token>
   ): Promise<z.infer<typeof this.responseSchema>> {
-    const { name, email, telephone, role, function: teacherFunction,  status } = data;
+    const { name, email, telephone, role, function: teacherFunction, status } = data;
     const { token } = key;
 
     try {
@@ -76,7 +76,6 @@ class TeachersController {
       const teacher = await prisma.teachers.create({
         data: {
           function: teacherFunction,
-   
           path: pathName, // Use the same path as user
           name,
           email: newUser.email,
@@ -106,6 +105,66 @@ class TeachersController {
         throw error;
       }
       throw new InternalServerErrorException('An error occurred when trying to add teacher');
+    }
+  }
+  public async edit(
+    data: z.infer<typeof TeachersSchemas.editTeacher>,
+    key: z.infer<typeof TeachersSchemas.token>
+  ): Promise<z.infer<typeof this.responseSchema>> {
+    const { idTeacher, name, telephone, role, function: teacherFunction, status } = data;
+    const { token } = key;
+  
+    try {
+      // Verify token and get userId
+      const userId = await this.tokenService.userId(token);
+      if (!userId) {
+        throw new AuthorizationException('Not authorized');
+      }
+  
+      // Check if teacher exists
+      const teacher = await prisma.teachers.findUnique({
+        where: { idTeacher },
+        include: { user: true },
+      });
+      if (!teacher) {
+        throw new ItemNotFoundException('Teacher not found');
+      }
+  
+      // Update teacher
+      await prisma.teachers.update({
+        where: { idTeacher },
+        data: {
+          name: name ?? teacher.name,
+          function: teacherFunction ?? teacher.function,
+          status: status ?? teacher.status,
+        },
+      });
+      if(teacher.idUser){
+        await prisma.users.update({
+          where:{
+            idUser: teacher.idUser
+          },
+          data:{
+            name:name||teacher.name,
+            phoneNumber:telephone,
+            role
+          }
+        })
+      }   
+  
+      
+  
+      return { message: 'Teacher updated successfully' };
+    } catch (error) {
+      console.error('[EDIT] Error occurred:', error);
+      if (
+        error instanceof AuthorizationException ||
+        error instanceof InvalidDataException ||
+        error instanceof ItemNotFoundException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException('An error occurred when trying to update teacher');
     }
   }
 
@@ -157,10 +216,10 @@ class TeachersController {
         throw new AuthorizationException('Not authorized');
       }
 
-      const teacher = await prisma.teachers.findUnique({ where: { idTeacher: Number(idTeacher) },
-      include:{
-        documents:true
-      } });
+      const teacher = await prisma.teachers.findUnique({
+        where: { idTeacher: Number(idTeacher) },
+        include: { documents: true },
+      });
       if (!teacher) {
         throw new ItemNotFoundException('Teacher not found');
       }
@@ -180,10 +239,8 @@ class TeachersController {
   }
 
   public async viewAll(
-   
     key: z.infer<typeof TeachersSchemas.token>
   ): Promise<z.infer<typeof TeachersSchemas.teachers>> {
-
     const { token } = key;
 
     try {
@@ -193,14 +250,11 @@ class TeachersController {
       }
 
       const whereClause: any = {};
-     
 
       const teachers = await prisma.teachers.findMany({
         where: whereClause,
         orderBy: { createdIn: 'desc' },
-        include:{
-          documents:true
-        }
+        include: { documents: true },
       });
 
       return TeachersSchemas.teachers.parse(teachers);
