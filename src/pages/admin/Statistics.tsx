@@ -224,14 +224,14 @@ export default function Statistics() {
   };
 
   return (
-    <div className="min-h-screen p-6  transition-colors duration-300">
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8 transition-colors duration-300">
       {/* Date Filters */}
-      <div className="flex gap-4 mb-6">
-        <div className="relative">
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative w-full sm:w-40">
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            className="p-3 pl-10 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:text-gray-200 transition-all duration-200"
+            className="w-full p-2 pl-10 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:text-gray-200 text-sm sm:text-base transition-all duration-200"
           >
             {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
               <option key={month} value={month}>
@@ -243,14 +243,14 @@ export default function Statistics() {
           </select>
           <BookOpen
             className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            size={18}
+            size={16}
           />
         </div>
-        <div className="relative">
+        <div className="relative w-full sm:w-32">
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="p-3 pl-10 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:text-gray-200 transition-all duration-200"
+            className="w-full p-2 pl-10 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:text-gray-200 text-sm sm:text-base transition-all duration-200"
           >
             {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + i).map(
               (year) => (
@@ -262,44 +262,44 @@ export default function Statistics() {
           </select>
           <BookOpen
             className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            size={18}
+            size={16}
           />
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
-          <Users size={24} className="mb-2" />
-          <h3 className="text-lg font-semibold">Estudantes por Turma</h3>
-          <p className="text-3xl font-bold">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mb-6">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 p-4 sm:p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+          <Users size={20} className="mb-2" />
+          <h3 className="text-base sm:text-lg font-semibold">Estudantes por Turma</h3>
+          <p className="text-2xl sm:text-3xl font-bold">
             {studentsPerClass.reduce((sum, cls) => sum + cls.studentCount, 0)}
           </p>
         </div>
-        <div className="bg-gradient-to-br from-green-500 to-green-600 dark:from-green-700 dark:to-green-800 p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
-          <BookOpen size={24} className="mb-2" />
-          <h3 className="text-lg font-semibold">Disciplinas por Curso</h3>
-          <p className="text-3xl font-bold">
+        <div className="bg-gradient-to-br from-green-500 to-green-600 dark:from-green-700 dark:to-green-800 p-4 sm:p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+          <BookOpen size={20} className="mb-2" />
+          <h3 className="text-base sm:text-lg font-semibold">Disciplinas por Curso</h3>
+          <p className="text-2xl sm:text-3xl font-bold">
             {subjectsPerCourse.reduce(
               (sum, course) => sum + course.subjectCount,
               0
             )}
           </p>
         </div>
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-700 dark:to-purple-800 p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
-          <School size={24} className="mb-2" />
-          <h3 className="text-lg font-semibold">Quantidade de Cursos</h3>
-          <p className="text-3xl font-bold">{courses?.length || 0}</p>
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-700 dark:to-purple-800 p-4 sm:p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+          <School size={20} className="mb-2" />
+          <h3 className="text-base sm:text-lg font-semibold">Quantidade de Cursos</h3>
+          <p className="text-2xl sm:text-3xl font-bold">{courses?.length || 0}</p>
         </div>
-        <div className="bg-gradient-to-br from-red-500 to-red-600 dark:from-red-700 dark:to-red-800 p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
-          <User size={24} className="mb-2" />
-          <h3 className="text-lg font-semibold">Quantidade de Professores</h3>
-          <p className="text-3xl font-bold">{filteredTeachers.length}</p>
+        <div className="bg-gradient-to-br from-red-500 to-red-600 dark:from-red-700 dark:to-red-800 p-4 sm:p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+          <User size={20} className="mb-2" />
+          <h3 className="text-base sm:text-lg font-semibold">Quantidade de Professores</h3>
+          <p className="text-2xl sm:text-3xl font-bold">{filteredTeachers.length}</p>
         </div>
-        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 dark:from-yellow-700 dark:to-yellow-800 p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
-          <DoorOpen size={24} className="mb-2" />
-          <h3 className="text-lg font-semibold">Quantidade de Salas</h3>
-          <p className="text-3xl font-bold">{rooms?.length || 0}</p>
+        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 dark:from-yellow-700 dark:to-yellow-800 p-4 sm:p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+          <DoorOpen size={20} className="mb-2" />
+          <h3 className="text-base sm:text-lg font-semibold">Quantidade de Salas</h3>
+          <p className="text-2xl sm:text-3xl font-bold">{rooms?.length || 0}</p>
         </div>
       </div>
 
@@ -321,14 +321,15 @@ export default function Statistics() {
         onRetry={refetchData}
       >
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Desktop Table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-200 dark:bg-gray-900 text-gray-700 dark:text-gray-200 sticky top-0 z-10">
                 <tr>
-                  <th className="py-4 px-6 font-semibold">Id</th>
-                  <th className="py-4 px-6 font-semibold">Nome</th>
-                  <th className="py-4 px-6 font-semibold">Email</th>
-                  <th className="py-4 px-6 font-semibold">Ações</th>
+                  <th className="py-3 sm:py-4 px-4 sm:px-6 font-semibold">Id</th>
+                  <th className="py-3 sm:py-4 px-4 sm:px-6 font-semibold">Nome</th>
+                  <th className="py-3 sm:py-4 px-4 sm:px-6 font-semibold">Email</th>
+                  <th className="py-3 sm:py-4 px-4 sm:px-6 font-semibold">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -342,14 +343,14 @@ export default function Statistics() {
                           : "bg-white dark:bg-gray-900"
                       } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200`}
                     >
-                      <td className="py-4 px-6">{teacher.idTeacher}</td>
-                      <td className="py-4 px-6">
+                      <td className="py-3 sm:py-4 px-4 sm:px-6">{teacher.idTeacher}</td>
+                      <td className="py-3 sm:py-4 px-4 sm:px-6">
                         {truncateText(teacher.name, 25)}
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="py-3 sm:py-4 px-4 sm:px-6">
                         {truncateText(teacher.email, 25)}
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="py-3 sm:py-4 px-4 sm:px-6">
                         <button
                           onClick={() =>
                             openDelete(teacher.idTeacher, "teacher")
@@ -357,7 +358,7 @@ export default function Statistics() {
                           className="p-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 rounded-full hover:bg-red-200 dark:hover:bg-red-800 transition-colors duration-200"
                           title="Excluir Professor"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} />
                         </button>
                       </td>
                     </tr>
@@ -374,6 +375,45 @@ export default function Statistics() {
                 )}
               </tbody>
             </table>
+          </div>
+          {/* Mobile Card Layout */}
+          <div className="sm:hidden space-y-4 p-4">
+            {filteredTeachers.length > 0 ? (
+              filteredTeachers.map((teacher) => (
+                <div
+                  key={teacher.idTeacher}
+                  className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200"
+                >
+                  <div className="flex flex-col gap-2">
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-200">ID:</span>{" "}
+                      {teacher.idTeacher}
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-200">Nome:</span>{" "}
+                      {truncateText(teacher.name, 25)}
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-200">Email:</span>{" "}
+                      {truncateText(teacher.email, 25)}
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => openDelete(teacher.idTeacher, "teacher")}
+                        className="p-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 rounded-full hover:bg-red-200 dark:hover:bg-red-800 transition-colors duration-200"
+                        title="Excluir Professor"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 dark:text-gray-400">
+                Nenhum professor encontrado.
+              </p>
+            )}
           </div>
         </div>
       </DataStatusHandler>
