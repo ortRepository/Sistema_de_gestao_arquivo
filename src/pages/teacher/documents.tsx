@@ -325,7 +325,7 @@ export default function AcademicDocuments() {
         <div className="md:flex md:justify-end mb-4">
           <ComponentButton
             variant="primary"
-            className="flex items-center gap-2 md:w-auto w-full"
+            className="flex items-center justify-center gap-2 md:w-auto w-full"
             onClick={() => setAddModalOpen(true)}
           >
             <Plus size={16} /> Adicionar Documento
@@ -395,7 +395,7 @@ export default function AcademicDocuments() {
               </div>
             ))
           ) : (
-         <div className="col-span-full flex justify-center items-center min-h-[200px]">
+            <div className="col-span-full flex justify-center items-center min-h-[200px]">
               <p className="py-6 px-4 text-center text-gray-500">
                 Nenhum documento encontrado.
               </p>

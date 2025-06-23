@@ -84,10 +84,10 @@ export default function PageRegisterStudent() {
 
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return students.filter((student) => {
+    return students.filter((student, idx) => {
       switch (filterType) {
         case "id":
-          return student.id.toString().includes(term);
+          return String(idx + 1).includes(searchTerm);
         case "name":
           return student.name.toLowerCase().includes(term);
         case "biNumber":
@@ -102,7 +102,7 @@ export default function PageRegisterStudent() {
           return student.birthDate.toLowerCase().includes(term);
         default:
           return (
-            student.id.toString().includes(term) ||
+            String(idx + 1).includes(searchTerm) ||
             student.name.toLowerCase().includes(term) ||
             student.biNumber.toLowerCase().includes(term) ||
             student.room.toLowerCase().includes(term) ||
@@ -222,13 +222,13 @@ export default function PageRegisterStudent() {
             </thead>
             <tbody>
               {filtered.length > 0 ? (
-                filtered.map((student: DisplayStudent) => (
+                filtered.map((student: DisplayStudent, idx) => (
                   <tr
                     key={student.id}
                     className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
                   >
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {student.id}
+                      {idx + 1}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
                       {student.photo ? (
@@ -259,7 +259,7 @@ export default function PageRegisterStudent() {
                       {student.course}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {student.birthDate}
+                      {new Date(student.birthDate).toLocaleDateString()}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap flex gap-2">
                       <button

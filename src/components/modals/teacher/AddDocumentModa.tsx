@@ -102,9 +102,20 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
       setErrors((err) => ({ ...err, file: `Arquivo excede ${maxSizeMB}MB` }));
       return;
     }
+    if (
+      !["application/pdf", "image/png", "image/jpeg", "image/jpg"].includes(
+        f.type
+      )
+    ) {
+      setErrors((err) => ({
+        ...err,
+        file: "Formato não suportado (PDF, PNG, JPG ou JPEG)",
+      }));
+      return;
+    }
     setFile(f);
     setErrors((prev) => ({ ...prev, file: undefined }));
-    console.log("Selected file:", f);
+    console.log("Selected file:", { name: f.name, size: f.size, type: f.type });
 
     if (f.type.startsWith("image/")) {
       setIsPdf(false);
@@ -114,13 +125,6 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     } else if (f.type === "application/pdf") {
       setIsPdf(true);
       setPreviewUrl(null);
-    } else {
-      setIsPdf(false);
-      setPreviewUrl(null);
-      setErrors((err) => ({
-        ...err,
-        file: "Formato não suportado (PDF ou imagem)",
-      }));
     }
   };
 
@@ -147,7 +151,8 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     }
   }, [isOpen]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setIsLoading(true);
     const errs: Partial<Record<string, string>> = {};
     if (!description) errs.description = "Preencha a descrição";
     if (!file) errs.file = "Envie um documento";
@@ -158,13 +163,13 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
 
     setErrors(errs);
     if (Object.keys(errs).length) {
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
     const formData = new FormData();
-    formData.append("description", description.toString());
-    if (idSubject) formData.append("idSubject", idSubject.toString());
+    formData.append("description", description);
+    if (idSubject) formData.append("idSubject", idSubject);
     formData.append("status", status);
     formData.append("file", file as File);
     if (idClasse) formData.append("idClasse", idClasse);
@@ -173,47 +178,52 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     if (idTeacher) formData.append("idTeacher", idTeacher);
     if (idRoom) formData.append("idRoom", idRoom);
 
-    // Debug FormData
+    console.log("FormData entries:");
     for (const [key, value] of formData.entries()) {
       console.log(
-        `FormData ${key}:`,
+        `  ${key}:`,
         value instanceof File
           ? { name: value.name, size: value.size, type: value.type }
           : value
       );
     }
 
-    addDocument(formData, {
-      onSuccess: () => {
-        setFile(null);
-        setPreviewUrl(null);
-        setIsPdf(false);
-        setIsLoading(false);
-        onClose();
-      },
-      onError: (error: any) => {
-        console.error("Add document error:", error);
-        let errorMessages: Partial<Record<string, string>> = {};
+    try {
+      await addDocument(formData, {
+        onSuccess: () => {
+          console.log("Documento adicionado com sucesso!");
+          setFile(null);
+          setPreviewUrl(null);
+          setIsPdf(false);
+          setIsLoading(false);
+          onClose();
+        },
+        onError: (error: any) => {
+          console.error("Add document error:", error);
+          let errorMessages: Partial<Record<string, string>> = {};
 
-        if (error.response?.data?.details) {
-          // Map backend validation errors to form fields
-          error.response.data.details.forEach(
-            (err: { path: string; message: string }) => {
-              errorMessages[err.path] = err.message;
-            }
-          );
-        } else {
-          // Fallback for generic errors
-          errorMessages.submit =
-            error.response?.data?.error ||
-            error.message ||
-            "Erro ao adicionar documento";
-        }
+          if (error.response?.data?.details) {
+            error.response.data.details.forEach(
+              (err: { campo: string; mensagem: string }) => {
+                errorMessages[err.campo] = err.mensagem;
+              }
+            );
+          } else {
+            errorMessages.submit =
+              error.response?.data?.error ||
+              error.message ||
+              "Erro ao adicionar documento";
+          }
 
-        setErrors(errorMessages);
-        setIsLoading(false);
-      },
-    });
+          setErrors(errorMessages);
+          setIsLoading(false);
+        },
+      });
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      setErrors({ submit: "Erro inesperado ao adicionar documento" });
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -231,49 +241,52 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
         <SearchableSelect
           label="Disciplina"
           value={idSubject}
-          onChange={(val) => setIdSubject(val)}
+          onChange={(val) => setIdSubject(val || "")}
           options={subjectOptions}
           error={errors.idSubject || ""}
         />
         <SearchableSelect
           label="Status"
           value={status}
-          onChange={(val) => setStatus(val)}
+          onChange={(val) => setStatus(val || "true")}
           options={statusOptions}
           error={errors.status || ""}
         />
+        <p className="text-sm text-red-500 mt-2">
+          *Selecione pelo menos uma turma, aluno, curso, professor ou sala.
+        </p>
         <SearchableSelect
           label="Turma"
           value={idClasse}
-          onChange={(val) => setIdClasse(val)}
+          onChange={(val) => setIdClasse(val || "")}
           options={classOptions}
           error={errors.idClasse || ""}
         />
         <SearchableSelect
           label="Aluno"
           value={idStudent}
-          onChange={(val) => setIdStudent(val)}
+          onChange={(val) => setIdStudent(val || "")}
           options={studentOptions}
           error={errors.idStudent || ""}
         />
         <SearchableSelect
           label="Curso"
           value={idCourse}
-          onChange={(val) => setIdCourse(val)}
+          onChange={(val) => setIdCourse(val || "")}
           options={courseOptions}
           error={errors.idCourse || ""}
         />
         <SearchableSelect
           label="Professor"
           value={idTeacher}
-          onChange={(val) => setIdTeacher(val)}
+          onChange={(val) => setIdTeacher(val || "")}
           options={teacherOptions}
           error={errors.idTeacher || ""}
         />
         <SearchableSelect
           label="Sala"
           value={idRoom}
-          onChange={(val) => setIdRoom(val)}
+          onChange={(val) => setIdRoom(val || "")}
           options={roomOptions}
           error={errors.idRoom || ""}
         />
@@ -315,14 +328,14 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
                       name="file-upload"
                       type="file"
                       className="sr-only"
-                      accept="application/pdf,image/*"
+                      accept="application/pdf,image/png,image/jpeg,image/jpg"
                       onChange={handleFileChange}
                     />
                   </label>
                   <p className="pl-1">ou arraste e solte</p>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Suporta PDF e imagens, até 6MB
+                  Suporta PDF, PNG, JPG e JPEG, até 6MB
                 </p>
                 {errors.file && (
                   <p className="text-xs text-red-500 mt-1">{errors.file}</p>

@@ -10,6 +10,7 @@ import {
   Student,
   Subject,
   Teacher,
+  TeacherRegister,
 } from "@/types/interfaces";
 
 /* 
@@ -55,7 +56,6 @@ export function createApiHook<T, U = unknown>(
     };
   }
 }
-
 
 /*
   ================================================================================
@@ -412,16 +412,7 @@ export const useGetSubject = createApiHook<Subject>(endpoints.subjects.viewAll);
 // Add a new teacher (POST /api/teachers)
 export const useAddTeacher = createApiHook<
   { code: number; message: string },
-  {
-    name: string;
-    email: string;
-    telephone: string;
-    role: number;
-    function: string;
-    photo: string;
-    path: string;
-    status: boolean;
-  }
+  TeacherRegister
 >(endpoints.teachers.create);
 
 // Delete a teacher (DELETE /api/teachers)

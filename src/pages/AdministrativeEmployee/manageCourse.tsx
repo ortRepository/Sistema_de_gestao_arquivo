@@ -10,17 +10,15 @@ import ModalManageDisciplinas from "@/components/modals/modalEmployee/ModalManag
 import { useListCourses, useDeleteCourse } from "@/hooks/DynamicApiHooks";
 import { Course } from "@/types/interfaces";
 
-
-
 export default function PageManageCourse() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filterType, setFilterType] = useState<string>("");
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [isDisciplinasModalOpen, setIsDisciplinasModalOpen] = useState<boolean>(false);
+  const [isDisciplinasModalOpen, setIsDisciplinasModalOpen] =
+    useState<boolean>(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [confirmCourseId, setConfirmCourseId] = useState<number | null>(null);
-
 
   const { data: courses, isLoading, error, refetch } = useListCourses();
   const { mutate: deleteCourse } = useDeleteCourse();
@@ -34,17 +32,17 @@ export default function PageManageCourse() {
 
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return (courses || []).filter((course: Course) => {
+    return (courses || []).filter((course: Course, idx) => {
       switch (filterType) {
         case "idCourse":
-          return course.idCourse.toString().includes(term);
+          return String(idx + 1).includes(searchTerm);
         case "name":
           return course.name.toLowerCase().includes(term);
         case "status":
           return (course.status ? "ativo" : "inativo").includes(term);
         default:
           return (
-            course.idCourse.toString().includes(term) ||
+            String(idx + 1).includes(searchTerm) ||
             course.name.toLowerCase().includes(term) ||
             (course.status ? "ativo" : "inativo").includes(term)
           );
@@ -72,21 +70,16 @@ export default function PageManageCourse() {
 
   const handleDelete = () => {
     if (confirmCourseId !== null) {
-      deleteCourse(
-        { idCourse: confirmCourseId },
-
-      );
+      deleteCourse({ idCourse: confirmCourseId });
     }
   };
 
   const handleSave = (_course: Course) => {
     refetch();
- 
   };
 
   return (
     <div className="p-6 w-full h-full dark:bg-gray-800 mb-16 md:mb-0 dark:text-white text-gray-800">
- 
       <SearchFilterBar
         title="Gerir Cursos"
         searchTerm={searchTerm}
@@ -110,7 +103,11 @@ export default function PageManageCourse() {
       </div>
 
       <div className="bg-white dark:bg-gray-900 px-3 md:px-0 rounded-lg shadow overflow-auto w-60 md:w-99 min-w-full md:h-[55vh] h-auto">
-        <DataStatusHandler isLoading={isLoading} error={error} onRetry={refetch}>
+        <DataStatusHandler
+          isLoading={isLoading}
+          error={error}
+          onRetry={refetch}
+        >
           <table className="w-full text-left text-xs md:text-sm border-collapse">
             <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
               <tr>
@@ -122,13 +119,13 @@ export default function PageManageCourse() {
             </thead>
             <tbody>
               {filtered.length > 0 ? (
-                filtered.map((course: Course) => (
+                filtered.map((course: Course, idx) => (
                   <tr
                     key={course.idCourse}
                     className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
                   >
                     <td className="py-2 px-2 md:px-4 md:y-3 whitespace-nowrap">
-                      {course.idCourse}
+                      {idx + 1}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:y-3 whitespace-nowrap">
                       {truncateText(course.name, 25, "end")}

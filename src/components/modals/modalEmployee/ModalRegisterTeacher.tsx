@@ -5,7 +5,7 @@ import ComponentInput from "@/components/common/FormInput";
 import ComponentButton from "@/components/common/button";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 import { SearchableSelect } from "@/components/common/SearchableSelect";
-import { useAddTeacher, useUploadPhoto } from "@/hooks/DynamicApiHooks";
+import { useAddTeacher } from "@/hooks/DynamicApiHooks";
 import { Teacher } from "@/types/interfaces";
 import { teacherSchema } from "@/types/type";
 
@@ -66,7 +66,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
   }>({});
 
   const { mutateAsync: addTeacher } = useAddTeacher();
-  const { mutateAsync: uploadPhoto } = useUploadPhoto();
+
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -131,6 +131,14 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
     }
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
   const handleSelectChange = (name: string, value: string) => {
     if (name === "role") {
       const selectedRole = value as "Professor" | "Secretario";
@@ -187,16 +195,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
     try {
       let photoUrl = teacherData?.photo || "";
       if (selectedFile) {
-        const formData = new FormData();
-        formData.append("photo", selectedFile);
-        const uploadResponse = await uploadPhoto(formData);
-        if (uploadResponse.code === 200) {
-          photoUrl = uploadResponse.result.url;
-        } else {
-          throw new Error(
-            uploadResponse.message || "Erro ao fazer upload da foto"
-          );
-        }
+        photoUrl = await fileToBase64(selectedFile);
       }
 
       const payload = {
@@ -209,8 +208,6 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
         path: "Não disponível",
         status: result.data.status === "Ativo",
       };
-
-      console.log("Payload enviado:", payload);
 
       if (teacherData) {
         // const updatedTeacher: Teacher = {
@@ -234,7 +231,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
       } else {
         await addTeacher(payload, {
           onSuccess: (response: { code: number; message: string }) => {
-            if (response.code === 200) {
+            if (response.message === "Teacher added successfully") {
               setStatusMessage({
                 text: "Professor cadastrado com sucesso!",
                 type: "success",
@@ -259,11 +256,20 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
           },
         });
       }
-    } catch (error) {
-      setStatusMessage({
-        text: "Erro ao salvar. Tente novamente!",
-        type: "error",
-      });
+    } catch (error: any) {
+      if (error.message === "Email already registered") {
+        setStatusMessage({
+          text: "Erro ao salvar. Email já registrado!",
+          type: "error",
+        });
+        setIsLoading(false);
+      } else {
+        setStatusMessage({
+          text: "Erro ao salvar. Tente novamente!",
+          type: "error",
+        });
+        setIsLoading(false);
+      }
     } finally {
       setIsLoading(false);
     }

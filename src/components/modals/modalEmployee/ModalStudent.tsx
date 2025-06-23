@@ -17,7 +17,6 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
   isOpen,
   onClose,
   student,
-  onSave,
 }) => {
   const [formData, setFormData] = useState<Student>({
     idStudent: 0,
@@ -259,19 +258,11 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
       if (student) {
         await updateStudent(payload, {
           onSuccess: () => {
-            const updatedStudent: Student = {
-              ...formData,
-              ...payload,
-              updatedIn: new Date().toISOString(),
-            };
             setStatusMessage({
               text: "Aluno atualizado com sucesso!",
               type: "success",
             });
-            setTimeout(() => {
-              onSave(updatedStudent);
-              handleClose();
-            }, 2000);
+            setTimeout(onClose, 2000);
           },
           onError: (error: any) => {
             setStatusMessage({
@@ -284,21 +275,11 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
       } else {
         await addStudent(payload, {
           onSuccess: (_data: { code: number; message: string }) => {
-            // const newStudent: Student = {
-            //   ...formData,
-            //   ...payload,
-            //   idStudent: Date.now(), // Temporary ID, replace with data.idStudent if available
-            //   createdIn: new Date().toISOString(),
-            //   updatedIn: new Date().toISOString(),
-            // };
             setStatusMessage({
               text: "Aluno cadastrado com sucesso!",
               type: "success",
             });
-            setTimeout(() => {
-              // onSave(newStudent);
-              student ? onClose : handleClose;
-            }, 2000);
+            setTimeout(handleClose, 2000);
           },
           onError: (error: any) => {
             setStatusMessage({
@@ -309,12 +290,20 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
           },
         });
       }
-    } catch (error) {
-      setStatusMessage({
-        text: "Erro ao salvar. Tente novamente!",
-        type: "error",
-      });
-      setIsLoading(false);
+    } catch (error: any) {
+      if (error.message === "Student already exists") {
+        setStatusMessage({
+          text: "Erro ao salvar. Estudante já registrado!",
+          type: "error",
+        });
+        setIsLoading(false);
+      } else {
+        setStatusMessage({
+          text: "Erro ao salvar. Tente novamente!",
+          type: "error",
+        });
+        setIsLoading(false);
+      }
     }
   };
 

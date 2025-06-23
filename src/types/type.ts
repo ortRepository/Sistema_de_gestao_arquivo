@@ -141,6 +141,7 @@ export const teacherSchema = z.object({
   status: z.enum(["Ativo", "Inativo"], {
     errorMap: () => ({ message: "Status é obrigatório" }),
   }),
+  
 });
 
 export const classSchema = z.object({

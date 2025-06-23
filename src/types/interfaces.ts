@@ -140,7 +140,7 @@ export interface Subject {
   idCourse: number;
   createdIn: string;
   updatedIn: string;
-   course?:string;
+  course?: string;
 }
 //-------------------------Teacher------------------------
 export interface Teacher {
@@ -153,6 +153,16 @@ export interface Teacher {
   path: string;
   idUser: number;
   createdIn: string;
+  status: boolean;
+}
+export interface TeacherRegister {
+  name: string;
+  email: string;
+  telephone: string;
+  role: number;
+  function: string;
+  photo: string;
+  path: string;
   status: boolean;
 }
 

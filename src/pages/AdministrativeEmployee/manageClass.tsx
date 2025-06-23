@@ -38,14 +38,14 @@ export default function PageManageClass() {
 
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return (classes || []).filter((cls: Class) => {
+    return (classes || []).filter((cls: Class, idx) => {
       const room = rooms?.find((r) => r.idRoom === cls.idRoom);
       const courseName =
         courses?.find((c) => c.idCourse === room?.idCourse)?.name || "N/A";
       const roomName = room?.name || "N/A";
       switch (filterType) {
         case "id":
-          return cls.idClass.toString().includes(term);
+          return String(idx + 1).includes(searchTerm);
         case "name":
           return cls.name.toLowerCase().includes(term);
         case "room":
@@ -56,7 +56,7 @@ export default function PageManageClass() {
           return (cls.status ? "ativo" : "inativo").includes(term);
         default:
           return (
-            cls.idClass.toString().includes(term) ||
+            String(idx + 1).includes(searchTerm) ||
             cls.name.toLowerCase().includes(term) ||
             roomName.toLowerCase().includes(term) ||
             courseName.toLowerCase().includes(term) ||
@@ -132,7 +132,7 @@ export default function PageManageClass() {
             </thead>
             <tbody>
               {filtered.length > 0 ? (
-                filtered.map((cls: Class) => {
+                filtered.map((cls: Class, idx) => {
                   const room = rooms?.find((r) => r.idRoom === cls.idRoom);
                   const courseName =
                     courses?.find((c) => c.idCourse === room?.idCourse)?.name ||
@@ -143,7 +143,7 @@ export default function PageManageClass() {
                       className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
                     >
                       <td className="py-2 px-2 md:px-4 md:y-3 whitespace-nowrap">
-                        {cls.idClass}
+                        {idx + 1}
                       </td>
                       <td className="py-2 px-2 md:px-4 md:y-3 whitespace-nowrap">
                         {truncateText(cls.name, 25, "end")}

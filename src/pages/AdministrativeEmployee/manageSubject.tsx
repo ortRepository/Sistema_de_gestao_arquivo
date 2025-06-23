@@ -6,7 +6,11 @@ import ComponentButton from "@/components/common/button";
 import { DataStatusHandler } from "@/components/ui/DataStatusHandler";
 import { truncateText } from "@/lib/utils";
 import ModalManageSubject from "@/components/modals/modalEmployee/ModalManageSubject";
-import { useListSubjects, useDeleteSubject, useListCourses } from "@/hooks/DynamicApiHooks";
+import {
+  useListSubjects,
+  useDeleteSubject,
+  useListCourses,
+} from "@/hooks/DynamicApiHooks";
 import { Subject } from "@/types/interfaces";
 
 interface ApiSubject {
@@ -37,7 +41,8 @@ export default function PageManageSubject() {
     return apiSubjects.map((subject: ApiSubject) => ({
       ...subject,
       id: subject.idSubject, // Map id to idSubject
-      course: courses?.find((c) => c.idCourse === subject.idCourse)?.name || "N/A",
+      course:
+        courses?.find((c) => c.idCourse === subject.idCourse)?.name || "N/A",
     }));
   }, [apiSubjects, courses]);
 
@@ -50,17 +55,19 @@ export default function PageManageSubject() {
 
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return subjects.filter((subject) => {
+    return subjects.filter((subject, idx) => {
       switch (filterType) {
         case "id":
-          return subject.idSubject.toString().includes(term);
+          return String(idx + 1).includes(searchTerm);
         case "name":
           return subject.name.toLowerCase().includes(term);
         case "course":
-          return subject.course?.toLowerCase().includes(term) || "n/a".includes(term);
+          return (
+            subject.course?.toLowerCase().includes(term) || "n/a".includes(term)
+          );
         default:
           return (
-            subject.idSubject.toString().includes(term) ||
+            String(idx + 1).includes(searchTerm) ||
             subject.name.toLowerCase().includes(term) ||
             subject.course?.toLowerCase().includes(term) ||
             "n/a".includes(term)
@@ -140,20 +147,22 @@ export default function PageManageSubject() {
             <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
               <tr>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Nome da Disciplina</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">
+                  Nome da Disciplina
+                </th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Curso</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Ações</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length > 0 ? (
-                filtered.map((subject: Subject) => (
+                filtered.map((subject: Subject, idx) => (
                   <tr
                     key={subject.idSubject}
                     className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
                   >
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {subject.idSubject}
+                      {idx + 1}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
                       {truncateText(subject.name, 25, "end")}
@@ -195,7 +204,9 @@ export default function PageManageSubject() {
       <ModalManageSubject
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        subjectData={selectedSubject ? { ...selectedSubject, course: undefined } : null} // Remove course field
+        subjectData={
+          selectedSubject ? { ...selectedSubject, course: undefined } : null
+        } // Remove course field
         onSave={handleSave}
       />
 

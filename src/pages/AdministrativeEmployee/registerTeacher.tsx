@@ -37,10 +37,10 @@ export default function PageRegisTerteacher() {
 
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return teachersList.filter((teacher: Teacher) => {
+    return teachersList.filter((teacher: Teacher,idx) => {
       switch (filterType) {
         case "idTeacher":
-          return teacher.idTeacher.toString().includes(term);
+          return  String(idx + 1).includes(searchTerm);
         case "function":
           return teacher.function.toLowerCase().includes(term);
         case "path":
@@ -49,7 +49,7 @@ export default function PageRegisTerteacher() {
           return teacher.idUser.toString().includes(term);
         default:
           return (
-            teacher.idTeacher.toString().includes(term) ||
+            String(idx + 1).includes(searchTerm) ||
             teacher.function.toLowerCase().includes(term) ||
             teacher.path.toLowerCase().includes(term) ||
             teacher.idUser.toString().includes(term)
@@ -137,11 +137,10 @@ export default function PageRegisTerteacher() {
               <tr>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Foto</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Nome</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Função</th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Caminho</th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">
-                  Id do Usuário
-                </th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Email</th>
+
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">
                   Criado em
                 </th>
@@ -150,7 +149,7 @@ export default function PageRegisTerteacher() {
             </thead>
             <tbody>
               {filtered.length > 0 ? (
-                filtered.map((teacher: Teacher) => (
+                filtered.map((teacher: Teacher, idx) => (
                   <tr
                     key={teacher.idTeacher}
                     className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
@@ -173,17 +172,18 @@ export default function PageRegisTerteacher() {
                       )}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {teacher.idTeacher}
+                      {idx + 1}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {teacher.name}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
                       {truncateText(teacher.function, 15, "end")}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {truncateText(teacher.path, 15, "end")}
+                      {truncateText(teacher.email, 25, "end")}
                     </td>
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {teacher.idUser}
-                    </td>
+
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
                       {new Date(teacher.createdIn).toLocaleDateString()}
                     </td>

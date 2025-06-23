@@ -29,15 +29,15 @@ export default function PageManageRoom() {
 
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return rooms.filter((room) => {
+    return rooms.filter((room, idx) => {
       switch (filterType) {
         case "idRoom":
-          return room.idRoom.toString().includes(term);
+          return String(idx + 1).includes(searchTerm);
         case "name":
           return room.name.toLowerCase().includes(term);
         default:
           return (
-            room.idRoom.toString().includes(term) ||
+            String(idx + 1).includes(searchTerm) ||
             room.name.toLowerCase().includes(term)
           );
       }
@@ -121,13 +121,13 @@ export default function PageManageRoom() {
             </thead>
             <tbody>
               {filtered.length > 0 ? (
-                filtered.map((room: Room) => (
+                filtered.map((room: Room, idx) => (
                   <tr
                     key={room.idRoom}
                     className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
                   >
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {room.idRoom}
+                      {idx + 1}
                     </td>
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
                       {room.name}
