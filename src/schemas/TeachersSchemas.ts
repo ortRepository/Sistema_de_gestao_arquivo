@@ -74,9 +74,7 @@ class TeachersSchemas {
     name: z.string({
       invalid_type_error: "The 'name' field must be a string."
     }).nonempty("Name cannot be empty.").max(255).optional(),
-    email: z.string({
-      invalid_type_error: "The 'email' field must be a string."
-    }).email("Invalid email format.").max(255).optional(),
+ 
     telephone: z.string({
       invalid_type_error: "The 'telephone' field must be a string."
     }).nonempty("Telephone cannot be empty.").max(45).optional(),
