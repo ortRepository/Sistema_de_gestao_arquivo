@@ -149,25 +149,25 @@ export default function PageRegisterStudent() {
     }
   };
 
-  const handleSave = (student: Student) => {
-    const displayStudent: DisplayStudent = {
-      id: student.idStudent,
-      name: student.name,
-      biNumber: student.biNumber,
-      room: student.room,
-      classGroup:
-        student.plainToClassFromExist ||
-        classes?.find((c) => c.idClass === student.idClass)?.name ||
-        "N/A",
-      course:
-        courseMap[rooms?.find((r) => r.name === student.room)?.idCourse || 0] ||
-        "N/A",
-      birthDate: student.dateOfBirth,
-      photo: student.photo,
-      createdIn: student.createdIn,
-      updatedIn: student.updatedIn,
-      status: student.status,
-    };
+  const handleSave = (_student: Student) => {
+    // const displayStudent: DisplayStudent = {
+    //   id: student.idStudent,
+    //   name: student.name,
+    //   biNumber: student.biNumber,
+    //   room: student.room,
+    //   classGroup:
+    //     student.plainToClassFromExist ||
+    //     classes?.find((c) => c.idClass === student.idClass)?.name ||
+    //     "N/A",
+    //   course:
+    //     courseMap[rooms?.find((r) => r.name === student.room)?.idCourse || 0] ||
+    //     "N/A",
+    //   birthDate: student.dateOfBirth,
+    //   photo: student.photo,
+    //   createdIn: student.createdIn,
+    //   updatedIn: student.updatedIn,
+    //   status: student.status,
+    // };
     refetch();
   };
 
@@ -188,7 +188,7 @@ export default function PageRegisterStudent() {
       <div className="md:flex md:justify-end mb-4">
         <ComponetButton
           variant="primary"
-          className="flex items-center gap-2"
+          className="flex items-center justify-center gap-2 md:w-auto w-full"
           onClick={openCreate}
         >
           <Plus size={16} /> Cadastrar

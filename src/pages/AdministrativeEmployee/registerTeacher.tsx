@@ -119,7 +119,7 @@ export default function PageRegisTerteacher() {
       <div className="md:flex md:justify-end mb-4 gap-2">
         <ComponetButton
           variant="primary"
-          className="flex items-center gap-2"
+          className="flex items-center justify-center gap-2 md:w-auto w-full"
           onClick={openCreate}
         >
           <Plus size={16} /> Cadastrar

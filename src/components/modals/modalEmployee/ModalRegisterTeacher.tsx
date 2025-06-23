@@ -5,7 +5,7 @@ import ComponentInput from "@/components/common/FormInput";
 import ComponentButton from "@/components/common/button";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 import { SearchableSelect } from "@/components/common/SearchableSelect";
-import { useAddTeacher } from "@/hooks/DynamicApiHooks";
+import { useAddTeacher, useUploadPhoto } from "@/hooks/DynamicApiHooks";
 import { Teacher } from "@/types/interfaces";
 import { teacherSchema } from "@/types/type";
 
@@ -13,7 +13,7 @@ type TeacherForm = z.infer<typeof teacherSchema>;
 
 const roleOptions = [
   { value: "Professor", label: "Professor" },
-  { value: "Coordenador", label: "Coordenador" },
+  { value: "Secretario", label: "Secretário" },
 ];
 
 const statusOptions = [
@@ -32,7 +32,6 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
   isOpen,
   onClose,
   teacherData,
-  onSave,
 }) => {
   const [formData, setFormData] = useState<TeacherForm>({
     name: "",
@@ -56,7 +55,6 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     teacherData?.photo || null
   );
-
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
     email?: string;
@@ -68,6 +66,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
   }>({});
 
   const { mutateAsync: addTeacher } = useAddTeacher();
+  const { mutateAsync: uploadPhoto } = useUploadPhoto();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -77,7 +76,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
         email: teacherData.email || "",
         telephone: teacherData.telephone || "",
         role:
-          teacherData.function === "Coordenador" ? "Coordenador" : "Professor",
+          teacherData.function === "Secretário" ? "Secretario" : "Professor",
         function: teacherData.function,
         status: teacherData.status ? "Ativo" : "Inativo",
       });
@@ -134,7 +133,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
 
   const handleSelectChange = (name: string, value: string) => {
     if (name === "role") {
-      const selectedRole = value as "Professor" | "Coordenador";
+      const selectedRole = value as "Professor" | "Secretario";
       setFormData((prev) => ({ ...prev, role: selectedRole }));
       setFieldErrors((prev) => ({ ...prev, role: undefined }));
     } else if (name === "status") {
@@ -168,15 +167,6 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
     onClose();
   };
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleSubmit = async () => {
     setIsLoading(true);
     const result = teacherSchema.safeParse(formData);
@@ -195,9 +185,18 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
     }
 
     try {
-      let photo = teacherData?.photo || "";
+      let photoUrl = teacherData?.photo || "";
       if (selectedFile) {
-        photo = await fileToBase64(selectedFile);
+        const formData = new FormData();
+        formData.append("photo", selectedFile);
+        const uploadResponse = await uploadPhoto(formData);
+        if (uploadResponse.code === 200) {
+          photoUrl = uploadResponse.result.url;
+        } else {
+          throw new Error(
+            uploadResponse.message || "Erro ao fazer upload da foto"
+          );
+        }
       }
 
       const payload = {
@@ -206,33 +205,32 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
         telephone: result.data.telephone,
         role: result.data.role === "Professor" ? 1 : 2,
         function: result.data.function,
-        photo,
-        path: "",
+        photo: photoUrl,
+        path: "Não disponível",
         status: result.data.status === "Ativo",
       };
 
+      console.log("Payload enviado:", payload);
+
       if (teacherData) {
-        const updatedTeacher: Teacher = {
-          idTeacher: teacherData.idTeacher,
-          function: result.data.function,
-          photo,
-          path: teacherData.path || "",
-          idUser: teacherData.idUser || 0,
-          createdIn: teacherData.createdIn,
-          name: result.data.name,
-          email: result.data.email,
-          telephone: result.data.telephone,
-          status: result.data.status === "Ativo",
-        };
+        // const updatedTeacher: Teacher = {
+        //   idTeacher: teacherData.idTeacher,
+        //   function: result.data.function,
+        //   photo: photoUrl,
+        //   path: teacherData.path || "Não disponível",
+        //   idUser: teacherData.idUser || 0,
+        //   createdIn: teacherData.createdIn,
+        //   name: result.data.name,
+        //   email: result.data.email,
+        //   telephone: result.data.telephone,
+        //   status: result.data.status === "Ativo",
+        // };
         setStatusMessage({
           text: "Professor atualizado com sucesso!",
           type: "success",
         });
         setIsLoading(false);
-        setTimeout(() => {
-          onSave(updatedTeacher);
-          handleClose();
-        }, 2000);
+        setTimeout(teacherData ? onClose : handleClose, 2000);
       } else {
         await addTeacher(payload, {
           onSuccess: (response: { code: number; message: string }) => {
@@ -242,7 +240,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
                 type: "success",
               });
               setTimeout(() => {
-                teacherData ? onClose : handleClose;
+                handleClose();
               }, 2000);
             } else {
               setStatusMessage({
@@ -333,17 +331,17 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
           required
         />
         <SearchableSelect
-          label="Função"
+          label="Cargo"
           value={formData.role}
           onChange={(value) => handleSelectChange("role", value)}
           options={roleOptions}
           error={fieldErrors.role}
         />
         <ComponentInput
-          label="Descrição da Função"
+          label="Função"
           name="function"
           type="text"
-          placeholder="Digite a descrição da função"
+          placeholder="Digite a função"
           value={formData.function}
           error={fieldErrors.function || ""}
           onChange={handleChange}
@@ -426,6 +424,9 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
                   </button>
                 </div>
               </div>
+            )}
+            {fieldErrors.photo && (
+              <p className="text-xs text-red-500 mt-1">{fieldErrors.photo}</p>
             )}
             {!previewUrl && (
               <p className="text-center text-gray-400 text-sm mt-3 italic">

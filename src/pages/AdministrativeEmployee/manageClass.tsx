@@ -14,7 +14,6 @@ import {
 } from "@/hooks/DynamicApiHooks";
 import { Class } from "@/types/interfaces";
 
-
 export default function PageManageClass() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filterType, setFilterType] = useState<string>("");
@@ -22,7 +21,6 @@ export default function PageManageClass() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [confirmClassId, setConfirmClassId] = useState<number | null>(null);
- 
 
   const { data: classes, isLoading, error, refetch } = useListClasses();
   const { data: rooms } = useListRooms();
@@ -83,21 +81,16 @@ export default function PageManageClass() {
 
   const handleDelete = () => {
     if (confirmClassId !== null) {
-      deleteClass(
-        { idClass: confirmClassId },
-     
-      );
+      deleteClass({ idClass: confirmClassId });
     }
   };
 
   const handleSave = () => {
     refetch();
-
   };
 
   return (
     <div className="p-6 w-full h-full dark:bg-gray-800 mb-16 md:mb-0 dark:text-white text-gray-800">
-
       <SearchFilterBar
         title="Gerir Turmas"
         searchTerm={searchTerm}
@@ -113,7 +106,7 @@ export default function PageManageClass() {
       <div className="md:flex md:justify-end mb-4">
         <ComponentButton
           variant="primary"
-          className="flex items-center gap-2"
+          className="flex items-center justify-center gap-2 md:w-auto w-full"
           onClick={openCreate}
         >
           <Plus size={16} /> Cadastrar
@@ -132,10 +125,7 @@ export default function PageManageClass() {
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Turma</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Sala</th>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">
-                  Curso
-                </th>{" "}
-                {/* Added */}
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Curso</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Status</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Ações</th>
               </tr>

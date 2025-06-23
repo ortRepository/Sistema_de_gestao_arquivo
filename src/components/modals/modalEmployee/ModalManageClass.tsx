@@ -16,7 +16,6 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
   isOpen,
   onClose,
   classData,
-  onSave,
 }) => {
   const [formData, setFormData] = useState<Partial<Class>>({
     name: "",
@@ -87,6 +86,7 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
   };
 
   const handleSubmit = () => {
+    setIsLoading(true);
     const validation = classSchema.safeParse(formData);
     if (!validation.success) {
       const errors = validation.error.format();
@@ -95,6 +95,7 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
         status: errors.status?._errors[0],
         idRoom: errors.idRoom?._errors[0],
       });
+      setIsLoading(false);
       return;
     }
 
@@ -113,14 +114,7 @@ const ModalManageClass: React.FC<ModalManageClassProps> = ({
         type: "success",
       });
       setIsLoading(false);
-      onSave({
-        ...payload,
-        idClass: classData ? classData.idClass : 0,
-        createdIn: classData ? classData.createdIn : new Date().toISOString(),
-        updatedIn: new Date().toISOString(),
-      });
-      setTimeout(() => classData ? onClose : handleClose, 3000)
-   
+      setTimeout(classData ? onClose : handleClose, 2000);
     };
 
     const onError = (error: any) => {

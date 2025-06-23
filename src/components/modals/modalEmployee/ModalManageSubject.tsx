@@ -127,23 +127,47 @@ const ModalManageSubject: React.FC<SubjectModalProps> = ({
       };
 
       if (subjectData) {
-        await updateSubject({
+        console.log("Dados enviados:", payload);
+        const response = await updateSubject({
           ...payload,
           idCourse: subjectData.idSubject,
         });
-        setStatusMessage({
-          text: "Disciplina atualizada com sucesso!",
-          type: "success",
-        });
+
+        console.log(response.message);
+        if (response.message) {
+          setStatusMessage({
+            text: "Disciplina atualizada com sucesso!",
+            type: "success",
+          });
+
+          setIsLoading(false);
+          setFormData(defaultForm);
+          setTimeout(subjectData ? onClose : handleClose, 2000);
+        } else {
+          setStatusMessage({
+            text: "Ocorreu um erro ao atualizar Disciplina.Tente novamente!",
+            type: "error",
+          });
+          setIsLoading(false);
+        }
       } else {
-        await addSubject(payload);
-        setStatusMessage({
-          text: "Disciplina cadastrada com sucesso!",
-          type: "success",
-        });
+        const response = await addSubject(payload);
+        if (response.message === "Subject registered successfully") {
+          setStatusMessage({
+            text: "Disciplina cadastrada com sucesso!",
+            type: "success",
+          });
+          setIsLoading(false);
+          setFormData(defaultForm);
+          setTimeout(subjectData ? onClose : handleClose, 2000);
+        } else {
+          setStatusMessage({
+            text: "Ocorreu um erro ao cadastrar Disciplina.Tente novamente!",
+            type: "error",
+          });
+          setIsLoading(false);
+        }
       }
-      setFormData(defaultForm);
-      setTimeout(subjectData ? onClose : handleClose, 3000);
     } catch (error: any) {
       setStatusMessage({
         text: error.message || "Erro ao salvar. Tente novamente!",

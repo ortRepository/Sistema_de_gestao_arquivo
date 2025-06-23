@@ -16,7 +16,6 @@ const ModalManageRoom: React.FC<ModalManageRoomProps> = ({
   isOpen,
   onClose,
   room,
-  onSave,
 }) => {
   const [formData, setFormData] = useState<Partial<Room>>({
     name: "",
@@ -87,6 +86,7 @@ const ModalManageRoom: React.FC<ModalManageRoomProps> = ({
   };
 
   const handleSubmit = () => {
+    setIsLoading(true);
     const validation = roomSchema.safeParse(formData);
     if (!validation.success) {
       const errors = validation.error.format();
@@ -95,6 +95,7 @@ const ModalManageRoom: React.FC<ModalManageRoomProps> = ({
         status: errors.status?._errors[0],
         idCourse: errors.idCourse?._errors[0],
       });
+      setIsLoading(false);
       return;
     }
 
@@ -113,13 +114,7 @@ const ModalManageRoom: React.FC<ModalManageRoomProps> = ({
         type: "success",
       });
       setIsLoading(false);
-      setTimeout(() => (room ? onClose : handleClose), 3000);
-      onSave({
-        ...payload,
-        idRoom: room ? room.idRoom : 0,
-        createdIn: room ? room.createdIn : new Date().toISOString(),
-        updatedIn: new Date().toISOString(),
-      });
+      setTimeout(room ? onClose : handleClose, 2000);
     };
 
     const onError = (error: any) => {

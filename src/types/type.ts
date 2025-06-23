@@ -136,7 +136,7 @@ export const teacherSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("Email inválido").min(1, "Email é obrigatório"),
   telephone: z.string().min(1, "Telefone é obrigatório"),
-  role: z.enum(["Professor", "Coordenador"]),
+  role: z.enum(["Professor", "Secretario"]),
   function: z.string().min(1, "Função é obrigatória"),
   status: z.enum(["Ativo", "Inativo"], {
     errorMap: () => ({ message: "Status é obrigatório" }),

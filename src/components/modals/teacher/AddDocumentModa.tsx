@@ -4,6 +4,7 @@ import ComponentButton from "@/components/common/button";
 import ComponentInput from "@/components/common/FormInput";
 import { SearchableSelect } from "@/components/common/SearchableSelect";
 import { FileText } from "lucide-react";
+
 import {
   useListClasses,
   useListSubjects,
@@ -40,7 +41,7 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [idSubject, setIdSubject] = useState("");
   const [status, setStatus] = useState("true");
-  const [idClass, setIdClass] = useState("");
+  const [idClasse, setIdClasse] = useState("");
   const [idStudent, setIdStudent] = useState("");
   const [idCourse, setIdCourse] = useState("");
   const [idTeacher, setIdTeacher] = useState("");
@@ -60,7 +61,7 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
 
   const subjectOptions: Option[] =
     subjects?.map((s: Subject) => ({
-      value: s.idSubject.toString(),
+      value: s.idSubject.toString() || "",
       label: s.name,
     })) || [];
   const classOptions: Option[] =
@@ -70,17 +71,17 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     })) || [];
   const studentOptions: Option[] =
     students?.map((s: Student) => ({
-      value: s.idStudent.toString(),
+      value: s.idStudent.toString() || "",
       label: s.name,
     })) || [];
   const courseOptions: Option[] =
     courses?.map((c: Course) => ({
-      value: c.idCourse.toString(),
+      value: c.idCourse.toString() || "",
       label: c.name,
     })) || [];
   const teacherOptions: Option[] =
     teachers?.map((t: Teacher) => ({
-      value: t.idTeacher.toString(),
+      value: t.idTeacher.toString() || "",
       label: t.name,
     })) || [];
   const roomOptions: Option[] =
@@ -96,13 +97,14 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    const maxSizeMB = 900;
+    const maxSizeMB = 6;
     if (f.size > maxSizeMB * 1024 * 1024) {
       setErrors((err) => ({ ...err, file: `Arquivo excede ${maxSizeMB}MB` }));
       return;
     }
     setFile(f);
-    setErrors((err) => ({ ...err, file: undefined }));
+    setErrors((prev) => ({ ...prev, file: undefined }));
+    console.log("Selected file:", f);
 
     if (f.type.startsWith("image/")) {
       setIsPdf(false);
@@ -134,7 +136,7 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
       setFile(null);
       setIdSubject("");
       setStatus("true");
-      setIdClass("");
+      setIdClasse("");
       setIdStudent("");
       setIdCourse("");
       setIdTeacher("");
@@ -148,32 +150,67 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
   const handleSubmit = () => {
     const errs: Partial<Record<string, string>> = {};
     if (!description) errs.description = "Preencha a descrição";
-    if (!file) errs.file = "Envie um arquivo";
-    if (!idSubject) errs.idSubject = "Selecione uma disciplina";
-    if (!status) errs.status = "Selecione o status";
+    if (!file) errs.file = "Envie um documento";
+    if (!idClasse && !idStudent && !idCourse && !idTeacher && !idRoom) {
+      errs.submit =
+        "Selecione ao menos uma turma, aluno, curso, professor ou sala";
+    }
 
     setErrors(errs);
-    if (Object.keys(errs).length) return;
+    if (Object.keys(errs).length) {
+      return;
+    }
 
     setIsLoading(true);
     const formData = new FormData();
-    formData.append("description", description);
-    formData.append("idSubject", idSubject);
+    formData.append("description", description.toString());
+    if (idSubject) formData.append("idSubject", idSubject.toString());
     formData.append("status", status);
-    formData.append("file", file!);
-    if (idClass) formData.append("idClass", idClass);
+    formData.append("file", file as File);
+    if (idClasse) formData.append("idClasse", idClasse);
     if (idStudent) formData.append("idStudent", idStudent);
     if (idCourse) formData.append("idCourse", idCourse);
     if (idTeacher) formData.append("idTeacher", idTeacher);
     if (idRoom) formData.append("idRoom", idRoom);
 
+    // Debug FormData
+    for (const [key, value] of formData.entries()) {
+      console.log(
+        `FormData ${key}:`,
+        value instanceof File
+          ? { name: value.name, size: value.size, type: value.type }
+          : value
+      );
+    }
+
     addDocument(formData, {
       onSuccess: () => {
+        setFile(null);
+        setPreviewUrl(null);
+        setIsPdf(false);
         setIsLoading(false);
         onClose();
       },
-      onError: () => {
-        setErrors({ submit: "Erro ao adicionar documento" });
+      onError: (error: any) => {
+        console.error("Add document error:", error);
+        let errorMessages: Partial<Record<string, string>> = {};
+
+        if (error.response?.data?.details) {
+          // Map backend validation errors to form fields
+          error.response.data.details.forEach(
+            (err: { path: string; message: string }) => {
+              errorMessages[err.path] = err.message;
+            }
+          );
+        } else {
+          // Fallback for generic errors
+          errorMessages.submit =
+            error.response?.data?.error ||
+            error.message ||
+            "Erro ao adicionar documento";
+        }
+
+        setErrors(errorMessages);
         setIsLoading(false);
       },
     });
@@ -190,6 +227,55 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           error={errors.description || ""}
+        />
+        <SearchableSelect
+          label="Disciplina"
+          value={idSubject}
+          onChange={(val) => setIdSubject(val)}
+          options={subjectOptions}
+          error={errors.idSubject || ""}
+        />
+        <SearchableSelect
+          label="Status"
+          value={status}
+          onChange={(val) => setStatus(val)}
+          options={statusOptions}
+          error={errors.status || ""}
+        />
+        <SearchableSelect
+          label="Turma"
+          value={idClasse}
+          onChange={(val) => setIdClasse(val)}
+          options={classOptions}
+          error={errors.idClasse || ""}
+        />
+        <SearchableSelect
+          label="Aluno"
+          value={idStudent}
+          onChange={(val) => setIdStudent(val)}
+          options={studentOptions}
+          error={errors.idStudent || ""}
+        />
+        <SearchableSelect
+          label="Curso"
+          value={idCourse}
+          onChange={(val) => setIdCourse(val)}
+          options={courseOptions}
+          error={errors.idCourse || ""}
+        />
+        <SearchableSelect
+          label="Professor"
+          value={idTeacher}
+          onChange={(val) => setIdTeacher(val)}
+          options={teacherOptions}
+          error={errors.idTeacher || ""}
+        />
+        <SearchableSelect
+          label="Sala"
+          value={idRoom}
+          onChange={(val) => setIdRoom(val)}
+          options={roomOptions}
+          error={errors.idRoom || ""}
         />
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -211,12 +297,17 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
                   viewBox="0 0 48 48"
                   aria-hidden="true"
                 >
-                  <path d="M" />
+                  <path
+                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 <div className="flex text-sm text-gray-600 dark:text-gray-400">
                   <label
                     htmlFor="file-upload"
-                    className="relative cursor-pointer  rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800  "
+                    className="relative cursor-pointer rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800"
                   >
                     <span>Selecione um arquivo</span>
                     <input
@@ -231,7 +322,7 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
                   <p className="pl-1">ou arraste e solte</p>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Suporta PDF e imagens, até 900MB
+                  Suporta PDF e imagens, até 6MB
                 </p>
                 {errors.file && (
                   <p className="text-xs text-red-500 mt-1">{errors.file}</p>
@@ -275,58 +366,10 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
             )}
           </div>
         </div>
-
-        <SearchableSelect
-          label="Disciplina"
-          value={idSubject}
-          onChange={(val) => setIdSubject(val)}
-          options={subjectOptions}
-          error={errors.idSubject || ""}
-        />
-        <SearchableSelect
-          label="Status"
-          value={status}
-          onChange={(val) => setStatus(val)}
-          options={statusOptions}
-          error={errors.status || ""}
-        />
-        <SearchableSelect
-          label="Turma (opcional)"
-          value={idClass}
-          onChange={(val) => setIdClass(val)}
-          options={classOptions}
-          error={errors.idClass || ""}
-        />
-        <SearchableSelect
-          label="Estudante (opcional)"
-          value={idStudent}
-          onChange={(val) => setIdStudent(val)}
-          options={studentOptions}
-          error={errors.idStudent || ""}
-        />
-        <SearchableSelect
-          label="Curso (opcional)"
-          value={idCourse}
-          onChange={(val) => setIdCourse(val)}
-          options={courseOptions}
-          error={errors.idCourse || ""}
-        />
-        <SearchableSelect
-          label="Professor (opcional)"
-          value={idTeacher}
-          onChange={(val) => setIdTeacher(val)}
-          options={teacherOptions}
-          error={errors.idTeacher || ""}
-        />
-        <SearchableSelect
-          label="Sala (opcional)"
-          value={idRoom}
-          onChange={(val) => setIdRoom(val)}
-          options={roomOptions}
-          error={errors.idRoom || ""}
-        />
+        {errors.submit && (
+          <p className="text-red-500 text-sm mt-2">{errors.submit}</p>
+        )}
       </div>
-
       <div className="flex justify-end gap-4 mt-4 px-6">
         <ComponentButton
           variant="secondary"

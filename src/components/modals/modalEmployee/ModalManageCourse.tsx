@@ -118,7 +118,7 @@ const ModalManageCourse: React.FC<ModalManageCourseProps> = ({
         createdIn: course ? course.createdIn : new Date().toISOString(),
         updatedIn: new Date().toISOString(),
       });
-      setTimeout(course ? onClose : handleClose, 3000);
+      setTimeout(course ? onClose : handleClose, 2000);
     };
 
     const onError = (error: any) => {

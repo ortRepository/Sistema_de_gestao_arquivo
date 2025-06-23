@@ -24,9 +24,6 @@ export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
  * @returns Promise com o resultado parseado em JSON
  */
 
-/**
- * Generic API request helper with Bearer token authentication and path-parameter substitution
- */
 export async function apiRequest<T>(
   url: string,
   method: HttpMethod = "GET",
@@ -78,7 +75,7 @@ export async function apiRequest<T>(
     if (response.status === 401 && autoRefreshOn401 && !retry) {
       // token expirou: tenta re-login
       try {
-         await reLogin();
+        await reLogin();
         return apiRequest<T>(url, method, data, extraHeaders, true, true);
       } catch (err) {
         // se falhar no re-login, propaga erro para a UI (ela pode redirecionar ao login)
@@ -96,6 +93,7 @@ export async function apiRequest<T>(
     throw error;
   }
 }
+
 /**
  * Hook para requisições GET utilizando o react-query.
  *

@@ -98,7 +98,7 @@ export default function PageManageRoom() {
       <div className="md:flex md:justify-end mb-4">
         <ComponetButton
           variant="primary"
-          className="flex items-center gap-2"
+          className="flex items-center justify-center gap-2 md:w-auto w-full"
           onClick={openCreate}
         >
           <Plus size={16} /> Cadastrar

@@ -325,7 +325,7 @@ export default function AcademicDocuments() {
         <div className="md:flex md:justify-end mb-4">
           <ComponentButton
             variant="primary"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 md:w-auto w-full"
             onClick={() => setAddModalOpen(true)}
           >
             <Plus size={16} /> Adicionar Documento
