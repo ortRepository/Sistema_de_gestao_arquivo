@@ -4,36 +4,20 @@ import {
   FileText,
   Download,
   Eye,
-  Send as SendIcon,
   Trash,
   Plus,
 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import SearchFilterBar from "@/components/common/SearchBar";
-import { SendDocumentModal } from "@/components/modals/teacher/SendDocumentsModaalTeste";
+
 import ComponentButton from "@/components/common/button";
 import { AddDocumentModal } from "@/components/modals/teacher/AddDocumentModa";
 import DeletePublicationModal from "@/components/common/DeletePublicationModal";
 import ViewDocumentModal from "@/components/modals/teacher/ViewDocumentModal";
-import {
-  useListDocuments,
-  useListClasses,
-  useListCourses,
-  useListSubjects,
-  useListStudents,
-  useListTeachers,
-  useListRooms,
-  useDeleteDocument,
-} from "@/hooks/DynamicApiHooks";
-import {
-  Document,
-  Class,
-  Course,
-  Subject,
-  Student,
-  Teacher,
-  Room,
-} from "@/types/interfaces";
+import { useListDocuments, useDeleteDocument } from "@/hooks/DynamicApiHooks";
+import { Document } from "@/types/interfaces";
+import logo from "../../assets/logo/Logo.png";
+import { truncateText } from "@/lib/utils";
 
 interface DocumentItem {
   id: number;
@@ -50,6 +34,8 @@ interface DocumentItem {
   teacherName: string;
   roomName: string;
   category: string;
+  title: string;
+  entityName: string;
 }
 
 export default function AcademicDocuments() {
@@ -61,57 +47,97 @@ export default function AcademicDocuments() {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedViewDocument, setSelectedViewDocument] =
     useState<DocumentItem | null>(null);
-  const [sendModalOpen, setSendModalOpen] = useState(false);
+
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<DocumentItem | null>(
-    null
-  );
+
   const [confirmDocumentId, setConfirmDocumentId] = useState<number | null>(
     null
   );
   const [error, setError] = useState<string | null>(null);
 
-  const { data: apiDocuments } = useListDocuments();
-  const { data: classes } = useListClasses();
-  const { data: courses } = useListCourses();
-  const { data: subjects } = useListSubjects();
-  const { data: students } = useListStudents();
-  const { data: teachers } = useListTeachers();
-  const { data: rooms } = useListRooms();
+  const {
+    data: apiDocuments,
+    isLoading: documentsLoading,
+    error: documentsError,
+  } = useListDocuments();
   const { mutateAsync: deleteDocument } = useDeleteDocument();
+
+  useEffect(() => {
+    console.log("apiDocuments:", apiDocuments);
+    console.log("documentsLoading:", documentsLoading);
+    console.log("documentsError:", documentsError);
+  }, [apiDocuments, documentsLoading, documentsError]);
 
   const mappedDocuments: DocumentItem[] = useMemo(() => {
     if (!apiDocuments) return [];
-    return apiDocuments.map((doc: Document) => ({
-      id: doc.idDocument,
-      description: doc.description,
-      urlLink: doc.urlLink,
-      path: doc.path,
-      status: doc.status,
-      createdIn: new Date(doc.createdIn).toLocaleDateString("pt-BR"),
-      updatedIn: new Date(doc.updatedIn).toLocaleDateString("pt-BR"),
-      className:
-        classes?.find((c: Class) => c.idClass === doc.idClass)?.name || "N/A",
-      subjectName:
-        subjects?.find((s: Subject) => s.idSubject === doc.idSubject)?.name ||
-        "N/A",
-      courseName:
-        courses?.find((c: Course) => c.idCourse === doc.idCourse)?.name ||
-        "N/A",
-      studentName:
-        students?.find((s: Student) => s.idStudent === doc.idStudent)?.name ||
-        "N/A",
-      teacherName:
-        teachers?.find((t: Teacher) => t.idTeacher === doc.idTeacher)?.name ||
-        "N/A",
-      roomName:
-        rooms?.find((r: Room) => r.idRoom === doc.idRoom)?.name || "N/A",
-      category:
-        subjects?.find((s: Subject) => s.idSubject === doc.idSubject)?.name ||
-        "Documento Geral",
-    }));
-  }, [apiDocuments, classes, courses, subjects, students, teachers, rooms]);
+
+    return apiDocuments.map((doc: Document) => {
+      let title = "Documento Geral";
+      let entityName = "N/A";
+      let className = "N/A";
+      let studentName = "N/A";
+      let teacherName = "N/A";
+      let roomName = "N/A";
+      let courseName = "N/A";
+      let subjectName = "N/A";
+      let category = "Documento Geral";
+
+      if (doc.idSubject && doc.subject) {
+        title = `Documento da Disciplina - ${
+          doc.subject.name || "Disciplina Geral"
+        }`;
+        entityName = doc.subject.name || "N/A";
+        subjectName = doc.subject.name || "N/A";
+        category = doc.subject.name || "Documento Geral";
+      } else if (doc.idCourse && doc.course) {
+        title = `Documento do Curso - ${doc.course.name || "Curso Geral"}`;
+        entityName = doc.course.name || "N/A";
+        courseName = doc.course.name || "N/A";
+      } else if (doc.idClass && doc.class) {
+        title = `Documento da Turma - ${doc.class.name || "Turma Geral"}`;
+        entityName = doc.class.name || "N/A";
+        className = doc.class.name || "N/A";
+      } else if (doc.idStudent && doc.student) {
+        title = `Documento do Estudante - ${
+          doc.student.name || "Estudante Geral"
+        }`;
+        entityName = doc.student.name || "N/A";
+        studentName = doc.student.name || "N/A";
+      } else if (doc.idTeacher && doc.teacher) {
+        title = `Documento do Professor - ${
+          doc.teacher.name || "Professor Geral"
+        }`;
+        entityName = doc.teacher.name || "N/A";
+        teacherName = doc.teacher.name || "N/A";
+      } else if (doc.idRoom && doc.room) {
+        title = `Documento da Sala - ${doc.room.name || "Sala Geral"}`;
+        entityName = doc.room.name || "N/A";
+        roomName = doc.room.name || "N/A";
+      }
+
+      return {
+        id: doc.idDocument,
+        description: doc.description,
+        urlLink: doc.urlLink,
+        path: doc.path,
+        status: doc.status,
+        createdIn: new Date(doc.createdIn).toLocaleDateString("pt-BR"),
+        updatedIn: doc.updatedIn
+          ? new Date(doc.updatedIn).toLocaleDateString("pt-BR")
+          : "N/A",
+        className,
+        subjectName,
+        courseName,
+        studentName,
+        teacherName,
+        roomName,
+        category,
+        title,
+        entityName,
+      };
+    });
+  }, [apiDocuments]);
 
   useEffect(() => {
     setDocuments(mappedDocuments);
@@ -123,6 +149,7 @@ export default function AcademicDocuments() {
     { value: "courseName", label: "Curso" },
     { value: "className", label: "Turma" },
     { value: "teacherName", label: "Professor" },
+    { value: "studentName", label: "Estudante" },
     { value: "createdIn", label: "Data de Criação" },
   ];
 
@@ -140,6 +167,8 @@ export default function AcademicDocuments() {
           return doc.className.toLowerCase().includes(term);
         case "teacherName":
           return doc.teacherName.toLowerCase().includes(term);
+        case "studentName":
+          return doc.studentName.toLowerCase().includes(term);
         case "createdIn":
           return doc.createdIn.toLowerCase().includes(term);
         default:
@@ -149,6 +178,7 @@ export default function AcademicDocuments() {
             doc.courseName.toLowerCase().includes(term) ||
             doc.className.toLowerCase().includes(term) ||
             doc.teacherName.toLowerCase().includes(term) ||
+            doc.studentName.toLowerCase().includes(term) ||
             doc.createdIn.toLowerCase().includes(term)
           );
       }
@@ -165,84 +195,102 @@ export default function AcademicDocuments() {
       format: "a4",
     });
 
-    const red: [number, number, number] = [200, 0, 0];
-    const black: [number, number, number] = [0, 0, 0];
-    const yellow: [number, number, number] = [255, 204, 0];
+    const primaryColor: [number, number, number] = [0, 51, 102];
+    const secondaryColor: [number, number, number] = [255, 204, 0];
+    const textColor: [number, number, number] = [0, 0, 0];
+    const accentColor: [number, number, number] = [200, 0, 0];
 
-    pdf.setFillColor(...black);
+    // Header
+    pdf.setFillColor(...primaryColor);
     pdf.rect(0, 0, 210, 50, "F");
-
     pdf.setTextColor(255, 255, 255);
-    pdf.setFont("times", "bold");
-    pdf.setFontSize(16);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(20);
     pdf.text("GOVERNO DE ANGOLA", 105, 15, { align: "center" });
-    pdf.setFontSize(14);
+    pdf.setFontSize(16);
     pdf.text("MINISTÉRIO DA EDUCAÇÃO", 105, 25, { align: "center" });
-    pdf.setFontSize(12);
+    pdf.setFontSize(14);
     pdf.text("INSTITUTO POLITÉCNICO 30 DE SETEMBRO", 105, 35, {
       align: "center",
     });
 
-    pdf.setFillColor(...yellow);
-    pdf.setDrawColor(...red);
-    pdf.setLineWidth(1);
-    pdf.circle(105, 70, 20, "FD");
-    pdf.setTextColor(...black);
-    pdf.setFontSize(18);
-    pdf.setFont("times", "bold");
-    pdf.text("IP30S", 105, 73, { align: "center" });
+    // Add Logo
+    pdf.addImage(logo, "PNG", 90, 60, 30, 30);
 
-    pdf.setTextColor(...black);
-    pdf.setFontSize(16);
-    pdf.setFont("times", "bold");
-    pdf.text(doc.description.toUpperCase(), 105, 100, { align: "center" });
+    // Title
+    pdf.setTextColor(...textColor);
+    pdf.setFontSize(22);
+    pdf.setFont("helvetica", "bold");
+    const titleLines = pdf.splitTextToSize(doc.title.toUpperCase(), 180);
+    pdf.text(titleLines, 105, 95, { align: "center" });
 
-    pdf.setDrawColor(...red);
+    // Document Details Section
+    const startY = 115;
+    pdf.setDrawColor(...accentColor);
     pdf.setLineWidth(0.5);
-    pdf.rect(20, 110, 170, 120, "S");
+    pdf.rect(15, startY, 180, 150, "S");
+    pdf.setFillColor(240, 240, 240);
+    pdf.rect(15, startY, 180, 25, "F");
 
-    pdf.setFont("times", "bold");
-    pdf.setFontSize(14);
-    pdf.text("DETALHES DO DOCUMENTO", 25, 120);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(16);
+    pdf.setTextColor(...primaryColor);
+    pdf.text("DETALHES DO DOCUMENTO", 20, startY + 15);
 
-    pdf.setFont("times", "normal");
+    pdf.setFont("helvetica", "normal");
     pdf.setFontSize(12);
+    pdf.setTextColor(...textColor);
     const details = [
       { label: "Descrição:", value: doc.description },
       { label: "Categoria:", value: doc.category },
-      { label: "Disciplina:", value: doc.subjectName },
-      { label: "Curso:", value: doc.courseName },
-      { label: "Turma:", value: doc.className },
-      { label: "Professor:", value: doc.teacherName },
-      { label: "Estudante:", value: doc.studentName },
-      { label: "Sala:", value: doc.roomName },
+      {
+        label: "Disciplina:",
+        value: doc.subjectName !== "N/A" ? doc.subjectName : "-",
+      },
+      {
+        label: "Curso:",
+        value: doc.courseName !== "N/A" ? doc.courseName : "-",
+      },
+      { label: "Turma:", value: doc.className !== "N/A" ? doc.className : "-" },
+      {
+        label: "Professor:",
+        value: doc.teacherName !== "N/A" ? doc.teacherName : "-",
+      },
+      {
+        label: "Estudante:",
+        value: doc.studentName !== "N/A" ? doc.studentName : "-",
+      },
+      { label: "Sala:", value: doc.roomName !== "N/A" ? doc.roomName : "-" },
       { label: "Status:", value: doc.status ? "Ativo" : "Inativo" },
       { label: "Data de Criação:", value: doc.createdIn },
-      { label: "Data de Atualização:", value: doc.updatedIn },
     ];
 
-    details.forEach((item, index) => {
-      pdf.setFont("times", "bold");
-      pdf.text(item.label, 25, 130 + index * 10);
-      pdf.setFont("times", "normal");
-      pdf.text(item.value, 60, 130 + index * 10);
+    let currentY = startY + 30;
+    details.forEach((item) => {
+      const valueLines = pdf.splitTextToSize(item.value, 120); // Limit value width to 120mm
+      pdf.setFont("helvetica", "bold");
+      pdf.text(item.label, 20, currentY);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(valueLines, 60, currentY);
+      currentY += valueLines.length * 7 + 5; // Adjust Y based on number of lines
     });
 
-    pdf.setDrawColor(...yellow);
+    // Footer
+    pdf.setDrawColor(...secondaryColor);
     pdf.setLineWidth(0.3);
-    pdf.line(20, 235, 190, 235);
-
+    pdf.line(15, 270, 195, 270);
     pdf.setFontSize(10);
     pdf.setTextColor(100, 100, 100);
-    pdf.setFont("times", "italic");
+    pdf.setFont("helvetica", "italic");
     pdf.text(
       `Gerado em: ${new Date().toLocaleDateString(
         "pt-BR"
       )} às ${new Date().toLocaleTimeString("pt-BR")}`,
-      20,
+      15,
       280
     );
-    pdf.text("Instituto Politécnico 30 de Setembro", 190, 280, {
+    pdf.addImage(logo, "PNG", 175, 273, 20, 10);
+    pdf.text("Instituto Politécnico 30 de Setembro", 170, 280, {
       align: "right",
     });
 
@@ -286,16 +334,6 @@ export default function AcademicDocuments() {
     );
   };
 
-  const handleSend = (doc: DocumentItem) => {
-    setSelectedDocument(doc);
-    setSendModalOpen(true);
-    setOpenMenuId(null);
-  };
-
-  const onSendSuccess = () => {
-    console.log(`Documento ${selectedDocument?.id} enviado!`);
-  };
-
   const closeDeleteModal = () => {
     setDeleteModalOpen(false);
     setConfirmDocumentId(null);
@@ -310,126 +348,127 @@ export default function AcademicDocuments() {
             {error}
           </div>
         )}
-        <SearchFilterBar
-          title="Documentos acadêmicos"
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          filterType={filterType}
-          setFilterType={setFilterType}
-          filterOptions={filterOptions}
-          isFilterOpen={isFilterOpen}
-          toggleFilterDropdown={() => setIsFilterOpen((o) => !o)}
-          closeFilterDropdown={() => setIsFilterOpen(false)}
-        />
+        {documentsLoading && (
+          <div className="p-8 text-center">Carregando dados...</div>
+        )}
+        {documentsError && (
+          <div className="p-8 text-center text-red-500">
+            Erro ao carregar documentos: {documentsError.message}
+          </div>
+        )}
+        {!documentsLoading && !documentsError && (
+          <>
+            <SearchFilterBar
+              title="Documentos acadêmicos"
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              filterType={filterType}
+              setFilterType={setFilterType}
+              filterOptions={filterOptions}
+              isFilterOpen={isFilterOpen}
+              toggleFilterDropdown={() => setIsFilterOpen((o) => !o)}
+              closeFilterDropdown={() => setIsFilterOpen(false)}
+            />
 
-        <div className="md:flex md:justify-end mb-4">
-          <ComponentButton
-            variant="primary"
-            className="flex items-center justify-center gap-2 md:w-auto w-full"
-            onClick={() => setAddModalOpen(true)}
-          >
-            <Plus size={16} /> Adicionar Documento
-          </ComponentButton>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filtered.length > 0 ? (
-            filtered.map((doc) => (
-              <div
-                key={doc.id}
-                className="relative bg-white dark:bg-gray-900 p-4 rounded-lg shadow hover:shadow-md"
+            <div className="md:flex md:justify-end mb-4">
+              <ComponentButton
+                variant="primary"
+                className="flex items-center justify-center gap-2 md:w-auto w-full"
+                onClick={() => setAddModalOpen(true)}
               >
-                <FileText size={48} className="text-[#4D6BFE] mb-2" />
-                <h3 className="font-semibold">{doc.description}</h3>
-                <p className="text-sm text-gray-500">
-                  Categoria: {doc.category}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Professor: {doc.teacherName}
-                </p>
-                <p className="text-xs text-gray-400">{doc.createdIn}</p>
-
-                <div className="absolute top-2 right-2">
-                  <MoreHorizontal
-                    size={16}
-                    className="text-gray-400 cursor-pointer"
-                    onClick={() =>
-                      setOpenMenuId(openMenuId === doc.id ? null : doc.id)
-                    }
-                  />
-                  {openMenuId === doc.id && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border rounded shadow-lg z-10">
-                      <button
-                        onClick={() => {
-                          handleDownload(doc.id);
-                          setOpenMenuId(null);
-                        }}
-                        className="flex items-center cursor-pointer gap-2 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <Download size={16} /> Baixar
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleView(doc.id);
-                          setOpenMenuId(null);
-                        }}
-                        className="flex items-center cursor-pointer gap-2 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <Eye size={16} /> Visualizar
-                      </button>
-                      <button
-                        onClick={() => handleSend(doc)}
-                        className="flex items-center gap-2 cursor-pointer w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <SendIcon size={16} /> Enviar
-                      </button>
-                      <button
-                        onClick={() => openConfirm(doc.id)}
-                        className="flex items-center gap-2 w-full cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-red-500"
-                      >
-                        <Trash size={16} /> Excluir
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-full flex justify-center items-center min-h-[200px]">
-              <p className="py-6 px-4 text-center text-gray-500">
-                Nenhum documento encontrado.
-              </p>
+                <Plus size={16} /> Adicionar Documento
+              </ComponentButton>
             </div>
-          )}
-        </div>
 
-        <SendDocumentModal
-          isOpen={sendModalOpen}
-          onClose={() => setSendModalOpen(false)}
-          document={selectedDocument}
-          onSendSuccess={onSendSuccess}
-        />
-        <AddDocumentModal
-          isOpen={addModalOpen}
-          onClose={() => setAddModalOpen(false)}
-        />
-        <ViewDocumentModal
-          isOpen={viewModalOpen}
-          onClose={() => {
-            setViewModalOpen(false);
-            setSelectedViewDocument(null);
-          }}
-          document={selectedViewDocument}
-        />
-        <DeletePublicationModal
-          isOpen={deleteModalOpen}
-          onClose={closeDeleteModal}
-          onConfirm={handleDelete}
-          title="Excluir Documento"
-          message="Tem certeza que deseja excluir este documento?"
-          confirmText="Excluir"
-          cancelText="Cancelar"
-        />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {filtered.length > 0 ? (
+                filtered.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="relative bg-white dark:bg-gray-900 p-4 rounded-lg shadow hover:shadow-md"
+                  >
+                    <FileText size={48} className="text-[#4D6BFE] mb-2" />
+                    <h3 className="font-semibold">
+                      {truncateText(doc.title || "N/A", 35, "end")}
+                    </h3>
+
+                    <p className="text-sm text-gray-500">
+                      Categoria: {doc.category}
+                    </p>
+                    <p className="text-xs text-gray-400">{doc.createdIn}</p>
+
+                    <div className="absolute top-2 right-2">
+                      <MoreHorizontal
+                        size={16}
+                        className="text-gray-400 cursor-pointer"
+                        onClick={() =>
+                          setOpenMenuId(openMenuId === doc.id ? null : doc.id)
+                        }
+                      />
+                      {openMenuId === doc.id && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border rounded shadow-lg z-10">
+                          <button
+                            onClick={() => {
+                              handleDownload(doc.id);
+                              setOpenMenuId(null);
+                            }}
+                            className="flex items-center cursor-pointer gap-2 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <Download size={16} /> Baixar
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleView(doc.id);
+                              setOpenMenuId(null);
+                            }}
+                            className="flex items-center cursor-pointer gap-2 w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <Eye size={16} /> Visualizar
+                          </button>
+
+                          <button
+                            onClick={() => openConfirm(doc.id)}
+                            className="flex items-center gap-2 w-full cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-red-500"
+                          >
+                            <Trash size={16} /> Excluir
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full flex justify-center items-center min-h-[200px]">
+                  <p className="py-6 px-4 text-center text-gray-500">
+                    Nenhum documento encontrado.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <AddDocumentModal
+              isOpen={addModalOpen}
+              onClose={() => setAddModalOpen(false)}
+            />
+            <ViewDocumentModal
+              isOpen={viewModalOpen}
+              onClose={() => {
+                setViewModalOpen(false);
+                setSelectedViewDocument(null);
+              }}
+              document={selectedViewDocument}
+            />
+            <DeletePublicationModal
+              isOpen={deleteModalOpen}
+              onClose={closeDeleteModal}
+              onConfirm={handleDelete}
+              title="Excluir Documento"
+              message="Tem certeza que deseja excluir este documento?"
+              confirmText="Excluir"
+              cancelText="Cancelar"
+            />
+          </>
+        )}
       </div>
     </div>
   );

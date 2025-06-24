@@ -50,7 +50,6 @@ export default function Statistics() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteType, setDeleteType] = useState<"teacher" | "room" | null>(null);
   const [confirmId, setConfirmId] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const {
     data: teachers,
@@ -82,7 +81,6 @@ export default function Statistics() {
     data: rooms,
     isLoading: roomsLoading,
     error: roomsError,
-    refetch: refetchRooms,
   } = useListRooms();
   const { mutate: deleteTeacher } = useDeleteTeacher();
   const { mutate: deleteRoom } = useDeleteRoom();
@@ -111,7 +109,6 @@ export default function Statistics() {
       roomsError,
     ].filter(Boolean);
     if (errors.length) {
-      setError(errors[0]?.message || "Erro ao carregar dados");
     } else {
       if (teachers) {
         let updatedTeachers = filterByMonthYear(
@@ -185,10 +182,8 @@ export default function Statistics() {
             setDeleteModalOpen(false);
             setConfirmId(null);
             setDeleteType(null);
-            setError(null);
           },
-          onError: (err: any) => {
-            setError(err.message || "Erro ao excluir professor");
+          onError: (_err: any) => {
             setDeleteModalOpen(false);
           },
         }
@@ -201,10 +196,8 @@ export default function Statistics() {
             setDeleteModalOpen(false);
             setConfirmId(null);
             setDeleteType(null);
-            setError(null);
           },
-          onError: (err: any) => {
-            setError(err.message || "Erro ao excluir sala");
+          onError: (_err: any) => {
             setDeleteModalOpen(false);
           },
         }
@@ -216,12 +209,6 @@ export default function Statistics() {
     setDeleteModalOpen(false);
     setConfirmId(null);
     setDeleteType(null);
-    setError(null);
-  };
-
-  const refetchData = () => {
-    refetchTeachers();
-    refetchRooms();
   };
 
   return (
@@ -332,8 +319,8 @@ export default function Statistics() {
       />
       <DataStatusHandler
         isLoading={isLoading}
-        error={error}
-        onRetry={refetchData}
+        error={teachersError}
+        onRetry={refetchTeachers}
       >
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden">
           {/* Desktop Table */}

@@ -3,7 +3,7 @@ import DynamicModal from "@/components/common/DynamicModal";
 import ComponentButton from "@/components/common/button";
 import ComponentInput from "@/components/common/FormInput";
 import { SearchableSelect } from "@/components/common/SearchableSelect";
-import { FileText } from "lucide-react";
+import { AlertTriangle, CheckCircle, FileText } from "lucide-react";
 
 import {
   useListClasses,
@@ -47,7 +47,10 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isPdf, setIsPdf] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [statusMessage, setStatusMessage] = useState<{
+    text: string;
+    type: "success" | "error";
+  } | null>(null);
   const { mutateAsync: addDocument } = useAddDocument();
   const { data: classes } = useListClasses();
   const { data: subjects } = useListSubjects();
@@ -64,7 +67,12 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     { value: "teacher", label: "Professor" },
     { value: "room", label: "Sala" },
   ];
-
+  useEffect(() => {
+    if (statusMessage) {
+      const timer = setTimeout(() => setStatusMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [statusMessage]);
   const subjectOptions: Option[] =
     subjects?.map((s: Subject) => ({
       value: s.idSubject.toString(),
@@ -187,7 +195,7 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     }
 
     const formData = new FormData();
-    formData.append("description", description);
+
     if (entityType && entityId) {
       let fieldKey = "";
       switch (entityType) {
@@ -218,8 +226,9 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
       }
     }
 
+    formData.append("description", description);
     formData.append("status", String(status));
-    formData.append("file", file as Blob);
+    formData.append("file", file as File);
 
     for (const [key, value] of formData.entries()) {
       console.log(
@@ -237,7 +246,11 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
           setPreviewUrl(null);
           setIsPdf(false);
           setIsLoading(false);
-          onClose();
+          setStatusMessage({
+            text: "Documento cadastrado com sucesso!",
+            type: "success",
+          });
+          setTimeout(onClose, 2000);
         },
         onError: (error: any) => {
           console.error("Add document error:", error);
@@ -271,6 +284,30 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
 
   return (
     <DynamicModal title="Adicionar Documento" isOpen={isOpen} onClose={onClose}>
+      {statusMessage && (
+        <div
+          className={`${
+            statusMessage.type === "success"
+              ? "border-green-500 bg-green-50"
+              : "border-red-500 bg-red-50"
+          } border-t-4 mb-4 p-4 rounded-lg shadow-md`}
+        >
+          <p
+            className={`${
+              statusMessage.type === "success"
+                ? "text-green-700"
+                : "text-red-700"
+            } text-sm flex items-center gap-2`}
+          >
+            {statusMessage.type === "success" ? (
+              <CheckCircle className="w-4 h-4" />
+            ) : (
+              <AlertTriangle className="w-4 h-4" />
+            )}
+            {statusMessage.text}
+          </p>
+        </div>
+      )}
       <div className="space-y-4 overflow-y-auto max-h-[60vh] px-6">
         <ComponentInput
           label="Descrição do Documento"

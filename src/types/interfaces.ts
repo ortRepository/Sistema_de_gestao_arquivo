@@ -32,22 +32,97 @@ export interface Notification {
 }
 //-------------------------Document------------------------
 // Document type based on provided schema
+// export interface Document {
+//   idDocument: number;
+//   description: string;
+//   urlLink: string;
+//   path: string;
+//   createdIn: string;
+//   updatedIn: string;
+//   status: boolean;
+//   idClass: number;
+//   idSubject: number;
+//   idStudent: number;
+//   idCourse: number;
+//   idTeacher: number;
+//   idRoom: number;
+// }
+// @/types/interfaces.ts
+
 export interface Document {
   idDocument: number;
   description: string;
-  urlLink: string;
+  idClass: number | null;
+  idCourse: number | null;
+  idRoom: number | null;
+  idStudent: number | null;
+  idSubject: number | null;
+  idTeacher: number | null;
   path: string;
-  createdIn: string;
-  updatedIn: string;
+  urlLink: string;
   status: boolean;
-  idClass: number;
-  idSubject: number;
-  idStudent: number;
-  idCourse: number;
-  idTeacher: number;
-  idRoom: number;
+  createdIn: string;
+  updatedIn: string | null;
+  class: ClassView | null;
+  course: CourseView | null;
+  room: RoomView | null;
+  student: StudentView | null;
+  subject: SubjectView | null;
+  teacher: TeacherView | null;
 }
 
+export interface ClassView {
+  idClass: number;
+  name: string;
+  idRoom: number | null;
+  createdIn: string;
+  updatedIn: string | null;
+  status: boolean;
+}
+
+export interface CourseView {
+  idCourse: number;
+  name: string;
+  createdIn: string;
+  updatedIn: string | null;
+  status: boolean;
+}
+
+export interface RoomView {
+  idRoom: number;
+  name: string;
+  createdIn: string;
+  updatedIn: string | null;
+  status: boolean;
+}
+
+export interface StudentView {
+  idStudent: number;
+  name: string;
+  biNumber: string;
+  room: string;
+  class: string;
+  [key: string]: any; // Allow additional fields
+  createdIn?: string;
+  updatedIn?: string | null;
+  status?: boolean;
+}
+
+export interface SubjectView {
+  idSubject: number;
+  name: string;
+  createdIn: string;
+  updatedIn: string | null;
+  status: boolean;
+}
+
+export interface TeacherView {
+  idTeacher: number;
+  name: string;
+  createdIn: string;
+  updatedIn: string | null;
+  status: boolean;
+}
 //-------------------------Student------------------------
 export interface Student {
   idStudent: number;
