@@ -179,7 +179,7 @@ class SubjectsController {
 
     try {
       const userRole = await this.tokenService.userRole(token);
-      if (!await this.tokenService.checkTokenUser(token) || userRole !== 0) {
+      if (!await this.tokenService.checkTokenUser(token) ) {
         throw new AuthorizationException('Not authorized');
       }
 
