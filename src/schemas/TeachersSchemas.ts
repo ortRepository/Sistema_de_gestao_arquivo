@@ -14,10 +14,10 @@ class TeachersSchemas {
     }).max(255),
     photo: z.string({
       invalid_type_error: "The 'photo' field must be a string."
-    }).max(255).optional(),
+    }).max(255).optional().nullable(),
     path: z.string({
       invalid_type_error: "The 'path' field must be a string."
-    }).max(255).optional(),
+    }).max(255).optional().nullable(),
     idUser: z.number({
       required_error: "The 'idUser' field is required.",
       invalid_type_error: "The 'idUser' field must be a number."
@@ -25,7 +25,7 @@ class TeachersSchemas {
     createdIn: z.date({
       required_error: "The 'createdIn' field is required.",
       invalid_type_error: "The 'createdIn' field must be a date."
-    }),
+    }).nullable(),
     name: z.string({
       required_error: "The 'name' field is required.",
       invalid_type_error: "The 'name' field must be a string."
