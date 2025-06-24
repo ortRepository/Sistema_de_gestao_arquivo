@@ -164,7 +164,8 @@ export default function ProfileSection({ userData }: EntitiesSectionProps) {
     formData.append("file", file);
     try {
       const response = await uploadPhoto(formData);
-      if (response.message === "Photo updated successfully") {
+
+      if (response) {
         setStatusMessage({
           text: "Foto carregada com sucesso!",
           type: "success",

@@ -41,7 +41,6 @@ export async function apiRequest<T>(
   // Define os headers de acordo com o tipo de dados e se a requisição é interna ou externa
   const headers: Record<string, string> = {
     ...(data instanceof FormData ? {} : { "Content-Type": "application/json" }),
-    // Adiciona o token somente se for requisição interna
     ...(!isExternal && token ? { token: token } : {}),
     ...extraHeaders,
   };
@@ -51,7 +50,7 @@ export async function apiRequest<T>(
     headers,
   };
 
-  if (data && (method === "POST" || method === "PUT")) {
+  if (data && method !== "GET") {
     if (data instanceof FormData) {
       if (!isExternal) {
         data.append("token", token || "");
@@ -88,8 +87,9 @@ export async function apiRequest<T>(
       throw new Error(errorBody?.message || `Erro ${response.status}`);
     }
     return response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Erro ao requisitar ${method} ${url}:`, error);
+
     throw error;
   }
 }

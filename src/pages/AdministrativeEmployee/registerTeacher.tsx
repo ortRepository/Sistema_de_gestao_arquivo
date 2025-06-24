@@ -9,7 +9,7 @@ import ModalRegisterTeacher from "@/components/modals/modalEmployee/ModalRegiste
 import ModalViewTeacher from "@/components/modals/modalEmployee/ModalViewTeacher";
 
 import { Teacher } from "@/types/interfaces";
-import { useListTeachers } from "@/hooks/DynamicApiHooks";
+import { useDeleteTeacher, useListTeachers } from "@/hooks/DynamicApiHooks";
 
 export default function PageRegisTerteacher() {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -20,7 +20,7 @@ export default function PageRegisTerteacher() {
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [confirmTeacherId, setConfirmTeacherId] = useState<number | null>(null);
   const [teachers, setTeachers] = useState<Teacher[]>([]); // Local state as fallback
-
+  const { mutate: deleteTeacher } = useDeleteTeacher();
   // Fetch teachers using the API hook
   const { data, isLoading, error, refetch } = useListTeachers();
 
@@ -37,10 +37,10 @@ export default function PageRegisTerteacher() {
 
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return teachersList.filter((teacher: Teacher,idx) => {
+    return teachersList.filter((teacher: Teacher, idx) => {
       switch (filterType) {
         case "idTeacher":
-          return  String(idx + 1).includes(searchTerm);
+          return String(idx + 1).includes(searchTerm);
         case "function":
           return teacher.function.toLowerCase().includes(term);
         case "path":
@@ -78,22 +78,17 @@ export default function PageRegisTerteacher() {
 
   const handleDelete = () => {
     if (confirmTeacherId !== null) {
-      // Placeholder: Replace with actual API call to delete teacher
-      setTeachers((prev) =>
-        prev.filter((t) => t.idTeacher !== confirmTeacherId)
-      );
+      deleteTeacher({ idTeacher: confirmTeacherId });
       closeConfirm();
     }
   };
 
   const handleSave = (teacher: Teacher) => {
     if (selectedTeacher) {
-      // Update existing teacher (Placeholder: Replace with API call)
       setTeachers((prev) =>
         prev.map((t) => (t.idTeacher === teacher.idTeacher ? teacher : t))
       );
     } else {
-      // Add new teacher (Placeholder: Replace with API call)
       setTeachers((prev) => [
         ...prev,
         { ...teacher, idTeacher: prev.length + 1 },
@@ -135,8 +130,8 @@ export default function PageRegisTerteacher() {
           <table className="w-full text-left text-xs md:text-sm border-collapse">
             <thead className="bg-gray-100 border-b dark:bg-gray-900 dark:border-gray-800">
               <tr>
-                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Foto</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Id</th>
+                <th className="py-3 px-2 md:px-4 whitespace-nowrap">Foto</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Nome</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Função</th>
                 <th className="py-3 px-2 md:px-4 whitespace-nowrap">Email</th>
@@ -155,6 +150,9 @@ export default function PageRegisTerteacher() {
                     className="border-b dark:border-gray-800 dark:text-gray-400 border-gray-100"
                   >
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
+                      {idx + 1}
+                    </td>
+                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
                       {teacher.photo ? (
                         <img
                           src={teacher.photo} // Fixed: Removed extra quotation mark
@@ -171,9 +169,7 @@ export default function PageRegisTerteacher() {
                         </div>
                       )}
                     </td>
-                    <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
-                      {idx + 1}
-                    </td>
+
                     <td className="py-2 px-2 md:px-4 md:py-3 whitespace-nowrap">
                       {teacher.name}
                     </td>

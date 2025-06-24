@@ -51,22 +51,16 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
     status: "Ativo",
   };
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(
-    teacherData?.photo || null
-  );
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
     email?: string;
     telephone?: string;
     role?: string;
     function?: string;
-    photo?: string;
     status?: string;
   }>({});
 
   const { mutateAsync: addTeacher } = useAddTeacher();
-
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -80,23 +74,12 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
         function: teacherData.function,
         status: teacherData.status ? "Ativo" : "Inativo",
       });
-      setPreviewUrl(teacherData.photo || null);
-      setSelectedFile(null);
+      setFieldErrors({});
     } else {
       setFormData(defaultForm);
-      setPreviewUrl(null);
-      setSelectedFile(null);
+      setFieldErrors({});
     }
-    setFieldErrors({});
   }, [teacherData]);
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl && !teacherData?.photo) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [previewUrl, teacherData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -104,41 +87,6 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
     setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
-        setFieldErrors((prev) => ({
-          ...prev,
-          photo: "Formato inválido. Use PNG, JPG ou JPEG.",
-        }));
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setFieldErrors((prev) => ({
-          ...prev,
-          photo: "Imagem muito grande (máximo 5MB).",
-        }));
-        return;
-      }
-      setSelectedFile(file);
-      if (previewUrl && !teacherData?.photo) {
-        URL.revokeObjectURL(previewUrl);
-      }
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
-      setFieldErrors((prev) => ({ ...prev, photo: undefined }));
-    }
-  };
-
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
   const handleSelectChange = (name: string, value: string) => {
     if (name === "role") {
       const selectedRole = value as "Professor" | "Secretario";
@@ -167,11 +115,6 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
     setFormData(defaultForm);
     setFieldErrors({});
     setStatusMessage(null);
-    setSelectedFile(null);
-    if (previewUrl && !teacherData?.photo) {
-      URL.revokeObjectURL(previewUrl);
-    }
-    setPreviewUrl(null);
     onClose();
   };
 
@@ -193,35 +136,17 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
     }
 
     try {
-      let photoUrl = teacherData?.photo || "";
-      if (selectedFile) {
-        photoUrl = await fileToBase64(selectedFile);
-      }
-
       const payload = {
         name: result.data.name,
         email: result.data.email,
         telephone: result.data.telephone,
         role: result.data.role === "Professor" ? 1 : 2,
         function: result.data.function,
-        photo: photoUrl,
         path: "Não disponível",
         status: result.data.status === "Ativo",
       };
 
       if (teacherData) {
-        // const updatedTeacher: Teacher = {
-        //   idTeacher: teacherData.idTeacher,
-        //   function: result.data.function,
-        //   photo: photoUrl,
-        //   path: teacherData.path || "Não disponível",
-        //   idUser: teacherData.idUser || 0,
-        //   createdIn: teacherData.createdIn,
-        //   name: result.data.name,
-        //   email: result.data.email,
-        //   telephone: result.data.telephone,
-        //   status: result.data.status === "Ativo",
-        // };
         setStatusMessage({
           text: "Professor atualizado com sucesso!",
           type: "success",
@@ -231,6 +156,7 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
       } else {
         await addTeacher(payload, {
           onSuccess: (response: { code: number; message: string }) => {
+ 
             if (response.message === "Teacher added successfully") {
               setStatusMessage({
                 text: "Professor cadastrado com sucesso!",
@@ -360,87 +286,6 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
           options={statusOptions}
           error={fieldErrors.status}
         />
-        <div className="mb-6">
-          <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-4 transition-all hover:border-[#FF9E01]">
-            <label className="flex flex-col items-center justify-center cursor-pointer">
-              <div className="flex flex-col items-center gap-2">
-                <svg
-                  className="w-8 h-8 text-[#FF9E01]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <div className="text-center">
-                  <p className="text-sm font-medium text-gray-600">
-                    Clique para enviar uma foto
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Formatos suportados: PNG, JPG, JPEG (máx. 5MB)
-                  </p>
-                </div>
-              </div>
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/jpg"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </label>
-
-            {previewUrl && (
-              <div className="mt-4 relative group">
-                <p className="text-sm text-gray-500 mb-2">Pré-visualização:</p>
-                <div className="relative overflow-hidden rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="w-full h-56 object-cover rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedFile(null);
-                      if (previewUrl && !teacherData?.photo) {
-                        URL.revokeObjectURL(previewUrl);
-                      }
-                      setPreviewUrl(teacherData?.photo || null);
-                    }}
-                    className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-600 rounded-full shadow-sm transition-colors"
-                  >
-                    <svg
-                      className="w-4 h-4 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            )}
-            {fieldErrors.photo && (
-              <p className="text-xs text-red-500 mt-1">{fieldErrors.photo}</p>
-            )}
-            {!previewUrl && (
-              <p className="text-center text-gray-400 text-sm mt-3 italic">
-                Nenhuma imagem selecionada
-              </p>
-            )}
-          </div>
-        </div>
       </div>
       <div className="flex flex-wrap-reverse justify-end mt-4 gap-2">
         <ComponentButton

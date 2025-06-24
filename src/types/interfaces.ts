@@ -161,7 +161,6 @@ export interface TeacherRegister {
   telephone: string;
   role: number;
   function: string;
-  photo: string;
   path: string;
   status: boolean;
 }

@@ -39,13 +39,10 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
 }) => {
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [idSubject, setIdSubject] = useState("");
+
   const [status, setStatus] = useState("true");
-  const [idClasse, setIdClasse] = useState("");
-  const [idStudent, setIdStudent] = useState("");
-  const [idCourse, setIdCourse] = useState("");
-  const [idTeacher, setIdTeacher] = useState("");
-  const [idRoom, setIdRoom] = useState("");
+  const [entityType, setEntityType] = useState<string>("");
+  const [entityId, setEntityId] = useState<string>("");
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isPdf, setIsPdf] = useState(false);
@@ -59,9 +56,18 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
   const { data: teachers } = useListTeachers();
   const { data: rooms } = useListRooms();
 
+  const entityTypeOptions: Option[] = [
+    { value: "subject", label: "Disciplina" },
+    { value: "class", label: "Turma" },
+    { value: "student", label: "Aluno" },
+    { value: "course", label: "Curso" },
+    { value: "teacher", label: "Professor" },
+    { value: "room", label: "Sala" },
+  ];
+
   const subjectOptions: Option[] =
     subjects?.map((s: Subject) => ({
-      value: s.idSubject.toString() || "",
+      value: s.idSubject.toString(),
       label: s.name,
     })) || [];
   const classOptions: Option[] =
@@ -71,17 +77,17 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     })) || [];
   const studentOptions: Option[] =
     students?.map((s: Student) => ({
-      value: s.idStudent.toString() || "",
+      value: s.idStudent.toString(),
       label: s.name,
     })) || [];
   const courseOptions: Option[] =
     courses?.map((c: Course) => ({
-      value: c.idCourse.toString() || "",
+      value: c.idCourse.toString(),
       label: c.name,
     })) || [];
   const teacherOptions: Option[] =
     teachers?.map((t: Teacher) => ({
-      value: t.idTeacher.toString() || "",
+      value: t.idTeacher.toString(),
       label: t.name,
     })) || [];
   const roomOptions: Option[] =
@@ -93,6 +99,25 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     { value: "true", label: "Ativo" },
     { value: "false", label: "Inativo" },
   ];
+
+  const getEntityOptions = () => {
+    switch (entityType) {
+      case "subject":
+        return subjectOptions;
+      case "class":
+        return classOptions;
+      case "student":
+        return studentOptions;
+      case "course":
+        return courseOptions;
+      case "teacher":
+        return teacherOptions;
+      case "room":
+        return roomOptions;
+      default:
+        return [];
+    }
+  };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -138,13 +163,9 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     if (!isOpen) {
       setDescription("");
       setFile(null);
-      setIdSubject("");
       setStatus("true");
-      setIdClasse("");
-      setIdStudent("");
-      setIdCourse("");
-      setIdTeacher("");
-      setIdRoom("");
+      setEntityType("");
+      setEntityId("");
       setErrors({});
       setPreviewUrl(null);
       setIsPdf(false);
@@ -156,10 +177,8 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     const errs: Partial<Record<string, string>> = {};
     if (!description) errs.description = "Preencha a descrição";
     if (!file) errs.file = "Envie um documento";
-    if (!idClasse && !idStudent && !idCourse && !idTeacher && !idRoom) {
-      errs.submit =
-        "Selecione ao menos uma turma, aluno, curso, professor ou sala";
-    }
+    if (!entityType) errs.entityType = "Selecione o tipo de entidade";
+    if (!entityId) errs.entityId = "Selecione uma entidade";
 
     setErrors(errs);
     if (Object.keys(errs).length) {
@@ -169,20 +188,43 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
 
     const formData = new FormData();
     formData.append("description", description);
-    if (idSubject) formData.append("idSubject", idSubject);
-    formData.append("status", status);
-    formData.append("file", file as File);
-    if (idClasse) formData.append("idClasse", idClasse);
-    if (idStudent) formData.append("idStudent", idStudent);
-    if (idCourse) formData.append("idCourse", idCourse);
-    if (idTeacher) formData.append("idTeacher", idTeacher);
-    if (idRoom) formData.append("idRoom", idRoom);
+    if (entityType && entityId) {
+      let fieldKey = "";
+      switch (entityType) {
+        case "class":
+          fieldKey = "idClass";
+          break;
+        case "subject":
+          fieldKey = "idSubject";
+          break;
+        case "student":
+          fieldKey = "idStudent";
+          break;
+        case "course":
+          fieldKey = "idCourse";
+          break;
+        case "teacher":
+          fieldKey = "idTeacher";
+          break;
+        case "room":
+          fieldKey = "idRoom";
+          break;
+        default:
+          console.warn("Tipo de entidade não reconhecido:", entityType);
+      }
 
-    console.log("FormData entries:");
+      if (fieldKey) {
+        formData.append(fieldKey, String(entityId));
+      }
+    }
+
+    formData.append("status", String(status));
+    formData.append("file", file as Blob);
+
     for (const [key, value] of formData.entries()) {
       console.log(
         `  ${key}:`,
-        value instanceof File
+        value instanceof Blob
           ? { name: value.name, size: value.size, type: value.type }
           : value
       );
@@ -191,7 +233,6 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     try {
       await addDocument(formData, {
         onSuccess: () => {
-          console.log("Documento adicionado com sucesso!");
           setFile(null);
           setPreviewUrl(null);
           setIsPdf(false);
@@ -204,10 +245,12 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
 
           if (error.response?.data?.details) {
             error.response.data.details.forEach(
-              (err: { campo: string; mensagem: string }) => {
-                errorMessages[err.campo] = err.mensagem;
+              (err: { name: string; error: string }) => {
+                errorMessages[err.name] = err.error;
               }
             );
+          } else if (error.response?.data?.message) {
+            errorMessages.submit = error.response.data.message;
           } else {
             errorMessages.submit =
               error.response?.data?.error ||
@@ -238,13 +281,7 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
           onChange={(e) => setDescription(e.target.value)}
           error={errors.description || ""}
         />
-        <SearchableSelect
-          label="Disciplina"
-          value={idSubject}
-          onChange={(val) => setIdSubject(val || "")}
-          options={subjectOptions}
-          error={errors.idSubject || ""}
-        />
+
         <SearchableSelect
           label="Status"
           value={status}
@@ -252,44 +289,28 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
           options={statusOptions}
           error={errors.status || ""}
         />
-        <p className="text-sm text-red-500 mt-2">
-          *Selecione pelo menos uma turma, aluno, curso, professor ou sala.
-        </p>
         <SearchableSelect
-          label="Turma"
-          value={idClasse}
-          onChange={(val) => setIdClasse(val || "")}
-          options={classOptions}
-          error={errors.idClasse || ""}
+          label="Tipo de Entidade"
+          value={entityType}
+          onChange={(val) => {
+            setEntityType(val || "");
+            setEntityId("");
+          }}
+          options={entityTypeOptions}
+          error={errors.entityType || ""}
         />
-        <SearchableSelect
-          label="Aluno"
-          value={idStudent}
-          onChange={(val) => setIdStudent(val || "")}
-          options={studentOptions}
-          error={errors.idStudent || ""}
-        />
-        <SearchableSelect
-          label="Curso"
-          value={idCourse}
-          onChange={(val) => setIdCourse(val || "")}
-          options={courseOptions}
-          error={errors.idCourse || ""}
-        />
-        <SearchableSelect
-          label="Professor"
-          value={idTeacher}
-          onChange={(val) => setIdTeacher(val || "")}
-          options={teacherOptions}
-          error={errors.idTeacher || ""}
-        />
-        <SearchableSelect
-          label="Sala"
-          value={idRoom}
-          onChange={(val) => setIdRoom(val || "")}
-          options={roomOptions}
-          error={errors.idRoom || ""}
-        />
+        {entityType && (
+          <SearchableSelect
+            label={
+              entityTypeOptions.find((opt) => opt.value === entityType)
+                ?.label || "Entidade"
+            }
+            value={entityId}
+            onChange={(val) => setEntityId(val || "")}
+            options={getEntityOptions()}
+            error={errors.entityId || ""}
+          />
+        )}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Arquivo
