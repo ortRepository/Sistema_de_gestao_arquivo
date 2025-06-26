@@ -149,17 +149,18 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
-        setFieldErrors((prev) => ({
-          ...prev,
-          photo: "Formato inválido. Use PNG, JPG ou JPEG.",
-        }));
+        setStatusMessage({
+          text: "Formato inválido. Use PNG, JPG ou JPEG.",
+          type: "error",
+        });
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        setFieldErrors((prev) => ({
-          ...prev,
-          photo: "Imagem muito grande (máximo 5MB).",
-        }));
+      if (file.size > 1 * 1024 * 1024) {
+        setStatusMessage({
+          text: "Imagem muito grande (máximo 1MB).",
+          type: "error",
+        });
+
         return;
       }
       setSelectedFile(file);
@@ -249,7 +250,7 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
         name: result.data.name,
         biNumber: result.data.biNumber,
         room: result.data.room,
-        dateOfBirth: result.data.dateOfBirth,
+        dateOfBirth: result.data.dateOfBirth.toISOString(),
         photo,
         status: formData.status,
         idClass: result.data.idClass,
@@ -291,6 +292,7 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
         });
       }
     } catch (error: any) {
+      console.log(error.message);
       if (error.message === "Student already exists") {
         setStatusMessage({
           text: "Erro ao salvar. Estudante já registrado!",
@@ -367,12 +369,14 @@ const ModalStudent: React.FC<ModalStudentProps> = ({
 
           {previewPhoto && (
             <div className="mt-4 relative group">
-              <p className="text-sm text-gray-500 mb-2">Pré-visualização:</p>
+              <p className="text-sm text-center text-gray-500 mb-2">
+                Pré-visualização:
+              </p>
               <div className="relative overflow-hidden rounded-lg shadow-sm hover:shadow-md transition-shadow">
                 <img
                   src={previewPhoto}
                   alt="Preview do Aluno"
-                  className="w-full h-40 object-cover rounded-lg"
+                  className="w-full h-54 object-cover rounded-lg"
                 />
                 <button
                   type="button"

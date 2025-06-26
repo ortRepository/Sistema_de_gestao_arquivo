@@ -163,10 +163,10 @@ const Sidebar = ({ role, availableRoutes }: SidebarProps) => {
   };
 
   return (
-    <div className="flex flex-col z-50">
+    <div className="flex  flex-col z-50">
       {/* Menu lateral para desktop */}
       <div
-        className={`fixed transition-all duration-300 md:relative md:translate-x-0 bg-[#4D6BFE] dark:bg-gray-900 rounded-r-3xl h-screen p-4 flex-col justify-between hidden md:flex shadow-xl dark:shadow-2xl ${
+        className={`fixed transition-all duration-300  md:relative md:translate-x-0 bg-[#4D6BFE] dark:bg-gray-900 rounded-r-3xl p-4 flex-col justify-between hidden md:flex shadow-xl dark:shadow-2xl ${
           isExpanded ? "w-64" : "w-20"
         } ${isExpanded ? "relative" : ""}`}
         aria-expanded={isExpanded}

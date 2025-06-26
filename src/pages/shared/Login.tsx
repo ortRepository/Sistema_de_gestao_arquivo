@@ -38,7 +38,7 @@ export default function LoginScreen() {
 
         let route = "";
         //user
-        console.log(password);
+   
         if (userData.accessToken) {
           // Redirecionamento conforme o tipo do usuário
           switch (userData.userRole) {

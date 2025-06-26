@@ -124,10 +124,37 @@ export const sendDocumentSchema = z.object({
 
 export const studentSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
-  biNumber: z.string().min(1, "Número do BI é obrigatório"),
+  biNumber: z
+    .string()
+    .min(1, "Número do BI é obrigatório")
+    .regex(/^[0-9]{9}[A-Z]{2}[0-9]{3}$/, {
+      message:
+        "BI deve ter 9 dígitos, 2 letras e 3 dígitos (ex: 123456789LA123)",
+    }),
   room: z.string().min(1, "Sala é obrigatória"),
   plainToClassFromExist: z.string().min(1, "Turma é obrigatória"),
-  dateOfBirth: z.string().min(1, "Data de nascimento é obrigatória"),
+  dateOfBirth: z.preprocess(
+    (val) => {
+      // transforma string em Date
+      if (typeof val === "string") {
+        const d = new Date(val);
+        // se inválido, retorna original pra falhar em z.date()
+        return isNaN(d.getTime()) ? val : d;
+      }
+      return val;
+    },
+    z
+      .date({ invalid_type_error: "Data inválida" })
+      .max(new Date(), "Data de nascimento não pode ser superior a data actual")
+      .refine(
+        (date) => {
+          const fourYearsAgo = new Date();
+          fourYearsAgo.setFullYear(fourYearsAgo.getFullYear() - 4);
+          return date <= fourYearsAgo;
+        },
+        { message: "Aluno deve ter pelo menos 4 anos" }
+      )
+  ),
   idClass: z.number().min(1, "Classe é obrigatória"),
 });
 
@@ -141,7 +168,6 @@ export const teacherSchema = z.object({
   status: z.enum(["Ativo", "Inativo"], {
     errorMap: () => ({ message: "Status é obrigatório" }),
   }),
-  
 });
 
 export const classSchema = z.object({

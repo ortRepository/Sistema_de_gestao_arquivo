@@ -156,7 +156,6 @@ const ModalRegisterTeacher: React.FC<ModalRegisterTeacherProps> = ({
       } else {
         await addTeacher(payload, {
           onSuccess: (response: { code: number; message: string }) => {
- 
             if (response.message === "Teacher added successfully") {
               setStatusMessage({
                 text: "Professor cadastrado com sucesso!",

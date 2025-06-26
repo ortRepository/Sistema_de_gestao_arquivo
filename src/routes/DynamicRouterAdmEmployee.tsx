@@ -34,7 +34,7 @@ const DynamicRouterAdmEmployee: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen dark:bg-gray-800">
+    <div className="flex justify-between h-screen dark:bg-gray-800">
       {/* Sidebar fixo */}
       <Sidebar role="admin-employee" />
 
